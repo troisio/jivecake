@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+  api:
+    image: jivecake
+    ports:
+      - "9000:9000"
+      - "80:80"
+    volumes:
+      - .:/root/jivecake
+    networks:
+      - backend
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo:4.1.3
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
