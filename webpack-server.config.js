@@ -6,7 +6,7 @@ module.exports = function() {
     target: 'node',
     externals: [nodeExternals()],
     entry: [
-      'babel-polyfill',
+      '@babel/polyfill',
       path.resolve(__dirname, 'server/index.js')
     ],
     output: {
@@ -18,11 +18,18 @@ module.exports = function() {
     resolve: {
       alias: {
         common: path.resolve(__dirname, 'common'),
+        extra: path.resolve(__dirname, 'extra'),
+        settings: path.resolve(__dirname, 'server/settings'),
+        packageJson: path.resolve(__dirname, 'package.json'),
       },
       extensions: ['.js']
     },
     module: {
       rules: [
+        {
+          test: /((jwt\.key)|(jwt\.key\.pub))$/,
+          use: 'raw-loader'
+        },
         {
           test: /(\.jsx?)$/,
           exclude: /node_modules/,

@@ -26,6 +26,7 @@ module.exports = function() {
     ],
     resolve: {
       alias: {
+        settings: path.resolve(__dirname, 'web/settings'),
         js: path.resolve(__dirname, 'web/js'),
         common: path.resolve(__dirname, 'common'),
       },

@@ -44,19 +44,19 @@ export class Transaction {
 
 export class User {
 	_id = null;
-	organizationId = null;
-	username = null;
 	email = null;
+	hashedPassword = null;
 	lastUserActivity = null;
 	lastSystemActivity = null;
 }
 
-export class EntityType = {
-	Event = Event.name,
-	Item = Item.name,
-	Organization = Organization.name,
-	Transaction = Transaction.name,
-	User = User.name,
+export class EntityType {
+	static Event = 'event';
+	static Item = 'item';
+	static Organization = 'organization';
+	static Transaction = 'transaction';
+	static Event = 'event';
+	static User = 'user';
 }
 
 export class Currency {

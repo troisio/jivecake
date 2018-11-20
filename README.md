@@ -18,3 +18,17 @@ npm run watch-web
 ```sh
 npm run watch-server
 ```
+
+### run project
+
+```sh
+docker-compose down
+docker-compose up
+```
+
+### generate public private keys for jwt signing
+
+```sh
+cd extra
+ssh-keygen -N '' -t rsa -b 4096 -f jwt.key
+```
