@@ -2,122 +2,71 @@ const Sentry = require('@sentry/node');
 
 import express from 'express';
 import bodyParser from 'body-parser';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import jwtkey from 'extra/jwt/jwt.key';
 
-import { EntityType, User } from 'common/models';
 import { getDatabase } from './database';
 import { settings } from 'settings';
-import { Router, Method, Require, Permission } from './router';
+import { Router } from 'router';
+
+import {
+  CREATE_ACCOUNT,
+  GET_TOKEN,
+  GET_USER,
+  USER_BY_EMAIL
+} from 'route/user';
+
+import {
+  GET_ORGANIZATION_EVENTS,
+  CREATE_ORGANIZATION,
+  GET_ORGANIZATION
+} from 'route/organization';
+
+import {
+    CREATE_EVENT,
+    GET_EVENT,
+    GET_EVENT_ITEMS,
+} from 'route/event';
+
+import {
+    GET_ITEM,
+    CREATE_ITEM,
+    UPDATE_ITEM,
+    GET_ITEM_TRANSACTIONS
+} from 'route/item';
 
 Sentry.init(settings.sentry);
-const SALT_ROUNDS = 10;
 
 const application = express();
 application.use(bodyParser.json());
 
 export const run = async () => {
-  console.log('jwtkey', jwtkey);
-
   getDatabase().then((db) => {
-    const router = new Router(application, Sentry, db);
+    const sentry = {
+      captureException: (e) => console.log(e),
+      captureMessage: (e) => console.log(e),
+    };
+
+    const router = new Router(application, sentry, db);
     return router;
   }, (e) => {
     Sentry.captureException(e);
   }).then((router) => {
-    router.register({
-      method: Method.GET,
-      path: '/user/:id',
-      accessRules: [
-        {
-          permission: Permission.READ,
-          entityType: EntityType.User,
-          param: 'id'
-        }
-      ],
-      requires: [ Require.Authenticated ],
-      on: (request, response, injection) => {
-        const { jwt } = injection;
-        response.json(jwt);
-      }
-    });
+    router.register(CREATE_ACCOUNT);
+    router.register(USER_BY_EMAIL); /* must appear before GET_USER */
+    router.register(GET_USER);
+    router.register(GET_TOKEN);
 
-    router.register({
-      method: Method.POST,
-      path: '/account',
-      on: async (request, response, extra) => {
-        const { body: { email, password } } = request;
-        const { db } = extra;
+    router.register(CREATE_ORGANIZATION);
+    router.register(GET_ORGANIZATION);
+    router.register(GET_ORGANIZATION_EVENTS);
 
-        const user = await db.collection(EntityType.User).findOne({ email });
+    router.register(CREATE_EVENT);
+    router.register(GET_EVENT);
+    router.register(GET_EVENT_ITEMS);
 
-        if (user === null) {
-          const hashedPassword = await new Promise((resolve, reject) => {
-            bcrypt.genSalt(SALT_ROUNDS, (err, salt) => {
-              if (err) {
-                reject(err);
-              } else {
-                bcrypt.hash(password, salt, (err, hash) => {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    resolve(hash);
-                  }
-                });
-              }
-            });
-          });
-
-          const user = new User();
-          user.email = email;
-          user.hashedPassword = hashedPassword;
-          user.created = new Date();
-
-          await db.collection(EntityType.User).insertOne(user);
-          const searchedUser = await db.collection(EntityType.User).findOne({ email: user.email });
-          searchedUser.hashedPassword = null;
-          response.json(searchedUser);
-        } else {
-          response.sendStatus(409).end();
-        }
-      }
-    });
-
-    router.register({
-      method: Method.POST,
-      path: '/token',
-      on: async (request, response, { db }) => {
-        const { body: { email, password } } = request;
-        const user = await db.collection(EntityType.User).findOne({ email });
-
-        if (user === null) {
-          response.sendStatus(401).end();
-        } else {
-
-          bcrypt.compare(password, user.hashedPassword, (err, res) => {
-            if (err) {
-              Sentry.captureException(err);
-              response.sendStatus(401).end();
-            } else if (res === true) {
-              jwt.sign({
-                exp: Math.floor(Date.now() / 1000) + (60 * 60),
-              }, jwtkey, { algorithm: 'RS256' }, (err, token) => {
-                if (err) {
-                  Sentry.captureException(err);
-                  response.sendStatus(401).end();
-                } else {
-                  response.json({ token });
-                }
-              });
-            } else {
-              Sentry.captureMessage('invalid password attempt');
-              response.sendStatus(401).end();
-            }
-          });
-        }
-      }
-    });
+    router.register(GET_ITEM);
+    router.register(CREATE_ITEM);
+    router.register(UPDATE_ITEM);
+    router.register(GET_ITEM_TRANSACTIONS);
 
     application.listen(settings.port, () => {
       console.log('listening on port ' + settings.port);
