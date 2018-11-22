@@ -3,7 +3,7 @@ import packageJson from 'packageJson';
 export const settings = {
   port: 9000,
   sentry: {
-    dsn: 'https://c1fce8023eaa4066896455053318fb60@sentry.io/1327061',
+    dsn: '',
     environment: 'development',
     debug: true,
     release: packageJson.version
