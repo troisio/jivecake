@@ -105,7 +105,7 @@ export class PaymentProfileType {
 
 export class Language {
 	static en = 'en';
-	static for = 'fr';
+	static fr = 'fr';
 	static ko = 'ko';
 }
 
