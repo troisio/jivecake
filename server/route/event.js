@@ -1,7 +1,7 @@
 import mongodb from 'mongodb';
 
 import { Method, Require, Permission } from 'router';
-import { EventCollection, ItemCollection, OrganizationCollection } from 'database';
+import { EventCollection, ItemCollection, OrganizationCollection, TransactionCollection } from 'database';
 import { Event } from 'common/models';
 import { DEFAULT_MAX_LENGTH } from 'api';
 
@@ -38,6 +38,34 @@ export const CREATE_EVENT = {
     await db.collection(EventCollection).insertOne(event);
     const searchedEvent = await db.collection(EventCollection).findOne({ _id: event.id });
     response.json(searchedEvent);
+  }
+}
+
+export const DELETE_EVENT = {
+  method: Method.DELETE,
+  path: '/event/:eventId',
+  accessRules: [
+    {
+      permission: Permission.WRITE,
+      collection: EventCollection,
+      param: 'eventId'
+    }
+  ],
+  on: async (request, response, { db }) => {
+    const eventId = new mongodb.ObjectID(request.params.eventId);
+    const itemCount = await db.collection(ItemCollection)
+      .find({ eventId })
+      .count();
+
+    if (itemCount > 0) {
+      response.status(400);
+      return response.json({
+        error: 'item_exist'
+      });
+    }
+
+    await db.collection(EventCollection).deleteOne({ _id: eventId });
+    response.sendStatus(200).end();
   }
 }
 
@@ -84,6 +112,50 @@ export const GET_EVENT_ITEMS = {
   on: async (request, response, { db, pagination: { skip, limit } }) => {
     const cursor = await db.collection(ItemCollection)
       .find({ eventId: new mongodb.ObjectID(request.params.eventId) })
+      .skip(skip)
+      .limit(limit);
+
+    const countFuture = cursor.count();
+    const entityFuture = cursor.toArray();
+
+    response.json({
+      count: await countFuture,
+      entity: await entityFuture
+    });
+  }
+}
+
+export const GET_TRANSACTIONS = {
+  method: Method.POST,
+  path: '/event/:eventId',
+  accessRules: [
+    {
+      permission: Permission.READ,
+      collection: EventCollection,
+      param: 'eventId'
+    }
+  ],
+  querySchema: {
+    type: 'object',
+    properties: {
+      itemId: {
+        type: 'string',
+        format: 'objectid'
+      }
+    }
+  },
+  requires: [ Require.Authenticated, Require.Page ],
+  on: async (request, response, { db, pagination: { skip, limit } }) => {
+    const query = {
+      eventId: new mongodb.ObjectID(request.params.eventId)
+    };
+
+    if (request.query.hasOwnProperty('itemId')) {
+      query.itemId = new mongodb.ObjectID(request.query.itemId)
+    }
+
+    const cursor = await db.collection(TransactionCollection)
+      .find(query)
       .skip(skip)
       .limit(limit);
 

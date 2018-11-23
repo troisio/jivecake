@@ -1,7 +1,7 @@
 import mongodb from 'mongodb';
 
 import { Item, Currency } from 'common/models';
-import { Method, Require, Permission } from 'router';
+import { Method, Permission } from 'router';
 import { EventCollection, ItemCollection, TransactionCollection } from 'database';
 import { DEFAULT_MAX_LENGTH } from 'api';
 
@@ -55,6 +55,34 @@ export const GET_ITEM = {
   }
 }
 
+export const DELETE_ITEM = {
+  method: Method.DELETE,
+  path: '/item/:itemId',
+  accessRules: [
+    {
+      permission: Permission.WRITE,
+      collection: ItemCollection,
+      param: 'itemId'
+    }
+  ],
+  on: async (request, response, { db }) => {
+    const itemId = new mongodb.ObjectID(request.params.itemId);
+    const transactionsCount = await db.collection(TransactionCollection)
+      .find({ itemId })
+      .count();
+
+    if (transactionsCount > 0) {
+      response.status(400);
+      return response.json({
+        error: 'transaction_exist'
+      });
+    }
+
+    await db.collection(ItemCollection).deleteOne({ _id: itemId });
+    response.sendStatus(200).end();
+  }
+}
+
 export const CREATE_ITEM = {
   method: Method.POST,
   path: '/event/:eventId/item',
@@ -96,41 +124,5 @@ export const UPDATE_ITEM = {
     const entity = await db.collection(ItemCollection)
       .updateOne({ _id: new mongodb.ObjectId(request.params.itemId) }, updateObject);
     response.json(entity);
-  }
-}
-
-export const GET_ITEM_TRANSACTIONS = {
-  method: Method.POST,
-  path: '/item/:itemId',
-  accessRules: [
-    {
-      permission: Permission.READ,
-      collection: ItemCollection,
-      param: 'itemId'
-    }
-  ],
-  requires: [
-    Require.Authenticated,
-    Require.Page
-  ],
-  on: async (request, response, { db, pagination: { skip, limit } }) => {
-    const item = await db.collection(ItemCollection)
-      .findOne({ _id: new mongodb.ObjectId(request.params.itemId) });
-
-    const cursor = await db.collection(TransactionCollection)
-      .find({
-        eventId: item.eventId,
-        itemId: item._id,
-      })
-      .skip(skip)
-      .limit(limit);
-
-    const countFuture = cursor.count();
-    const entityFuture = cursor.toArray();
-
-    response.json({
-      count: await countFuture,
-      entity: await entityFuture
-    });
   }
 }

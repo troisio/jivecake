@@ -1,8 +1,12 @@
 import React from 'react';
-import { t } from  'js/i18n';
+import PropTypes from 'prop-types';
 
-export const application = () => (
+export const application = ({ T }) => (
   <div>
-    {t('Hello World')}
+    {T('Hello')}
   </div>
 );
+
+application.propTypes = {
+  T: PropTypes.object.isRequired,
+};

@@ -6,7 +6,11 @@ export const settings = {
     dsn: '',
     environment: 'development',
     debug: true,
-    release: packageJson.version
+    release: packageJson.version,
+    local: true
+  },
+  sendinblue: {
+    key: ''
   },
   mongo: {
     url: 'mongodb://mongo:27017'

@@ -7,6 +7,7 @@ export const ItemCollection = 'item';
 export const OrganizationCollection = 'organization';
 export const PaymentProfileCollection = 'paymentProfile';
 export const TransactionCollection = 'transaction';
+export const PasswordRecoveryCollection = 'passwordRecovery';
 
 export const getDatabase = () => {
   return new Promise(async (resolve, reject) => {
@@ -31,6 +32,9 @@ export const getDatabase = () => {
         const transactionCollection = db.collection(TransactionCollection);
         await transactionCollection.createIndex({ eventId: 1 });
         await transactionCollection.createIndex({ userId: 1 });
+
+        const passwordRecoveryCollcetion = db.collection(PasswordRecoveryCollection);
+        await passwordRecoveryCollcetion.createIndex({ userId: 1 });
 
         resolve(db);
       }

@@ -41,13 +41,6 @@ export class Organization {
 	lastSystemActivity = null;
 }
 
-export class PaymentProfileId {
-	_id = null;
-	organizationId = null;
-	type = PaymentProfileType.Stripe;
-	created = null;
-}
-
 export class Transaction {
 	_id = null;
 	userId = null;
@@ -55,13 +48,12 @@ export class Transaction {
 	itemId = null;
 	currency = null;
 	amount = null;
-	purchasedBy = null;
 	createdBy = null;
-	externalTransation = null;
+	externalTransationId = null;
 	externalTransationType = null;
+	status = null;
 	lastUserActivity = null;
 	lastSystemActivity = null;
-	status = null;
 }
 
 export class User {
@@ -71,8 +63,23 @@ export class User {
 	selectedLanguage = null;
 	lastLanguage = null;
 	hashedPassword = null;
+	created = null;
+	updated = null;
 	lastUserActivity = null;
 	lastSystemActivity = null;
+}
+
+export class PaymentProfileId {
+	_id = null;
+	organizationId = null;
+	type = PaymentProfileType.Stripe;
+	created = null;
+}
+
+export class PasswordRecovery {
+	_id = null;
+	userId = null;
+	created = null;
 }
 
 export class EntityType {
@@ -95,6 +102,15 @@ export class PaymentProfileType {
 	static Stripe = 'stripe';
 	static Paypal = 'paypal';
 }
+
+export class Language {
+	static en = 'en';
+	static for = 'fr';
+	static ko = 'ko';
+}
+
+export const SUPPORTED_LANGUAGE_IDS = [Language.en, Language.fr, Language.ko];
+export const MINIMUM_PASSWORD_LENGTH = 8;
 
 export class Currency {
 	static USD = 'USD';

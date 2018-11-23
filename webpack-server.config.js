@@ -31,6 +31,11 @@ module.exports = function() {
     module: {
       rules: [
         {
+          parser: {
+            amd: false
+          }
+        },
+        {
           test: /((jwt\.key)|(jwt\.key\.pub))$/,
           use: 'raw-loader'
         },

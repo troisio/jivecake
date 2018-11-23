@@ -4,11 +4,27 @@ import bcrypt from 'bcryptjs';
 import mongodb from 'mongodb';
 
 import jwtkeysecret from 'extra/jwt/jwt.key';
+import { settings } from 'settings';
 
 import { DEFAULT_MAX_LENGTH } from 'api';
 import { Method, Require, Permission } from 'router';
-import { UserCollection } from '../database';
-import { User } from 'common/models';
+import { PasswordRecoveryCollection, UserCollection } from 'database';
+import { PasswordRecovery, User, SUPPORTED_LANGUAGE_IDS, MINIMUM_PASSWORD_LENGTH } from 'common/models';
+import { getUserLanguage } from 'common/helpers';
+
+const SELECTED_LANGUAGE_OPTIONS = [ ...SUPPORTED_LANGUAGE_IDS, null ];
+const USER_SCHEMA_EMAIL_PASSWORD = {
+  email: {
+    type: 'string',
+    format: 'email',
+    maxLength: DEFAULT_MAX_LENGTH
+  },
+  password: {
+    type: 'string',
+    minLength: MINIMUM_PASSWORD_LENGTH,
+    maxLength: DEFAULT_MAX_LENGTH
+  }
+};
 
 export const GET_USER = {
   method: Method.GET,
@@ -27,6 +43,76 @@ export const GET_USER = {
   }
 }
 
+const getHashedPassword = (password) => {
+  return new Promise((resolve, reject) => {
+    bcrypt.genSalt(10, (err, salt) => {
+      if (err) {
+        reject(err);
+      } else {
+        bcrypt.hash(password, salt, (err, hash) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(hash);
+          }
+        });
+      }
+    });
+  });
+}
+
+export const PASSWORD_RECOVERY = {
+  method: Method.POST,
+  path: '/user/password_recovery',
+  bodySchema: {
+    type: 'object',
+    required: ['email'],
+    additionalProperties: false,
+    properties: {
+      email: USER_SCHEMA_EMAIL_PASSWORD.email
+    }
+  },
+  on: async (request, response, { db, SibApiV3Sdk, T }) => {
+    const user = await db.collection(UserCollection)
+      .findOne({ email: request.body.email });
+
+    if (user !== null) {
+      const oneHourAgo = new Date();
+      oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+
+      const passwordRecovery = await db.collection(PasswordRecoveryCollection)
+        .findOne({ userId: user._id, created: { $gt: oneHourAgo } });
+
+      if (passwordRecovery !== null) {
+        return response
+          .status(400)
+          .json({ error: 'within_hour' });
+      }
+
+      const entity = new PasswordRecovery();
+      entity.userId = user._id;
+      entity.created = new Date();
+
+      await db.collection(PasswordRecoveryCollection).insertOne(entity);
+
+      const lng = getUserLanguage(user);
+      const api = new SibApiV3Sdk.SMTPApi();
+      const options = new SibApiV3Sdk.SendSmtpEmail();
+      options.to = [{ email: user.email }];
+      options.htmlContent = `<a href='${settings.web.origin}/password-recovery/${entity._id}'>${T('Reset your password', { lng })}</a> - JiveCake`;
+      options.subject = T('JiveCake Password Reset', { lng });
+      options.sender = {
+        name: 'JiveCake',
+        email: 'noreply@jivecake.com'
+      };
+
+      await api.sendTransacEmail(options);
+    }
+
+    response.sendStatus(200);
+  }
+}
+
 export const USER_BY_EMAIL = {
   method: Method.GET,
   path: '/user/email',
@@ -34,11 +120,7 @@ export const USER_BY_EMAIL = {
     type: 'object',
     required: ['email'],
     properties: {
-      email: {
-        type: 'string',
-        format: 'email',
-        maxLength: DEFAULT_MAX_LENGTH
-      }
+      email: USER_SCHEMA_EMAIL_PASSWORD.email
     }
   },
   on: async (request, response, { db }) => {
@@ -54,56 +136,87 @@ export const USER_BY_EMAIL = {
   }
 }
 
+export const UPDATE_USER = {
+  method: Method.POST,
+  path: '/user/:userId',
+  accessRules: [
+    {
+      permission: Permission.WRITE,
+      collection: UserCollection,
+      param: 'userId'
+    }
+  ],
+  bodySchema: {
+    type: 'object',
+    required: ['email', 'selectedLanguage', 'lastLanguage'],
+    additionalProperties: false,
+    properties: {
+      email: USER_SCHEMA_EMAIL_PASSWORD.email,
+      password: USER_SCHEMA_EMAIL_PASSWORD.password,
+      selectedLanguage: {
+        enum: SELECTED_LANGUAGE_OPTIONS
+      },
+      lastLanguage: {
+        enum: SUPPORTED_LANGUAGE_IDS
+      }
+    }
+  },
+  on: async (request, response, { db }) => {
+    const now = new Date();
+    const user = await db.collection(UserCollection).findOne({ email: request.query.email });
+
+    if (user.email !== request.body.email) {
+      user.emailVerified = false;
+    }
+
+    user.email = request.body.email;
+    user.selectedLanguage = request.body.selectedLanguage;
+    user.lastLanguage = request.body.lastLanguage;
+    user.lastUserActivity = now;
+    user.updated = now;
+
+    if (request.body.hasOwnProperty('password')) {
+      user.hashedPassword = await getHashedPassword(request.body.password);
+    }
+
+    const { result } = await db.collection(UserCollection)
+      .findOneAndUpdate({ _id: user._id }, user);
+      const entity = _.omit(result, ['hashedPassword']);
+    return response.json(entity);
+  }
+}
+
 export const CREATE_ACCOUNT = {
   method: Method.POST,
   path: '/account',
   bodySchema: {
     type: 'object',
-    required: ['email', 'password'],
+    required: ['email', 'password', 'lastLanguage'],
     additionalProperties: false,
     properties: {
-      email: {
-        type: 'string',
-        format: 'email',
-        maxLength: 200
-      },
-      password: {
-        type: 'string',
-        minLength: 8,
-        maxLength: 100
+      email: USER_SCHEMA_EMAIL_PASSWORD.email,
+      password: USER_SCHEMA_EMAIL_PASSWORD.password,
+      lastLanguage: {
+        enum: SUPPORTED_LANGUAGE_IDS
       }
     }
   },
   on: async (request, response, { db }) => {
-    const { body: { email, password } } = request;
+    const { body: { email, password, lastLanguage } } = request;
     const user = await db.collection(UserCollection).findOne({ email });
 
     if (user === null) {
-      const hashedPassword = await new Promise((resolve, reject) => {
-        bcrypt.genSalt(10, (err, salt) => {
-          if (err) {
-            reject(err);
-          } else {
-            bcrypt.hash(password, salt, (err, hash) => {
-              if (err) {
-                reject(err);
-              } else {
-                resolve(hash);
-              }
-            });
-          }
-        });
-      });
-
+      const hashedPassword = await getHashedPassword(password);
       const user = new User();
       user.email = email;
       user.hashedPassword = hashedPassword;
+      user.lastLanguage = lastLanguage;
       user.created = new Date();
 
       await db.collection(UserCollection).insertOne(user);
-      const searchedUser = await db.collection(UserCollection).findOne({ email: user.email });
-      searchedUser.hashedPassword = null;
-      response.json(searchedUser);
+      const searchedUser = await db.collection(UserCollection).findOne({ _id: user._id });
+      const entity = _.omit(searchedUser, ['hashedPassword'])
+      response.json(entity);
     } else {
       response.sendStatus(409).end();
     }
