@@ -7,7 +7,6 @@ module.exports = function() {
   return {
     entry: [
       '@babel/polyfill',
-      'whatwg-fetch',
       path.resolve(__dirname, 'web/js/index.jsx'),
       path.resolve(__dirname, 'web/sass/index.scss'),
     ],

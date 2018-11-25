@@ -21,7 +21,7 @@ export class Input extends React.Component {
   render() {
     const props = { ...this.props };
     const id = this.props.hasOwnProperty('id') ? this.props.id : _.random(0, 9007199254740991);
-    const inputProps = { ..._.omit(this.props, ['label']), id };
+    const inputProps = { ..._.omit(this.props, ['label', 'error']), id };
     const inputStylename = this.props.error ? 'input error' : 'input';
     const input = <input styleName={inputStylename} className={inputProps.className} { ...inputProps } />;
 

@@ -112,14 +112,14 @@ export const USER_BY_EMAIL = {
     }
   },
   on: async (request, response, { db }) => {
-    const user = await db.collection(UserCollection).findOne({ email: request.query.email });
+    const user = await db.collection(UserCollection)
+      .findOne({ email: request.query.email });
 
     if (user === null) {
       response.sendStatus(404);
     } else {
-      response.json({
-        email: user.email
-      });
+      const entity = _.pick(user, ['_id', 'email']);
+      response.json(entity);
     }
   }
 }

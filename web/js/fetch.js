@@ -1,11 +1,11 @@
 import { getLocalStorage } from 'js/storage';
 import settings from 'settings';
 
-export const fetch = (url, options = {}) => {
+export const fetch = (url, options = {}, transform = true) => {
   const storage = getLocalStorage();
 
-  if (!url.beginsWith('jivecake')) {
-    return fetch(url, options);
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return window.fetch(url, options);
   }
 
   const headers = options.hasOwnProperty('headers') ? options.headers : {};
@@ -19,21 +19,18 @@ export const fetch = (url, options = {}) => {
     headers
   };
 
-  /*
-    need to also check if this is not a file object
-  */
   const stringify = derivedOptions.hasOwnProperty('body') &&
     derivedOptions.body !== null &&
     typeof derivedOptions.body === 'object';
 
-  if (stringify) {
-    derivedOptions.body = JSON.stringify(options.body);
+  if (stringify && transform) {
+    derivedOptions.body = JSON.stringify(derivedOptions.body);
   }
 
-  const derivedUrl = settings.api.url + settings. url.slice('jivecake'.length);
+  const derivedUrl = settings.api.url + url;
 
-  return fetch(derivedUrl, derivedOptions).then((response) => {
+  return window.fetch(derivedUrl, derivedOptions).then((response) => {
     const isJson = response.headers['Content-Type'] === 'application/json';
-    return isJson ? response.json() : response;
+    return isJson && transform ? response.json() : response;
   });
 };

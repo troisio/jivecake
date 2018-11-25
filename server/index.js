@@ -88,6 +88,12 @@ export const run = () => {
       DELETE_ITEM
     ];
 
+    application.use((req, res, next) => {
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Headers', 'Authorization, Origin, X-Requested-With, Content-Type, Accept');
+      next();
+    });
+
     for (const route of routes) {
       router.register(route);
     }

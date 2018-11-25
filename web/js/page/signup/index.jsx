@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link }from 'react-router-dom';
+import URLSearchParams from 'url-search-params';
 
 import { Routes } from 'common/routes';
 import { T } from 'common/i18n';
@@ -26,7 +27,7 @@ export class Signup extends React.Component {
     loading: false
   };
 
-  onSubmit = async (e) => {
+  onSubmit = (e) => {
     e.preventDefault();
 
     if (this.state.loading) {
@@ -39,7 +40,7 @@ export class Signup extends React.Component {
 
     this.setState({loading: true});
 
-    fetch('jivecake/account', {
+    fetch('/account', {
       body: {
         username: this.state.username,
         password: this.state.password
@@ -56,14 +57,17 @@ export class Signup extends React.Component {
   }
 
   onEmailChange = (e) => {
-    this.setState({ email: e.target.value });
+    const email = e.target.value;
+    this.setState({ email });
 
-    fetch('jivecake/user/email', {
-      method: 'POST',
-      body: {
-        email: this.state.email
-      }
-    })
+    const params = new URLSearchParams();
+    params.append('email', email);
+
+    fetch(`/user/email?${params.toString()}`, false).then((response) => {
+      this.setState({ emailAvailable: response.status === 404 });
+    }, () => {
+      this.setState({ emailAvailable: false });
+    });
   }
 
   onPasswordChange = (e) => {
@@ -90,14 +94,19 @@ export class Signup extends React.Component {
         );
       }
 
-      let checkStyle;
+      /*
+        will not work, need to use
+        https://github.com/FortAwesome/react-fontawesome#introduction
+      */
+
+      let iconStyleName;
 
       if (this.state.email.length === 0) {
-        checkStyle = 'check-circle';
+        iconStyleName = 'check-circle';
       } else if (this.state.emailAvailable) {
-        checkStyle = 'check-circle success';
+        iconStyleName = 'check-circle success';
       } else {
-        checkStyle = 'check-circle warn';
+        iconStyleName = 'check-circle warn';
       }
 
       content = (
@@ -111,9 +120,10 @@ export class Signup extends React.Component {
                 placeholder={T('Email')}
                 type='email'
                 styleName='email-input'
+                autoComplete='email'
               />
               <div styleName='check-icon-container'>
-                <i styleName={checkStyle} className='fas fa-user-check'></i>
+                <i styleName={iconStyleName} className='fas fa-user-check'></i>
               </div>
             </div>
             <Input
@@ -122,6 +132,7 @@ export class Signup extends React.Component {
               placeholder={T('Password')}
               type='password'
               error={this.state.displayPasswordsDoNoMatch}
+              autoComplete='new-password'
             />
             <Input
               onChange={this.onPasswordConfirmChange}
@@ -129,6 +140,7 @@ export class Signup extends React.Component {
               placeholder={T('Password Confirm')}
               type='password'
               error={this.state.displayPasswordsDoNoMatch}
+              autoComplete='new-password'
             />
             <Button>
               {T('Create Account')}
