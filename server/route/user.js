@@ -6,25 +6,13 @@ import mongodb from 'mongodb';
 import jwtkeysecret from 'extra/jwt/jwt.key';
 import { settings } from 'settings';
 
-import { DEFAULT_MAX_LENGTH } from 'api';
 import { Method, Require, Permission } from 'router';
-import { PasswordRecoveryCollection, UserCollection } from 'database';
-import { PasswordRecovery, User, SUPPORTED_LANGUAGE_IDS, MINIMUM_PASSWORD_LENGTH } from 'common/models';
+import { OrganizationCollection, PasswordRecoveryCollection, UserCollection } from 'database';
+import { PasswordRecovery, User, SUPPORTED_LANGUAGE_IDS } from 'common/models';
+import { USER_SCHEMA } from 'common/schema';
 import { getUserLanguage } from 'common/helpers';
 
 const SELECTED_LANGUAGE_OPTIONS = [ ...SUPPORTED_LANGUAGE_IDS, null ];
-const USER_SCHEMA_EMAIL_PASSWORD = {
-  email: {
-    type: 'string',
-    format: 'email',
-    maxLength: DEFAULT_MAX_LENGTH
-  },
-  password: {
-    type: 'string',
-    minLength: MINIMUM_PASSWORD_LENGTH,
-    maxLength: DEFAULT_MAX_LENGTH
-  }
-};
 
 export const GET_USER = {
   method: Method.GET,
@@ -69,7 +57,7 @@ export const PASSWORD_RECOVERY = {
     required: ['email'],
     additionalProperties: false,
     properties: {
-      email: USER_SCHEMA_EMAIL_PASSWORD.email
+      email: USER_SCHEMA.email
     }
   },
   on: async (request, response, { db, SibApiV3Sdk, T }) => {
@@ -120,7 +108,7 @@ export const USER_BY_EMAIL = {
     type: 'object',
     required: ['email'],
     properties: {
-      email: USER_SCHEMA_EMAIL_PASSWORD.email
+      email: USER_SCHEMA.email
     }
   },
   on: async (request, response, { db }) => {
@@ -133,6 +121,40 @@ export const USER_BY_EMAIL = {
         email: user.email
       });
     }
+  }
+}
+
+export const GET_ORGANIZATIONS = {
+  method: Method.GET,
+  path: '/user/:userId/organization',
+  accessRules: [
+    {
+      permission: Permission.READ,
+      collection: UserCollection,
+      param: 'userId'
+    }
+  ],
+  requires: [ Require.Page ],
+  on: async (request, response, { db, pagination: { skip, limit } }) => {
+    const userId = new mongodb.ObjectID(request.params.userId);
+    const cursor = await db.collection(OrganizationCollection)
+      .find({
+        $or: [
+          { read: userId },
+          { write: userId },
+          { owner: userId }
+        ]
+      })
+      .skip(skip)
+      .limit(limit);
+
+    const countFuture = cursor.count();
+    const entityFuture = cursor.toArray();
+
+    response.json({
+      count: await countFuture,
+      entity: await entityFuture
+    });
   }
 }
 
@@ -151,8 +173,8 @@ export const UPDATE_USER = {
     required: ['email', 'selectedLanguage', 'lastLanguage'],
     additionalProperties: false,
     properties: {
-      email: USER_SCHEMA_EMAIL_PASSWORD.email,
-      password: USER_SCHEMA_EMAIL_PASSWORD.password,
+      email: USER_SCHEMA.email,
+      password: USER_SCHEMA.password,
       selectedLanguage: {
         enum: SELECTED_LANGUAGE_OPTIONS
       },
@@ -194,8 +216,8 @@ export const CREATE_ACCOUNT = {
     required: ['email', 'password', 'lastLanguage'],
     additionalProperties: false,
     properties: {
-      email: USER_SCHEMA_EMAIL_PASSWORD.email,
-      password: USER_SCHEMA_EMAIL_PASSWORD.password,
+      email: USER_SCHEMA.email,
+      password: USER_SCHEMA.password,
       lastLanguage: {
         enum: SUPPORTED_LANGUAGE_IDS
       }

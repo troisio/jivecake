@@ -33,7 +33,7 @@ export class Organization {
 	name = null;
 	email = null;
 	emailVerified = null;
-	createdBy = null;
+	owner = null;
 	read = [];
 	write = [];
 	created = null;
@@ -82,6 +82,13 @@ export class PasswordRecovery {
 	created = null;
 }
 
+export class OrganizationInvitation {
+	_id = null;
+	organization = null;
+	userId = null;
+	created = null;
+}
+
 export class EntityType {
 	static Event = 'event';
 	static Item = 'item';
@@ -110,7 +117,6 @@ export class Language {
 }
 
 export const SUPPORTED_LANGUAGE_IDS = [Language.en, Language.fr, Language.ko];
-export const MINIMUM_PASSWORD_LENGTH = 8;
 
 export class Currency {
 	static USD = 'USD';

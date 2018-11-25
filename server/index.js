@@ -7,7 +7,7 @@ import bodyParser from 'body-parser';
 import { getDatabase } from './database';
 import { settings } from 'settings';
 import { Router } from 'router';
-import { getT } from 'common/i18n';
+import { T } from 'common/i18n';
 
 import {
   CREATE_ACCOUNT,
@@ -15,13 +15,16 @@ import {
   GET_USER,
   USER_BY_EMAIL,
   UPDATE_USER,
-  PASSWORD_RECOVERY
+  PASSWORD_RECOVERY,
+  GET_ORGANIZATIONS
 } from 'route/user';
 
 import {
   GET_ORGANIZATION_EVENTS,
   CREATE_ORGANIZATION,
-  GET_ORGANIZATION
+  GET_ORGANIZATION,
+  DELETE_USER,
+  INVITE_USER
 } from 'route/organization';
 
 import {
@@ -51,10 +54,7 @@ const application = express();
 application.use(bodyParser.json());
 
 export const run = () => {
-  Promise.all([
-    getT,
-    getDatabase()
-  ]).then(([ T, db ]) => {
+  getDatabase().then((db) => {
     SibApiV3Sdk.ApiClient.instance.authentications['api-key'].apiKey = settings.sendinblue.key;
     return new Router(application, sentry, db, SibApiV3Sdk, T);
   }, (e) => {
@@ -63,6 +63,7 @@ export const run = () => {
     const routes = [
       USER_BY_EMAIL,  /* must appear before GET_USER */
       PASSWORD_RECOVERY, /* must appear before GET_USER */
+      GET_ORGANIZATIONS, /* must appear before GET_USER */
       CREATE_ACCOUNT,
       GET_USER,
       GET_TOKEN,
@@ -72,6 +73,8 @@ export const run = () => {
       CREATE_ORGANIZATION,
       GET_ORGANIZATION,
       GET_ORGANIZATION_EVENTS,
+      DELETE_USER,
+      INVITE_USER,
 
       CREATE_EVENT,
       GET_EVENT,

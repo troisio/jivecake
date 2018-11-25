@@ -3,7 +3,7 @@ import mongodb from 'mongodb';
 import { Item, Currency } from 'common/models';
 import { Method, Permission } from 'router';
 import { EventCollection, ItemCollection, TransactionCollection } from 'database';
-import { DEFAULT_MAX_LENGTH } from 'api';
+import { DEFAULT_MAX_LENGTH } from 'common/schema';
 
 const ITEM_SCHEMA = {
   type: 'object',

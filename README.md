@@ -32,3 +32,12 @@ docker-compose up
 cd extra/jwt
 ssh-keygen -N '' -t rsa -b 4096 -f jwt.key
 ```
+
+
+### note on docker mongo
+
+The default database in development is not mounted to your file system so you may want to occasionally
+
+```sh
+docker system prune
+```

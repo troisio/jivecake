@@ -1,0 +1,38 @@
+@import '~sass/color';
+@import '~sass/media';
+
+.left {
+  display: flex;
+  align-items: center;
+
+  > *:not(:first-child) {
+    margin-left: 10px;
+  }
+}
+
+.login {
+  font-size: 1.5rem;
+  color: $anchor;
+}
+
+.logo {
+  border-radius: 25%;
+  width: 50px;
+}
+
+.jivecake {
+  color: $logo;
+}
+
+.root {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}
+
+@include not_phone() {
+  .root {
+    padding: 15px 30px;
+  }
+}

@@ -1,28 +1,23 @@
 import i18n from 'i18next';
 import fr from 'common/translation/fr.json';
 import ko from 'common/translation/ko.json';
+import { Language } from 'common/models';
 
-export const getT = new Promise((resolve, reject) => {
-  i18n.init({
-    debug: true,
-    preload: ['ko', 'fr'],
-    fallbackLng: 'en',
-    resources: {
-      ko: {
-        translation: ko
-      },
-      fr: {
-        translation: fr
-      }
+i18n.init({
+  preload: [Language.ko, Language.fr],
+  fallbackLng: 'en',
+  initImmediate: false,
+  resources: {
+    ko: {
+      translation: ko
     },
-    interpolation: {
-      escapeValue: false
+    fr: {
+      translation: fr
     }
-  }, function(err, t) {
-    if (err) {
-      reject(err);
-    } else {
-      resolve(t);
-    }
-  });
+  },
+  interpolation: {
+    escapeValue: false
+  }
 });
+
+export const T = i18n.t.bind(i18n);

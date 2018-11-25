@@ -3,7 +3,7 @@ import mongodb from 'mongodb';
 import { Method, Require, Permission } from 'router';
 import { EventCollection, ItemCollection, OrganizationCollection, TransactionCollection } from 'database';
 import { Event } from 'common/models';
-import { DEFAULT_MAX_LENGTH } from 'api';
+import { DEFAULT_MAX_LENGTH } from 'common/schema';
 
 export const CREATE_EVENT = {
   method: Method.POST,

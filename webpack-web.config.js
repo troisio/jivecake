@@ -7,6 +7,7 @@ module.exports = function() {
   return {
     entry: [
       '@babel/polyfill',
+      'whatwg-fetch',
       path.resolve(__dirname, 'web/js/index.jsx'),
       path.resolve(__dirname, 'web/sass/index.scss'),
     ],
@@ -27,8 +28,11 @@ module.exports = function() {
     resolve: {
       alias: {
         settings: path.resolve(__dirname, 'web/settings'),
+        component: path.resolve(__dirname, 'web/js/component'),
+        page: path.resolve(__dirname, 'web/js/page'),
         js: path.resolve(__dirname, 'web/js'),
         common: path.resolve(__dirname, 'common'),
+        sass: path.resolve(__dirname, 'web/sass')
       },
       extensions: ['.js', '.jsx']
     },
@@ -42,7 +46,7 @@ module.exports = function() {
             loader: 'css-loader',
             options: {
               modules: true,
-              localIdentName: "[local]"
+              localIdentName: "[path]___[name]__[local]___[hash:base64:5]"
             }
           },
           {

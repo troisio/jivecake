@@ -8,3 +8,6 @@ msgstr ""
 
 msgid "Reset your password"
 msgstr "비밀번호를 재설정"
+
+msgid "Login"
+msgstr "로그인"

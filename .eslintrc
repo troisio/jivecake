@@ -26,7 +26,8 @@
     "window": true,
     "location": true,
     "URLSearchParams": true,
-    "Promise": true
+    "Promise": true,
+    "localStorage": true
   },
   "settings": {
     "react": {

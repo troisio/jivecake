@@ -1,0 +1,28 @@
+@import '~sass/media';
+
+.form {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  > *:not(:first-child) {
+    margin-top: 1rem;
+  }
+}
+
+.root {
+  display: flex;
+  margin: 0 auto;
+}
+
+@include phone() {
+  .root {
+    padding: 15px;
+  }
+}
+
+@include not_phone() {
+  .root {
+    width: 60%;
+  }
+}

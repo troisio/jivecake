@@ -8,3 +8,6 @@ msgstr ""
 
 msgid "Reset your password"
 msgstr "Réinitialisez votre mot de passe"
+
+msgid "Login"
+msgstr "S'identifier"
