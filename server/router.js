@@ -200,7 +200,8 @@ export class Router {
 
     if (settings.hasOwnProperty('bodySchema')) {
       validate = this.ajv.compile(settings.bodySchema);
-      passes = typeof request.body === 'object' ? validate(request.body) : false;
+      const doValidate = typeof request.body === 'object' && request.body !== null;
+      passes = doValidate ? validate(request.body) : false;
     }
 
     return { passes, validate };

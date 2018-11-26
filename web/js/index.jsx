@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { fetch as fetchPolyfill } from 'whatwg-fetch'
+import 'js/Sentry';
 
 import { Application } from 'js/component/application';
 

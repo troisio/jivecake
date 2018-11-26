@@ -1,14 +1,20 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Link }from 'react-router-dom';
 
 import { T } from 'common/i18n';
 import { ApplicationContext } from 'js/context/application';
 import { Routes } from 'common/routes';
 
+import { Button } from 'component/button';
 import './style.scss';
 
 export class Header extends React.Component {
   static contextType = ApplicationContext;
+
+  static propTypes = {
+    onLogoutClick: PropTypes.func.isRequired
+  }
 
   render() {
     const routes = new Routes();
@@ -23,9 +29,9 @@ export class Header extends React.Component {
       );
     } else {
       rightContent = (
-        <span>
-          {userId}
-        </span>
+        <Button onClick={this.props.onLogoutClick}>
+          {T('Logout')}
+        </Button>
       );
     }
 

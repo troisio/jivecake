@@ -1,21 +1,39 @@
-export const getUserLanguage = (user, navigator = null) => {
-	if (user.selectedLanguage !== null) {
-		return user.selectedLanguage;
+import { Language } from 'common/models';
+
+export const getUserLanguage = (user = null, navigator = null) => {
+	let result = null;
+
+	if (user !== null) {
+		if (user.selectedLanguage !== null) {
+			result = user.selectedLanguage;
+		} else if (user.lastLanguage !== null) {
+			result = user.lastLanguage;
+		}
 	}
 
-	if (user.lastLanguage !== null) {
-		return user.lastLanguage;
-	}
-
-	if (navigator !== null) {
+	if (navigator !== null && result === null) {
 		if (navigator.languages) {
-			return navigator.languages[0];
+			result = navigator.languages[0];
 		}
 
 		if (navigator.language) {
-			return navigator.language;
+			result = navigator.language;
 		}
 	}
 
-	return 'en';
+	if (result !== null) {
+		if (result.startsWith('fr')) {
+			return Language.fr;
+		}
+
+		if (result.startsWith('ko')) {
+			return Language.ko;
+		}
+	}
+
+	return Language.en;
+}
+
+export const getNavigatorLanguage = (navigator = null) => {
+	return getUserLanguage(null, navigator);
 }

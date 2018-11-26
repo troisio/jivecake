@@ -7,7 +7,7 @@ const DEFAULT_LOCAL_STORAGE = {
   token: null
 };
 
-export const writeLocalStorage = (item) => {
+export const writeLocalStorage = (item = DEFAULT_LOCAL_STORAGE) => {
   localStorage.setItem(key, JSON.stringify(item));
 };
 
@@ -18,12 +18,13 @@ export const getLocalStorage = () => {
     item = JSON.parse(localStorage.getItem(key));
   } catch (e) {
     item = null;
+    writeLocalStorage(DEFAULT_LOCAL_STORAGE);
+    item = { ...DEFAULT_LOCAL_STORAGE };
   }
 
   const ajv = new Ajv();
   const validate = ajv.compile({
     type: 'object',
-    required: ['user', 'token'],
     properties: {
       userId: {
         type: 'string',
@@ -40,6 +41,7 @@ export const getLocalStorage = () => {
     result = item;
   } else {
     result = { ...DEFAULT_LOCAL_STORAGE };
+    writeLocalStorage(result);
   }
 
   return result;

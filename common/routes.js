@@ -11,6 +11,10 @@ export class Routes {
     return `${this.prefix}/user/${userId}/transaction`;
   }
 
+  transactions() {
+    return `${this.prefix}/transaction`;
+  }
+
   login() {
     return `${this.prefix}/login`;
   }
