@@ -19,6 +19,7 @@ module.exports = function() {
       alias: {
         api: path.resolve(__dirname, 'server/api'),
         common: path.resolve(__dirname, 'common'),
+        i18n: path.resolve(__dirname, 'i18n'),
         database: path.resolve(__dirname, 'server/database'),
         route: path.resolve(__dirname, 'server/route'),
         router: path.resolve(__dirname, 'server/router'),

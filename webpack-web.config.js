@@ -26,6 +26,7 @@ module.exports = function() {
     ],
     resolve: {
       alias: {
+        i18n: path.resolve(__dirname, 'i18n'),
         settings: path.resolve(__dirname, 'web/settings'),
         component: path.resolve(__dirname, 'web/js/component'),
         page: path.resolve(__dirname, 'web/js/page'),
