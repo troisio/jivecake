@@ -114,6 +114,7 @@ export class Language {
 	static en = 'en';
 	static fr = 'fr';
 	static ko = 'ko';
+	static es = 'es';
 }
 
 export const SUPPORTED_LANGUAGE_IDS = [Language.en, Language.fr, Language.ko];

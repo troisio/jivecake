@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import './style.scss';
 
 export class MessageBlockType {
+  static main = 'main';
   static success = 'success';
   static error = 'error';
   static warning = 'warning';
@@ -16,7 +17,7 @@ export class MessageBlock extends React.Component {
   };
 
   static defaultProps = {
-    type: MessageBlockType.error
+    type: MessageBlockType.main
   };
 
   render() {

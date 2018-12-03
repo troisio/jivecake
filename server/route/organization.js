@@ -3,7 +3,7 @@ import mongodb from 'mongodb';
 import { Method, Require, Permission } from 'router';
 import { EventCollection, OrganizationCollection, OrganizationInvitationCollection } from 'database';
 import { Organization, OrganizationInvitation } from 'common/models';
-import { DEFAULT_MAX_LENGTH } from 'common/schema';
+import { ORGANIZATION_SCHEMA } from 'common/schema';
 
 export const CREATE_ORGANIZATION = {
   method: Method.POST,
@@ -14,15 +14,8 @@ export const CREATE_ORGANIZATION = {
     required: ['name', 'email'],
     additionalProperties: false,
     properties: {
-      name: {
-        type: 'string',
-        maxLength: DEFAULT_MAX_LENGTH
-      },
-      email: {
-        type: 'string',
-        format: 'email',
-        maxLength: DEFAULT_MAX_LENGTH
-      }
+      name: ORGANIZATION_SCHEMA.name,
+      email: ORGANIZATION_SCHEMA.email
     }
   },
   on: async (request, response, { db, jwt: { sub } }) => {
@@ -35,6 +28,7 @@ export const CREATE_ORGANIZATION = {
     organization.write = [ ownerId ];
     organization.owner = ownerId;
     organization.created = new Date();
+    organization.lastUserActivity = new Date();
 
     await db.collection(OrganizationCollection).insertOne(organization);
     const searchOrganization = await db.collection(OrganizationCollection)

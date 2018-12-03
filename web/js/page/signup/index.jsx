@@ -6,14 +6,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import * as Sentry from '@sentry/browser';
 
+import passwords from 'common/passwords.json';
 import { USER_SCHEMA } from 'common/schema';
 import { Routes } from 'common/routes';
 import { T } from 'common/i18n';
 import { getNavigatorLanguage } from 'common/helpers';
-
 import { fetch } from 'js/fetch';
 
-import { MessageBlock, MessageBlockType } from 'component/message-block';
+import { MessageBlock } from 'component/message-block';
 import { ApplicationContext } from 'js/context/application';
 import { Button } from 'component/button';
 import { Anchor } from 'component/anchor';
@@ -23,7 +23,7 @@ import './style.scss';
 export class Signup extends React.Component {
   static contextType = ApplicationContext;
   static propTypes = {
-    onCreateAccount: PropTypes.func.isRequired
+    onLogin: PropTypes.func.isRequired
   };
 
   state = {
@@ -34,8 +34,10 @@ export class Signup extends React.Component {
     displayUnableToCreateAccount: false,
     displayPasswordsDoNoMatch: false,
     displayPasswordLengthError: false,
+    displayCommonPasswordError: false,
     emailAvailable: null,
-    loading: false
+    loading: false,
+    onCreateAccountSuccess: false
   };
 
   onSubmit = (e) => {
@@ -48,6 +50,11 @@ export class Signup extends React.Component {
     const displayPasswordsDoNoMatch = this.state.password !== this.state.passwordConfirm;
     const displayPasswordLengthError = this.state.password.length < USER_SCHEMA.password.minLength ||
       this.state.passwordConfirm.length < USER_SCHEMA.password.minLength;
+    const displayCommonPasswordError = passwords.includes(this.state.password);
+
+    if (displayCommonPasswordError) {
+      return this.setState({ displayCommonPasswordError });
+    }
 
     if (displayPasswordsDoNoMatch) {
       return this.setState({ displayPasswordsDoNoMatch });
@@ -62,7 +69,8 @@ export class Signup extends React.Component {
       displayPasswordsDoNoMatch,
       displayPasswordLengthError: false,
       displayUnableToCreateAccount: false,
-      displayAccountNotAvailable: false
+      displayAccountNotAvailable: false,
+      displayCommonPasswordError: false,
     });
 
     fetch('/account', {
@@ -72,9 +80,29 @@ export class Signup extends React.Component {
         password: this.state.password,
         lastLanguage: getNavigatorLanguage(window.navigator)
       }
-    }).then(({ body, response }) => {
+    }).then(({ response }) => {
       if (response.ok) {
-        this.props.onCreateAccount(body);
+        fetch('/token/password', {
+          method: 'POST',
+          body: {
+            email: this.state.email,
+            password: this.state.password
+          }
+        }).then(({ response, body }) => {
+          if (response.ok) {
+            this.props.onLogin(body);
+          } else {
+            this.setState({
+              onCreateAccountSuccess: true,
+              loading: false,
+            });
+          }
+        }, () => {
+          this.setState({
+            onCreateAccountSuccess: true,
+            loading: false,
+          });
+        });
       } else if (response.status === 409) {
         this.setState({
           displayAccountNotAvailable: true,
@@ -128,15 +156,35 @@ export class Signup extends React.Component {
 
     let content;
 
-    if (userId === null) {
+    if (this.state.onCreateAccountSuccess) {
+      content = (
+        <div styleName='vertical-content'>
+          <MessageBlock>
+            {T('Your account has been created')}
+          </MessageBlock>
+          <Anchor to={routes.login(this.state.email)} button={true}>
+            {T('Login')}
+          </Anchor>
+        </div>
+      );
+    } else if (userId === null) {
       let invalidCredentialsWarning = null;
       let unableToCreateAccount = null;
       let accountNotAvailable = null;
       let passwordLengthError = null;
+      let commonPasswordError = null;
+
+      if (this.state.displayCommonPasswordError) {
+        commonPasswordError = (
+          <MessageBlock>
+            {T('Your password is too common, please choose another password')}
+          </MessageBlock>
+        );
+      }
 
       if (this.state.displayPasswordLengthError) {
         passwordLengthError = (
-          <MessageBlock type={MessageBlockType.error}>
+          <MessageBlock>
             {T('Your password must be at least 8 characters')}
           </MessageBlock>
         );
@@ -144,7 +192,7 @@ export class Signup extends React.Component {
 
       if (this.state.displayAccountNotAvailable) {
         accountNotAvailable = (
-          <MessageBlock type={MessageBlockType.error}>
+          <MessageBlock>
             {T('Sorry, this email is not available')}
           </MessageBlock>
         );
@@ -152,7 +200,7 @@ export class Signup extends React.Component {
 
       if (this.state.displayUnableToCreateAccount) {
         unableToCreateAccount = (
-          <MessageBlock type={MessageBlockType.error}>
+          <MessageBlock>
             {T('Sorry, we are not able to create your account. Please try again')}
           </MessageBlock>
         );
@@ -160,7 +208,7 @@ export class Signup extends React.Component {
 
       if (this.state.displayInvalidCredentials) {
         invalidCredentialsWarning = (
-          <MessageBlock type={MessageBlockType.error}>
+          <MessageBlock>
             {T('Sorry, invalid credentials')}
           </MessageBlock>
         );
@@ -177,11 +225,12 @@ export class Signup extends React.Component {
       }
 
       content = (
-        <form styleName='form' onSubmit={this.onSubmit}>
+        <form styleName='vertical-content' onSubmit={this.onSubmit}>
           {accountNotAvailable}
           {invalidCredentialsWarning}
           {unableToCreateAccount}
           {passwordLengthError}
+          {commonPasswordError}
           <div styleName='email-row'>
             <Input
               onChange={this.onEmailChange}
@@ -190,6 +239,7 @@ export class Signup extends React.Component {
               type='email'
               styleName='email-input'
               autoComplete='email'
+              required={true}
             />
             <div styleName='check-icon-container'>
               <FontAwesomeIcon styleName={iconStyleName} icon={faCheckCircle} />
@@ -203,6 +253,7 @@ export class Signup extends React.Component {
             error={this.state.displayPasswordsDoNoMatch}
             autoComplete='new-password'
             minLength={USER_SCHEMA.password.minLength}
+            required={true}
           />
           <Input
             onChange={this.onPasswordConfirmChange}
@@ -212,8 +263,9 @@ export class Signup extends React.Component {
             error={this.state.displayPasswordsDoNoMatch}
             autoComplete='new-password'
             minLength={USER_SCHEMA.password.minLength}
+            required={true}
           />
-          <Button>
+        <Button loading={this.state.loading}>
             {T('Create Account')}
           </Button>
           <Anchor to={routes.login()}>
@@ -223,7 +275,7 @@ export class Signup extends React.Component {
       );
     } else {
       content = (
-        <div styleName='form'>
+        <div styleName='vertical-content'>
           <span styleName='logged-in'>
             {T('You are logged in')}
           </span>

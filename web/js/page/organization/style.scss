@@ -1,18 +1,19 @@
 @import '~sass/media';
 
-.vertical-content {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-
-  > *:not(:first-child) {
-    margin-top: 1rem;
-  }
-}
-
 .root {
   display: flex;
+  flex-direction: column;
   margin: 0 auto;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &:not(:first-child) {
+    margin-top: 5px;
+  }
 }
 
 @include phone() {

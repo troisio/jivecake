@@ -50,7 +50,7 @@
     "i18next": "^12.1.0",
     "i18next-browser-languagedetector": "^2.2.3",
     "i18next-conv": "^8.0.1",
-    "i18next-scanner": "^2.7.0",
+    "i18next-scanner": "^2.9.0",
     "jest": "^23.5.0",
     "jest-webpack": "^0.5.1",
     "jsonwebtoken": "^8.4.0",

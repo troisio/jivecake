@@ -247,13 +247,13 @@ export const CREATE_ACCOUNT = {
 
 export const GET_TOKEN = {
   method: Method.POST,
-  path: '/token',
-  on: async (request, response, { db, sentry }) => {
+  path: '/token/password',
+  on: async (request, response, { db, sentry, ip }) => {
     const { body: { email, password } } = request;
     const user = await db.collection(UserCollection).findOne({ email });
 
     if (user === null) {
-      response.sendStatus(401).end();
+      response.sendStatus(404).end();
     } else {
       bcrypt.compare(password, user.hashedPassword, (err, res) => {
         if (err) {
@@ -273,7 +273,7 @@ export const GET_TOKEN = {
             }
           });
         } else {
-          sentry.captureMessage('invalid password attempt');
+          sentry.captureMessage('invalid password attempt by ' + ip + ' for account ' + email);
           response.sendStatus(401).end();
         }
       });

@@ -12,6 +12,9 @@ export const settings = {
   sendinblue: {
     key: ''
   },
+  stripe: {
+    secret: ''
+  },
   mongo: {
     url: 'mongodb://mongo:27017'
   },
