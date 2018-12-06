@@ -1,5 +1,30 @@
 @import '~sass/media';
 
+.avatar {
+  width: 50px;
+  height: 50px;
+}
+
+.create-new {
+  align-self: flex-start;
+}
+
+.organization-identity {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-grow: 6;
+  flex-basis: 0;
+  border: none;
+  background: none;
+  padding: 6px 0;
+}
+
+.name {
+  font-size: 1rem;
+  margin-left: 12px;
+}
+
 .root {
   display: flex;
   flex-direction: column;
@@ -8,12 +33,24 @@
 
 .row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  padding: 0;
+  border: none;
+  font-size: 1rem;
 
   &:not(:first-child) {
     margin-top: 5px;
   }
+}
+
+.spinner {
+  display: flex;
+  justify-content: center;
+  flex-basis: 0;
+}
+
+.spinner-get-organization {
+  align-self: center;
 }
 
 @include phone() {

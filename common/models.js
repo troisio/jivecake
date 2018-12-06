@@ -32,6 +32,7 @@ export class Organization {
 	_id = null;
 	name = null;
 	email = null;
+	avatar = null;
 	emailVerified = null;
 	owner = null;
 	read = [];
@@ -59,9 +60,11 @@ export class Transaction {
 export class User {
 	_id = null;
 	email = null;
+	avatar = null;
 	emailVerified = false;
 	selectedLanguage = null;
 	lastLanguage = null;
+	lastOrganizationId = null;
 	hashedPassword = null;
 	created = null;
 	updated = null;
@@ -117,7 +120,7 @@ export class Language {
 	static es = 'es';
 }
 
-export const SUPPORTED_LANGUAGE_IDS = [Language.en, Language.fr, Language.ko];
+export const SUPPORTED_LANGUAGE_IDS = [Language.en, Language.fr, Language.ko, Language.es];
 
 export class Currency {
 	static USD = 'USD';

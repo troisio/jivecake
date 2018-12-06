@@ -24,7 +24,9 @@ import {
   CREATE_ORGANIZATION,
   GET_ORGANIZATION,
   DELETE_USER,
-  INVITE_USER
+  INVITE_USER,
+  UPDATE_ORGANIZATION,
+  UPDATE_ORGANIZATION_AVATAR
 } from 'route/organization';
 
 import {
@@ -52,6 +54,9 @@ const sentry = settings.sentry.local ? localSentry : Sentry;
 
 const application = express();
 application.use(bodyParser.json());
+application.use(bodyParser.raw({
+  type: ['image/jpeg', 'image/png']
+}));
 
 export const run = () => {
   getDatabase().then((db) => {
@@ -75,6 +80,8 @@ export const run = () => {
       GET_ORGANIZATION_EVENTS,
       DELETE_USER,
       INVITE_USER,
+      UPDATE_ORGANIZATION,
+      UPDATE_ORGANIZATION_AVATAR,
 
       CREATE_EVENT,
       GET_EVENT,

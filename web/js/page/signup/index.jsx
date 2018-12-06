@@ -6,12 +6,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import * as Sentry from '@sentry/browser';
 
-import passwords from 'common/passwords.json';
 import { USER_SCHEMA } from 'common/schema';
 import { Routes } from 'common/routes';
 import { T } from 'common/i18n';
 import { getNavigatorLanguage } from 'common/helpers';
-import { fetch } from 'js/fetch';
 
 import { MessageBlock } from 'component/message-block';
 import { ApplicationContext } from 'js/context/application';
@@ -23,7 +21,8 @@ import './style.scss';
 export class Signup extends React.Component {
   static contextType = ApplicationContext;
   static propTypes = {
-    onLogin: PropTypes.func.isRequired
+    onLogin: PropTypes.func.isRequired,
+    fetch: PropTypes.func.isRequired
   };
 
   state = {
@@ -42,6 +41,7 @@ export class Signup extends React.Component {
 
   onSubmit = (e) => {
     e.preventDefault();
+    const { fetch } = this.props;
 
     if (this.state.loading) {
       return;
@@ -50,28 +50,21 @@ export class Signup extends React.Component {
     const displayPasswordsDoNoMatch = this.state.password !== this.state.passwordConfirm;
     const displayPasswordLengthError = this.state.password.length < USER_SCHEMA.password.minLength ||
       this.state.passwordConfirm.length < USER_SCHEMA.password.minLength;
-    const displayCommonPasswordError = passwords.includes(this.state.password);
-
-    if (displayCommonPasswordError) {
-      return this.setState({ displayCommonPasswordError });
-    }
-
-    if (displayPasswordsDoNoMatch) {
-      return this.setState({ displayPasswordsDoNoMatch });
-    }
-
-    if (displayPasswordLengthError) {
-      return this.setState({ displayPasswordLengthError });
-    }
+    const displayCommonPasswordError = USER_SCHEMA.password.not.enum.includes(this.state.password);
 
     this.setState({
       loading: true,
-      displayPasswordsDoNoMatch,
-      displayPasswordLengthError: false,
       displayUnableToCreateAccount: false,
-      displayAccountNotAvailable: false,
-      displayCommonPasswordError: false,
+      displayPasswordsDoNoMatch,
+      displayPasswordLengthError,
+      displayCommonPasswordError
     });
+
+    const hasError = displayCommonPasswordError || displayPasswordLengthError || displayPasswordsDoNoMatch;
+
+    if (hasError) {
+      return;
+    }
 
     fetch('/account', {
       method: 'POST',
@@ -132,6 +125,7 @@ export class Signup extends React.Component {
   }
 
   checkEmail = _.debounce(() => {
+    const { fetch } = this.props;
     const params = new URLSearchParams();
     params.append('email', this.state.email);
 
@@ -140,7 +134,7 @@ export class Signup extends React.Component {
     }, () => {
       this.setState({ emailAvailable: null });
     });
-  }, 500);
+  }, 200);
 
   onPasswordChange = (e) => {
     this.setState({ password: e.target.value });
@@ -276,11 +270,11 @@ export class Signup extends React.Component {
     } else {
       content = (
         <div styleName='vertical-content'>
-          <span styleName='logged-in'>
-            {T('You are logged in')}
-          </span>
           <Anchor to={routes.transactions()} button={true}>
             {T('Go to my transactions')}
+          </Anchor>
+          <Anchor to={routes.organization()} button={true}>
+            {T('Go to my organizations')}
           </Anchor>
           <Anchor to={routes.events()} button={true}>
             {T('Go to events')}

@@ -6,8 +6,6 @@ import { ApplicationContext } from 'js/context/application';
 import { Routes } from 'common/routes';
 import { T } from 'common/i18n';
 
-import { fetch } from 'js/fetch';
-
 import { MessageBlock } from 'component/message-block';
 import { Button } from 'component/button';
 import { Input } from 'component/input';
@@ -17,7 +15,8 @@ export class Login extends React.Component {
   static contextType = ApplicationContext;
   static propTypes = {
     onLogin: PropTypes.func.isRequired,
-    location: PropTypes.object.isRequired
+    location: PropTypes.object.isRequired,
+    fetch: PropTypes.func.isRequired,
   }
 
   constructor(props) {
@@ -49,7 +48,7 @@ export class Login extends React.Component {
       displayInvalidCredentials: false
     });
 
-    fetch('/token/password', {
+    this.props.fetch('/token/password', {
       method: 'POST',
       body: {
         email: this.state.email,

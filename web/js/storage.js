@@ -4,12 +4,12 @@ const key = 'jivecakestorage';
 
 const DEFAULT_LOCAL_STORAGE = {
   userId: null,
-  token: null,
-  organizationId: null
+  token: null
 };
 
 export const writeLocalStorage = (item = DEFAULT_LOCAL_STORAGE) => {
   localStorage.setItem(key, JSON.stringify(item));
+  return JSON.parse(localStorage.getItem(key));
 };
 
 export const getLocalStorage = () => {
@@ -31,9 +31,6 @@ export const getLocalStorage = () => {
         type: 'string',
       },
       token: {
-        type: 'string'
-      },
-      organizationId: {
         type: 'string'
       }
     }

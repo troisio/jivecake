@@ -13,16 +13,24 @@ export class Color {
 
 export class Spinner extends React.Component {
   static propTypes = {
-    color: PropTypes.string
+    color: PropTypes.string,
+    className: PropTypes.string
   };
 
   static defaultProps = {
-    color: Color.white
+    color: Color.main
   };
 
   render() {
     const styleName = 'root ' + this.props.color;
-    const props = _.omit(this.props, ['color']);
-    return <FontAwesomeIcon { ...props } styleName={styleName} icon={faSyncAlt} />;
+    const props = _.omit(this.props, ['color', 'className']);
+    return (
+      <FontAwesomeIcon
+        className={this.props.className}
+        styleName={styleName}
+        icon={faSyncAlt}
+        { ...props }
+      />
+    );
   }
 }

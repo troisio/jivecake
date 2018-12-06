@@ -2,10 +2,10 @@ import i18n from 'i18next';
 import fr from 'i18n/fr/translation.json';
 import ko from 'i18n/ko/translation.json';
 import es from 'i18n/es/translation.json';
-import { Language } from 'common/models';
+import { SUPPORTED_LANGUAGE_IDS } from 'common/models';
 
 i18n.init({
-  preload: [Language.ko, Language.fr, Language.es],
+  preload: SUPPORTED_LANGUAGE_IDS,
   fallbackLng: 'en',
   initImmediate: false,
   resources: {

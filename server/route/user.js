@@ -7,7 +7,12 @@ import jwtkeysecret from 'extra/jwt/jwt.key';
 import { settings } from 'settings';
 
 import { Method, Require, Permission } from 'router';
-import { OrganizationCollection, PasswordRecoveryCollection, UserCollection } from 'database';
+import {
+  OrganizationCollection,
+  PasswordRecoveryCollection,
+  UserCollection,
+  SORT_DIRECTIONS_AS_STRING
+} from 'database';
 import { PasswordRecovery, User, SUPPORTED_LANGUAGE_IDS } from 'common/models';
 import { USER_SCHEMA } from 'common/schema';
 import { getUserLanguage } from 'common/helpers';
@@ -134,9 +139,24 @@ export const GET_ORGANIZATIONS = {
       param: 'userId'
     }
   ],
+  querySchema: {
+    type: 'object',
+    properties: {
+      lastUserActivity: {
+        enum: SORT_DIRECTIONS_AS_STRING
+      },
+      lastSystemActivity: {
+        enum: SORT_DIRECTIONS_AS_STRING
+      }
+    }
+  },
   requires: [ Require.Page ],
   on: async (request, response, { db, pagination: { skip, limit } }) => {
     const userId = new mongodb.ObjectID(request.params.userId);
+    const sort =_.mapValues(
+      _.pick(request.query, ['lastUserActivity', 'lastSystemActivity']),
+      value => Number(value)
+    );
     const cursor = await db.collection(OrganizationCollection)
       .find({
         $or: [
@@ -145,6 +165,7 @@ export const GET_ORGANIZATIONS = {
           { owner: userId }
         ]
       })
+      .sort(sort)
       .skip(skip)
       .limit(limit);
 
@@ -170,7 +191,6 @@ export const UPDATE_USER = {
   ],
   bodySchema: {
     type: 'object',
-    required: ['email', 'selectedLanguage', 'lastLanguage'],
     additionalProperties: false,
     properties: {
       email: USER_SCHEMA.email,
@@ -180,31 +200,45 @@ export const UPDATE_USER = {
       },
       lastLanguage: {
         enum: SUPPORTED_LANGUAGE_IDS
+      },
+      lastOrganizationId:  {
+        type: 'string',
+        format: 'objectid'
       }
     }
   },
   on: async (request, response, { db }) => {
-    const now = new Date();
-    const user = await db.collection(UserCollection).findOne({ email: request.query.email });
+    const user = await db.collection(UserCollection)
+      .findOne({ _id: new mongodb.ObjectID(request.params.userId) });
 
-    if (user.email !== request.body.email) {
-      user.emailVerified = false;
+    const $set = { ...request.body };
+
+    if ($set.hasOwnProperty('lastOrganizationId')) {
+      $set.lastOrganizationId = new mongodb.ObjectID($set.lastOrganizationId);
+
+      const organization = await db.collection(OrganizationCollection)
+        .findOne({ _id: $set.lastOrganizationId });
+
+      if (organization === null) {
+        response.status(404).json({
+          error: 'lastOrganizationId'
+        });
+        return;
+      }
     }
 
-    user.email = request.body.email;
-    user.selectedLanguage = request.body.selectedLanguage;
-    user.lastLanguage = request.body.lastLanguage;
-    user.lastUserActivity = now;
-    user.updated = now;
+    const now = new Date();
+    $set.lastUserActivity = now;
+    $set.updated = now;
 
     if (request.body.hasOwnProperty('password')) {
-      user.hashedPassword = await getHashedPassword(request.body.password);
+      $set.hashedPassword = await getHashedPassword(request.body.password);
     }
 
-    const { result } = await db.collection(UserCollection)
-      .findOneAndUpdate({ _id: user._id }, user);
-      const entity = _.omit(result, ['hashedPassword']);
-    return response.json(entity);
+    const { value } = await db.collection(UserCollection)
+      .findOneAndUpdate({ _id: user._id }, { $set });
+    const entity = _.omit(value, ['hashedPassword']);
+    response.json(entity);
   }
 }
 
@@ -233,6 +267,7 @@ export const CREATE_ACCOUNT = {
       user.email = email;
       user.hashedPassword = hashedPassword;
       user.lastLanguage = lastLanguage;
+      user.lastUserActivity = new Date();
       user.created = new Date();
 
       await db.collection(UserCollection).insertOne(user);

@@ -4,4 +4,8 @@ module.exports = {
   testPathIgnorePatterns: [
      '/node_modules/'
   ],
+  moduleNameMapper: {
+    server: '<rootDir>/server',
+    web: '<rootDir>/web'
+  },
 };

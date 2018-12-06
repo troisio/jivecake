@@ -6,25 +6,40 @@ import { T } from 'common/i18n';
 import { MessageBlock } from 'component/message-block';
 import { Input } from 'component/input';
 import { Button } from 'component/button';
-import { fetch } from 'js/fetch';
+import { AvatarImageUpload } from 'component/avatar-image-upload';
 import './style.scss';
 
 export class OrganizationPersist extends React.Component {
   static propTypes = {
     userId: PropTypes.string.isRequired,
     organizationId: PropTypes.string,
-    organizations: PropTypes.object.isRequired
+    organizations: PropTypes.object.isRequired,
+    onOrganizationPersisted: PropTypes.func.isRequired,
+    fetch: PropTypes.func.isRequired
   }
 
-  static defaultProps = {
-    organizationId: null
-  }
+  constructor(props) {
+    super(props);
 
-  state = {
-    name: '',
-    email: '',
-    loading: false,
-    displayUnableToPersistError: false
+    this.state = {
+      name: '',
+      email: '',
+      avatar: null,
+      loading: false,
+      file: null,
+      displayUnableToPersistError: false
+    };
+
+    if (props.hasOwnProperty('organizationId')) {
+      if (props.organizations.hasOwnProperty(props.organizationId)) {
+        const organization = props.organizations[props.organizationId];
+        this.state.name = organization.name;
+        this.state.email = organization.email;
+        this.state.avatar = organization.avatar;
+      } else {
+        props.fetch('/organization/' + props.organizationId);
+      }
+    }
   }
 
   onSubmit = (e) => {
@@ -34,12 +49,14 @@ export class OrganizationPersist extends React.Component {
       return;
     }
 
+    const { fetch } = this.props;
+
     this.setState({
       loading: true,
       displayUnableToPersistError: false
     });
 
-    const url = this.props.organizationId === null ? '/organization' : this.props.organizationId;
+    const url = this.props.hasOwnProperty('organizationId') ? '/organization/' + this.props.organizationId : '/organization';
 
     fetch(url, {
       method: 'POST',
@@ -47,11 +64,23 @@ export class OrganizationPersist extends React.Component {
         name: this.state.name,
         email: this.state.email
       }
-    }).then(({ response }) => {
+    }).then(({ response, body }) => {
       if (response.ok) {
-        this.setState({
-          loading: false
+        this.props.onOrganizationPersisted(body);
+
+        fetch(`/user/${this.props.userId}/organization`, {
+          query: {
+            page: 0,
+            lastUserActivity: -1
+          }
         });
+
+        if (this.state.file !== null) {
+          fetch(`/organization/${body._id}/avatar`, {
+            method: 'POST',
+            body: this.state.file
+          });
+        }
       } else {
         this.setState({
           loading: false,
@@ -74,22 +103,42 @@ export class OrganizationPersist extends React.Component {
     this.setState({ name: e.target.value });
   }
 
+  onFile = (file) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.setState({ avatar: reader.result, file });
+    };
+    reader.readAsDataURL(file);
+  }
+
   render() {
-    const submitText = this.props.organizationId === null ? T('Create') : T('Update');
+    const { organizations } = this.props;
+    let organization = null;
+
+    if (this.props.hasOwnProperty('organizationId')) {
+      if (organizations.hasOwnProperty(this.props.organizationId)) {
+        organization = organizations[this.props.organizationId];
+      }
+    }
+
+    const submitText = organization === null ? T('Create') : T('Update');
 
     let unableToPersistError = null;
 
     if (this.state.displayUnableToPersistError) {
       unableToPersistError = (
         <MessageBlock>
-          {T('Sorry, we were not able save your data, please try again')}
+          {T('Sorry, we are not able save your data, please try again')}
         </MessageBlock>
-      )
+      );
     }
+
+    const avatarUploadProps = this.state.avatar === null ? {} : { src: this.state.avatar };
 
     return (
       <form onSubmit={this.onSubmit} styleName='root'>
         {unableToPersistError}
+        <AvatarImageUpload styleName='avatar-image-upload' onFile={this.onFile} { ...avatarUploadProps } />
         <Input
           placeholder={T('Organization Name')}
           onChange={this.onNameChange}
@@ -99,6 +148,7 @@ export class OrganizationPersist extends React.Component {
         <div styleName='email-section'>
           <Input
             placeholder={T('Email')}
+            type='email'
             value={this.state.email}
             required
             onChange={this.onEmailChange}

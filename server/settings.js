@@ -9,6 +9,15 @@ export const settings = {
     release: packageJson.version,
     local: true
   },
+  digitalocean: {
+    spaces: {
+      endpoint: 'nyc3.digitaloceanspaces.com',
+      key: '',
+      secret: '',
+      bucket: 'jivecake-development',
+      region: 'nyc3'
+    }
+  },
   sendinblue: {
     key: ''
   },

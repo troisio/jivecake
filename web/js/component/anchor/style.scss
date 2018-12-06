@@ -5,11 +5,18 @@
 
   &.button {
     font-size: 1rem;
-    padding: 8px;
     background-color: $main;
     color: $white;
     border: 0px solid;
     border-radius: 3px;
     text-align: center;
+
+    &:not(.icon) {
+      padding: 8px;
+    }
+  }
+
+  &.icon {
+    padding: 8px 16px;
   }
 }

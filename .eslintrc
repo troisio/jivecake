@@ -22,12 +22,13 @@
     "Set": true,
     "console": true,
     "document": true,
-    "fetch": true,
     "window": true,
     "location": true,
     "URLSearchParams": true,
     "Promise": true,
-    "localStorage": true
+    "localStorage": true,
+    "FileReader": true,
+    "File": true
   },
   "settings": {
     "react": {

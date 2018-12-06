@@ -1,9 +1,93 @@
 import mongodb from 'mongodb';
 
+import { upload } from 'server/digitalocean';
 import { Method, Require, Permission } from 'router';
 import { EventCollection, OrganizationCollection, OrganizationInvitationCollection } from 'database';
 import { Organization, OrganizationInvitation } from 'common/models';
 import { ORGANIZATION_SCHEMA } from 'common/schema';
+
+export const UPDATE_ORGANIZATION_AVATAR = {
+  method: Method.POST,
+  path: '/organization/:organizationId/avatar',
+  requires: [ Require.Authenticated ],
+  accessRules: [
+    {
+      permission: Permission.WRITE,
+      collection: OrganizationCollection,
+      param: 'organizationId'
+    }
+  ],
+  on: async (request, response, { db }) => {
+    const _id = new mongodb.ObjectID(request.params.organizationId);
+
+    const type = request.headers['content-type'];
+
+    if (!type) {
+      return response.sendStats(405);
+    }
+
+    /*
+      delete previous avatar
+    */
+
+    let ext;
+
+    if (type === 'image/jpeg') {
+      ext = '.jpg';
+    } else if (type === 'image/png') {
+        ext = '.png';
+    } else {
+      return response.sendStats(400);
+    }
+
+    const name = new mongodb.ObjectId().toString() + ext;
+    const { url } = await upload(name, request.body, type);
+
+    const $set = {
+      lastUserActivity: new Date(),
+      avatar: url
+    };
+
+    const { value } = await db.collection(OrganizationCollection)
+      .findOneAndUpdate({ _id }, { $set }, { returnOriginal: false });
+    response.json(value);
+  }
+};
+
+export const UPDATE_ORGANIZATION = {
+  method: Method.POST,
+  path: '/organization/:organizationId',
+  requires: [ Require.Authenticated ],
+  accessRules: [
+    {
+      permission: Permission.WRITE,
+      collection: OrganizationCollection,
+      param: 'organizationId'
+    }
+  ],
+  bodySchema: {
+    type: 'object',
+    required: ['name', 'email'],
+    additionalProperties: false,
+    properties: {
+      name: ORGANIZATION_SCHEMA.name,
+      email: ORGANIZATION_SCHEMA.email
+    }
+  },
+  on: async (request, response, { db }) => {
+    const _id = new mongodb.ObjectID(request.params.organizationId);
+    const $set = {
+      name: request.body.name,
+      email: request.body.email,
+      lastUserActivity: new Date()
+    };
+
+    const { value } = await db.collection(OrganizationCollection)
+      .findOneAndUpdate({ _id }, { $set }, { returnOriginal: false });
+
+    response.json(value);
+  }
+};
 
 export const CREATE_ORGANIZATION = {
   method: Method.POST,

@@ -10,28 +10,39 @@ export class Anchor extends React.Component {
     to: PropTypes.string,
     styleName: PropTypes.string,
     className: PropTypes.string,
-    button: PropTypes.bool
+    button: PropTypes.bool,
+    href: PropTypes.string,
+    icon: PropTypes.bool,
   }
 
   static defaultProps = {
     className: '',
-    button: false
+    button: false,
+    icon: false,
   }
 
   render() {
-    const props = _.omit({ ...this.props }, ['to', 'styleName', 'button']);
-    const styleName = this.props.button ? 'root button' : 'root';
+    const props = _.omit(this.props, ['to', 'className', 'styleName', 'button', 'icon']);
+    let styleName = 'root';
+
+    if (this.props.button) {
+      styleName += ' button';
+    }
+
+    if (this.props.icon) {
+      styleName += ' icon';
+    }
 
     if (this.props.hasOwnProperty('to')) {
       return (
-        <Link styleName={styleName} to={this.props.to} { ...props }>
+        <Link className={this.props.className} styleName={styleName} to={this.props.to} { ...props }>
           {this.props.children}
         </Link>
       )
     }
 
     return (
-      <a styleName={styleName} { ...props }>
+      <a className={this.props.className} styleName={styleName} { ...props }>
         {this.props.children}
       </a>
     );

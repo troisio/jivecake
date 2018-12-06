@@ -10,6 +10,8 @@ export const TransactionCollection = 'transaction';
 export const PasswordRecoveryCollection = 'passwordRecovery';
 export const OrganizationInvitationCollection = 'organizationInvitation';
 
+export const SORT_DIRECTIONS_AS_STRING = ['-1', '1'];
+
 export const getDatabase = () => {
   return new Promise(async (resolve, reject) => {
     mongodb.MongoClient.connect(settings.mongo.url, { useNewUrlParser: true }, async (err, client) => {
@@ -20,6 +22,11 @@ export const getDatabase = () => {
 
         const userCollection = db.collection(UserCollection);
         await userCollection.createIndex({email: 1}, { unique:true });
+
+        const organizationCollection = db.collection(OrganizationCollection);
+        await organizationCollection.createIndex({ ownerId: 1 });
+        await organizationCollection.createIndex({ read: 1 });
+        await organizationCollection.createIndex({ write: 1 });
 
         const eventCollection = db.collection(EventCollection);
         await eventCollection.createIndex({ organization: 1 });
@@ -40,7 +47,7 @@ export const getDatabase = () => {
         const organizationInvitationCollection = db.collection(OrganizationInvitationCollection);
         await organizationInvitationCollection.createIndex({ userId: 1, organization: 1 }, { unique:true });
         await organizationInvitationCollection.createIndex({ userId: 1 });
-        await organizationInvitationCollection.createIndex({ organization: 1 }, { unique:true });
+        await organizationInvitationCollection.createIndex({ organization: 1 });
 
         resolve(db);
       }

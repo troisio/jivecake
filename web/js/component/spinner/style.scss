@@ -6,11 +6,11 @@
   animation-iteration-count: infinite;
   animation-timing-function: linear;
 
-  .white {
+  &.white {
     color: $white;
   }
 
-  .main {
+  &.main {
     color: $main;
   }
 }

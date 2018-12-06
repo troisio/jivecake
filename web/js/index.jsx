@@ -4,7 +4,7 @@ import { fetch as fetchPolyfill } from 'whatwg-fetch'
 import URLSearchParams from 'url-search-params';
 import 'js/Sentry';
 
-import { Application } from 'js/application';
+import { Application } from 'js/page/application';
 
 if (!window.fetch) {
   window.fetch = fetchPolyfill;

@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import './style.scss';
 
-import { Spinner } from 'js/component/spinner';
+import { Spinner, Color } from 'js/component/spinner';
 
 export class Button extends React.Component {
   static propTypes = {
@@ -25,7 +25,7 @@ export class Button extends React.Component {
           <div styleName='children'>
             {this.props.children}
           </div>
-          <Spinner />
+          <Spinner color={Color.white} />
         </>
       );
       styleName += ' loading';
