@@ -11,11 +11,11 @@ export const settings = {
   },
   digitalocean: {
     spaces: {
-      endpoint: 'nyc3.digitaloceanspaces.com',
       key: '',
       secret: '',
-      bucket: 'jivecake-development',
-      region: 'nyc3'
+      endpoint: 'nyc3.digitaloceanspaces.com',
+      region: 'nyc3',
+      bucket: 'jivecake-development'
     }
   },
   sendinblue: {

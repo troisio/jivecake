@@ -1,16 +1,15 @@
 import AWS from 'aws-sdk';
 import { settings } from 'settings';
 
-export const upload = (Key, Body, ContentType) => {
-  const { bucket, endpoint, region, key, secret } = settings.digitalocean.spaces;
-  const spacesEndpoint = new AWS.Endpoint(endpoint);
-  const s3 = new AWS.S3({
-      region: region,
-      endpoint: spacesEndpoint,
-      accessKeyId: key,
-      secretAccessKey: secret,
-  });
+const { bucket, endpoint, region, key, secret } = settings.digitalocean.spaces;
+const s3 = new AWS.S3({
+  region: region,
+  endpoint: new AWS.Endpoint(endpoint),
+  accessKeyId: key,
+  secretAccessKey: secret,
+});
 
+export const upload = (Key, Body, ContentType) => {
   return new Promise((resolve, reject) => {
     s3.putObject({
       ACL: 'public-read',
@@ -28,6 +27,21 @@ export const upload = (Key, Body, ContentType) => {
           data,
           url
         });
+      }
+   });
+  });
+}
+
+export const deleteObject = (Key) => {
+  return new Promise((resolve, reject) => {
+    s3.deleteObject({
+      Bucket: bucket,
+      Key
+    }, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
       }
    });
   });

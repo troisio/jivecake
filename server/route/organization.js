@@ -1,6 +1,6 @@
 import mongodb from 'mongodb';
 
-import { upload } from 'server/digitalocean';
+import { upload, deleteObject } from 'server/digitalocean';
 import { Method, Require, Permission } from 'router';
 import { EventCollection, OrganizationCollection, OrganizationInvitationCollection } from 'database';
 import { Organization, OrganizationInvitation } from 'common/models';
@@ -18,24 +18,22 @@ export const UPDATE_ORGANIZATION_AVATAR = {
     }
   ],
   on: async (request, response, { db }) => {
-    const _id = new mongodb.ObjectID(request.params.organizationId);
-
+    const organization = await db.collection(OrganizationCollection)
+      .findOne({ _id: new mongodb.ObjectID(request.params.organizationId) });
     const type = request.headers['content-type'];
 
-    if (!type) {
-      return response.sendStatus(415);
+    if (organization.avatar !== null) {
+      const parts = organization.avatar.split('/');
+      const key = parts[parts.length - 1];
+      await deleteObject(key);
     }
-
-    /*
-      delete previous avatar
-    */
 
     let ext;
 
     if (type === 'image/jpeg') {
       ext = '.jpg';
     } else if (type === 'image/png') {
-        ext = '.png';
+      ext = '.png';
     } else {
       return response.sendStats(415);
     }
@@ -49,7 +47,7 @@ export const UPDATE_ORGANIZATION_AVATAR = {
     };
 
     const { value } = await db.collection(OrganizationCollection)
-      .findOneAndUpdate({ _id }, { $set }, { returnOriginal: false });
+      .findOneAndUpdate({ _id: organization._id }, { $set }, { returnOriginal: false });
     response.json(value);
   }
 };
