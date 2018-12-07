@@ -23,7 +23,7 @@ export const UPDATE_ORGANIZATION_AVATAR = {
     const type = request.headers['content-type'];
 
     if (!type) {
-      return response.sendStats(405);
+      return response.sendStatus(415);
     }
 
     /*
@@ -37,7 +37,7 @@ export const UPDATE_ORGANIZATION_AVATAR = {
     } else if (type === 'image/png') {
         ext = '.png';
     } else {
-      return response.sendStats(400);
+      return response.sendStats(415);
     }
 
     const name = new mongodb.ObjectId().toString() + ext;
