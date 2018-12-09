@@ -9,11 +9,9 @@ import { Button } from 'component/button';
 import { AvatarImageUpload } from 'component/avatar-image-upload';
 import './style.scss';
 
-export class OrganizationPersist extends React.Component {
+export class OrganizationPersist extends React.PureComponent {
   static propTypes = {
-    userId: PropTypes.string.isRequired,
-    organizationId: PropTypes.string,
-    organizations: PropTypes.object.isRequired,
+    organization: PropTypes.object,
     onOrganizationPersisted: PropTypes.func.isRequired,
     fetch: PropTypes.func.isRequired
   }
@@ -21,24 +19,23 @@ export class OrganizationPersist extends React.Component {
   constructor(props) {
     super(props);
 
+    const { organization } = this.props;
+
     this.state = {
       name: '',
       email: '',
       avatar: null,
       loading: false,
       file: null,
-      displayUnableToPersistError: false
+      displayUnableToPersistError: false,
+      displayUnableToPersistAvatarError: false,
+      avatarTooLarge: false
     };
 
-    if (props.hasOwnProperty('organizationId')) {
-      if (props.organizations.hasOwnProperty(props.organizationId)) {
-        const organization = props.organizations[props.organizationId];
-        this.state.name = organization.name;
-        this.state.email = organization.email;
-        this.state.avatar = organization.avatar;
-      } else {
-        props.fetch('/organization/' + props.organizationId);
-      }
+    if (organization !== null) {
+      this.state.name = organization.name;
+      this.state.email = organization.email;
+      this.state.avatar = organization.avatar;
     }
   }
 
@@ -49,14 +46,16 @@ export class OrganizationPersist extends React.Component {
       return;
     }
 
-    const { fetch } = this.props;
+    const { fetch, onOrganizationPersisted, organization } = this.props;
 
     this.setState({
       loading: true,
-      displayUnableToPersistError: false
+      displayUnableToPersistError: false,
+      displayUnableToPersistAvatarError: false,
+      avatarTooLarge: false
     });
 
-    const url = this.props.hasOwnProperty('organizationId') ? '/organization/' + this.props.organizationId : '/organization';
+    const url = organization === null ? '/organization' : '/organization/' + organization._id;
 
     fetch(url, {
       method: 'POST',
@@ -66,21 +65,34 @@ export class OrganizationPersist extends React.Component {
       }
     }).then(({ response, body }) => {
       if (response.ok) {
-        this.props.onOrganizationPersisted(body);
+        let fileUpdatePromise;
 
-        fetch(`/user/${this.props.userId}/organization`, {
-          query: {
-            page: 0,
-            lastUserActivity: -1
-          }
-        });
-
-        if (this.state.file !== null) {
-          fetch(`/organization/${body._id}/avatar`, {
+        if (this.state.file === null) {
+          fileUpdatePromise = Promise.resolve(body);
+        } else {
+          fileUpdatePromise = fetch(`/organization/${body._id}/avatar`, {
             method: 'POST',
             body: this.state.file
           });
         }
+
+        return fileUpdatePromise.then(({ response }) => {
+          if (this.state.file === null || response.ok) {
+              onOrganizationPersisted(body);
+          } else if (response.status === 413) {
+            console.log(413);
+          } else {
+            this.setState({
+              loading: false,
+              displayUnableToPersistAvatarError: true
+            });
+          }
+        }, () => {
+          this.setState({
+            loading: false,
+            displayUnableToPersistAvatarError: true
+          });
+        });
       } else {
         this.setState({
           loading: false,
@@ -92,7 +104,7 @@ export class OrganizationPersist extends React.Component {
         loading: false,
         displayUnableToPersistError: true
       });
-    })
+    });
   }
 
   onEmailChange = (e) => {
@@ -112,18 +124,28 @@ export class OrganizationPersist extends React.Component {
   }
 
   render() {
-    const { organizations } = this.props;
-    let organization = null;
-
-    if (this.props.hasOwnProperty('organizationId')) {
-      if (organizations.hasOwnProperty(this.props.organizationId)) {
-        organization = organizations[this.props.organizationId];
-      }
-    }
-
+    const { organization } = this.props;
     const submitText = organization === null ? T('Create') : T('Update');
 
     let unableToPersistError = null;
+    let unableToPersistAvatarError = null;
+    let avatarTooLargeError = null;
+
+    if (this.state.avatarTooLarge) {
+      avatarTooLargeError = (
+        <MessageBlock>
+          {T('Sorry, your image is too large, please try a small image')}
+        </MessageBlock>
+      );
+    }
+
+    if (this.state.displayUnableToPersistAvatarError) {
+      unableToPersistAvatarError = (
+        <MessageBlock>
+          {T('Sorry, we are not update your avatar, please try another image')}
+        </MessageBlock>
+      );
+    }
 
     if (this.state.displayUnableToPersistError) {
       unableToPersistError = (
@@ -137,7 +159,9 @@ export class OrganizationPersist extends React.Component {
 
     return (
       <form onSubmit={this.onSubmit} styleName='root'>
+        {unableToPersistAvatarError}
         {unableToPersistError}
+        {avatarTooLargeError}
         <AvatarImageUpload styleName='avatar-image-upload' onFile={this.onFile} { ...avatarUploadProps } />
         <Input
           placeholder={T('Organization Name')}

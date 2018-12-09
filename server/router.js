@@ -80,7 +80,7 @@ export class Router {
       this.sentry.captureMessage('registered invalid route method with ' + settings);
     }
 
-    method(settings.path, async (req, res) => {
+    method(settings.path, async (req, res, next) => {
       const requires = settings.hasOwnProperty('requires') ? settings.requires : [];
       const accessRules = settings.hasOwnProperty('accessRules') ? settings.accessRules : [];
       let passesAuthentication = true;
@@ -175,18 +175,12 @@ export class Router {
           }
         }
 
-        try {
-          const promise = settings.on(req, res, extra);
+        const promise = settings.on(req, res, extra);
 
-          if (typeof promise !== 'undefined' && 'then' in promise) {
-            promise.then(() => {}, (e) => {
-              this.sentry.captureException(e);
-              res.sendStatus(500).end();
-            });
-          }
-        } catch (e) {
-          this.sentry.captureException(e);
-          res.sendStatus(500).end();
+        if (typeof promise !== 'undefined' && 'then' in promise) {
+          promise.then(() => {}, (e) => {
+            next(e);
+          });
         }
       } else {
         res.sendStatus(200).end();

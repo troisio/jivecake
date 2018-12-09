@@ -149,25 +149,28 @@ export class Application extends React.Component {
       );
 
       const organizationPersist = ({ history, match }) => {
-        const props = {};
-
-        if (typeof match.params.organizationId !== 'undefined') {
-          props.organizationId = match.params.organizationId;
-        }
-
         return (
           <OrganizationContext.Consumer>
-            {organizations =>
-              <OrganizationPersist
-                fetch={this.fetch}
-                organizations={organizations}
-                userId={applicationContextValue.userId}
-                onOrganizationPersisted={() => {
-                  history.push(routes.organization())
-                }}
-                { ...props }
-              />
-            }
+            {organizations => {
+              const fetch = typeof match.params.organizationId !== 'undefined' &&
+                !organizations.hasOwnProperty(match.params.organizationId);
+
+              if (fetch) {
+                this.fetch('/organization/' + match.params.organizationId);
+              }
+
+              const organization = _.get(organizations, match.params.organizationId, null);
+
+              return (
+                <OrganizationPersist
+                  fetch={this.fetch}
+                  organization={organization}
+                  onOrganizationPersisted={() => {
+                    history.push(routes.organization())
+                  }}
+                />
+              );
+            }}
           </OrganizationContext.Consumer>
         );
       };

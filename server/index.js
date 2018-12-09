@@ -53,10 +53,33 @@ const localSentry = {
 const sentry = settings.sentry.local ? localSentry : Sentry;
 
 const application = express();
+
+application.use((req, res, next) => {
+  const origin = req.headers['origin'];
+  const requestHeaders = req.headers['access-control-request-headers'];
+  const hasValidOrigin = settings.http.origins.includes(origin);
+
+  if (hasValidOrigin) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+
+  if (requestHeaders) {
+    res.header('Access-Control-Allow-Headers', requestHeaders);
+  }
+
+  next();
+});
+
 application.use(bodyParser.json());
+
 application.use(bodyParser.raw({
   type: ['image/jpeg', 'image/png']
 }));
+
+application.use((err, req, res, next) => {
+  sentry.captureMessage(err);
+  next(err);
+});
 
 export const run = () => {
   getDatabase().then((db) => {
@@ -94,12 +117,6 @@ export const run = () => {
       UPDATE_ITEM,
       DELETE_ITEM
     ];
-
-    application.use((req, res, next) => {
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Headers', 'Authorization, Origin, X-Requested-With, Content-Type, Accept');
-      next();
-    });
 
     for (const route of routes) {
       router.register(route);
