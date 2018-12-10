@@ -4,6 +4,8 @@ import SibApiV3Sdk from 'sib-api-v3-sdk';
 import express from 'express';
 import bodyParser from 'body-parser';
 
+import { MAXIMUM_IMAGE_UPLOAD_BYTES } from 'common/schema';
+
 import { getDatabase } from './database';
 import { settings } from 'settings';
 import { Router } from 'router';
@@ -73,7 +75,8 @@ application.use((req, res, next) => {
 application.use(bodyParser.json());
 
 application.use(bodyParser.raw({
-  type: ['image/jpeg', 'image/png']
+  type: ['image/jpeg', 'image/png'],
+  limit: MAXIMUM_IMAGE_UPLOAD_BYTES
 }));
 
 application.use((err, req, res, next) => {

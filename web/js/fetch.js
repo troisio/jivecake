@@ -2,10 +2,11 @@ import { getLocalStorage } from 'js/storage';
 import settings from 'settings';
 
 export const getFetch = (fetchStoreInterceptor) => {
-  return (url, options = {}, transform = true) => {
+  return (url, options = {}, customOptions = { native: false, intercept: true }) => {
     const storage = getLocalStorage();
+    const native = customOptions.hasOwnProperty('native') ? customOptions.native : false;
 
-    if (url.startsWith('http://') || url.startsWith('https://')) {
+    if (native) {
       return window.fetch(url, options);
     }
 
@@ -26,7 +27,7 @@ export const getFetch = (fetchStoreInterceptor) => {
 
     if (derivedOptions.body instanceof File) {
       derivedOptions.headers['Content-Type'] = derivedOptions.body.type;
-    } else if (stringify && transform) {
+    } else if (stringify) {
       derivedOptions.body = JSON.stringify(derivedOptions.body);
       derivedOptions.headers['Content-Type'] = 'application/json';
     }
@@ -53,8 +54,19 @@ export const getFetch = (fetchStoreInterceptor) => {
 
       if (isJson) {
         return response.json().then(body => {
-          fetchStoreInterceptor(url, options, response, body);
-          return { response, body };
+          const intercept = customOptions.hasOwnProperty('intercept') ? customOptions.intercept : true;
+          const result = { response, body };
+          const sendToStore = () => {
+            return fetchStoreInterceptor(url, options, response, body);
+          };
+
+          if (intercept) {
+            sendToStore();
+          } else {
+            result.intercept = sendToStore;
+          }
+
+          return result;
         });
       }
 

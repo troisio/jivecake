@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { Routes } from 'common/routes';
-
 import { T } from 'common/i18n';
 import { Avatar } from 'component/avatar';
 import { Spinner } from 'component/spinner';
@@ -56,12 +54,11 @@ export class Organization extends React.Component {
       }
     });
 
-    history.push(routes.events());
+    history.push(routes.organizationEvents(organizationId));
   }
 
   render() {
     const { userOrganizations, organizations, userId } = this.props;
-    const routes = new Routes();
     let rows = null;
     let noneFound = null;
     let loading = <Spinner styleName='spinner-get-organization' />;

@@ -32,7 +32,7 @@ export function fetchStoreInterceptor(
     const isOrganizationBody = ORGANIZATION_IN_BODY.some(regex => regex.test(url));
 
     if (isOrganizationBody) {
-      updateOperations.updateOrganizations([{ ...body }]);
+      updateOperations.updateOrganizations([body]);
     }
   }
 

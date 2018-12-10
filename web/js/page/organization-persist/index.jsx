@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import { T } from 'common/i18n';
+import { MAXIMUM_IMAGE_UPLOAD_BYTES } from 'common/schema';
 
 import { MessageBlock } from 'component/message-block';
 import { Input } from 'component/input';
@@ -42,7 +43,7 @@ export class OrganizationPersist extends React.PureComponent {
   onSubmit = (e) => {
     e.preventDefault();
 
-    if (this.state.loading) {
+    if (this.state.loading || this.state.avatarTooLarge) {
       return;
     }
 
@@ -55,7 +56,7 @@ export class OrganizationPersist extends React.PureComponent {
       avatarTooLarge: false
     });
 
-    const url = organization === null ? '/organization' : '/organization/' + organization._id;
+    const url = organization === null ? '/organization' : `/organization/${organization._id}`;
 
     fetch(url, {
       method: 'POST',
@@ -63,24 +64,35 @@ export class OrganizationPersist extends React.PureComponent {
         name: this.state.name,
         email: this.state.email
       }
-    }).then(({ response, body }) => {
+    }, {
+      intercept: false
+    }).then(({ response, body, intercept }) => {
       if (response.ok) {
-        let fileUpdatePromise;
-
         if (this.state.file === null) {
-          fileUpdatePromise = Promise.resolve(body);
-        } else {
-          fileUpdatePromise = fetch(`/organization/${body._id}/avatar`, {
-            method: 'POST',
-            body: this.state.file
-          });
+          intercept();
+          onOrganizationPersisted();
+          return;
         }
 
-        return fileUpdatePromise.then(({ response }) => {
-          if (this.state.file === null || response.ok) {
-              onOrganizationPersisted(body);
-          } else if (response.status === 413) {
-            console.log(413);
+        const fileUpdatePromise = fetch(`/organization/${body._id}/avatar`, {
+          method: 'POST',
+          body: this.state.file
+        })
+
+        if (organization === null) {
+          intercept();
+          onOrganizationPersisted();
+          return;
+        }
+
+        fileUpdatePromise.then(({ response }) => {
+          if (response.status === 413) {
+            this.setState({
+              loading: false,
+              avatarTooLarge: true
+            });
+          } else if (response.status === 200) {
+            onOrganizationPersisted();
           } else {
             this.setState({
               loading: false,
@@ -92,7 +104,7 @@ export class OrganizationPersist extends React.PureComponent {
             loading: false,
             displayUnableToPersistAvatarError: true
           });
-        });
+        })
       } else {
         this.setState({
           loading: false,
@@ -118,7 +130,13 @@ export class OrganizationPersist extends React.PureComponent {
   onFile = (file) => {
     const reader = new FileReader();
     reader.onload = () => {
-      this.setState({ avatar: reader.result, file });
+      this.setState({
+        avatar: reader.result,
+        file,
+        avatarTooLarge: file.size > MAXIMUM_IMAGE_UPLOAD_BYTES
+      });
+
+      console.log('file.size', file.size);
     };
     reader.readAsDataURL(file);
   }
@@ -134,7 +152,7 @@ export class OrganizationPersist extends React.PureComponent {
     if (this.state.avatarTooLarge) {
       avatarTooLargeError = (
         <MessageBlock>
-          {T('Sorry, your image is too large, please try a small image')}
+          {T('Sorry, your image is too large, please try a smaller image')}
         </MessageBlock>
       );
     }

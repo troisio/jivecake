@@ -12,13 +12,15 @@ import { Header } from 'component/header';
 import { Signup } from 'page/signup';
 import { NotFound } from 'page/not-found';
 import { Login } from 'page/login';
-import { OrganizationPersist } from 'page/organization-persist';
 import { Organization } from 'page/organization';
 import { ForgotPassword } from 'page/forgot-password';
 import { ApplicationContext } from 'js/context/application';
 import { OrganizationContext } from 'js/context/organization';
 import { UserOrganizationContext } from 'js/context/user-organization';
 import { UserContext } from 'js/context/user';
+import { Events } from 'js/page/events';
+import { CreateOrganization } from 'js/page/create-organization';
+import { UpdateOrganization } from 'js/page/update-organization';
 
 import './style.scss';
 
@@ -148,40 +150,23 @@ export class Application extends React.Component {
         </OrganizationContext.Consumer>
       );
 
-      const organizationPersist = ({ history, match }) => {
-        return (
-          <OrganizationContext.Consumer>
-            {organizations => {
-              const fetch = typeof match.params.organizationId !== 'undefined' &&
-                !organizations.hasOwnProperty(match.params.organizationId);
-
-              if (fetch) {
-                this.fetch('/organization/' + match.params.organizationId);
-              }
-
-              const organization = _.get(organizations, match.params.organizationId, null);
-
-              return (
-                <OrganizationPersist
-                  fetch={this.fetch}
-                  organization={organization}
-                  onOrganizationPersisted={() => {
-                    history.push(routes.organization())
-                  }}
-                />
-              );
-            }}
-          </OrganizationContext.Consumer>
-        );
-      };
-
       authenticatedRoutes = (
         <>
           <Route exact path={routes.organization()} component={organization} />
           <Route
             exact
-            path={routes.organizationPersist(':organizationId?')}
-            component={organizationPersist}
+            path={routes.organizationPersist(':organizationId')}
+            component={({ history, match }) => <UpdateOrganization match={match} history={history} fetch={this.fetch} />}
+          />
+          <Route
+            exact
+            path={routes.organizationPersist()}
+            component={({ history }) => <CreateOrganization history={history} fetch={this.fetch} />}
+          />
+          <Route
+            exact
+            path={routes.organizationEvents(':organizationId')}
+            component={({ history, match }) => <Events organizationEvents={{}} userId={applicationContextValue.userId} organizationId={match.params.organizationId} history={history} fetch={this.fetch} />}
           />
         </>
       )

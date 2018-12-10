@@ -5,6 +5,7 @@ https://ajv.js.org/keywords.html
 import passwords from 'common/passwords.json';
 
 export const DEFAULT_MAX_LENGTH = 250;
+export const MAXIMUM_IMAGE_UPLOAD_BYTES = 500000;
 
 export const USER_SCHEMA = {
   email: {

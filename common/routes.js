@@ -3,8 +3,12 @@ export class Routes {
     this.prefix = prefix;
   }
 
-  events() {
-    return `${this.prefix}/events`;
+  organizationEvents(organizationId) {
+    return `${this.prefix}/organization/${organizationId}/event`;
+  }
+
+  event(eventId) {
+    return `${this.prefix}/event/${eventId}`;
   }
 
   myTransactions(userId) {
