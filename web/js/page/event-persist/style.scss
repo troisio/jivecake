@@ -1,0 +1,48 @@
+@import '~sass/color';
+@import '~sass/media';
+
+.avatar {
+  align-self: center;
+}
+
+.vertical-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  > *:not(:first-child) {
+    margin-top: 1rem;
+  }
+}
+
+.root {
+  display: flex;
+  margin: 0 auto;
+  flex-direction: column;
+
+  > *:not(:first-child) {
+    margin-top: 1rem;
+  }
+}
+
+@include phone() {
+  .root {
+    padding: 15px;
+  }
+
+  .avatar-image-upload img {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+@include not_phone() {
+  .root {
+    width: 60%;
+  }
+
+  .avatar-image-upload img {
+    width: 120px;
+    height: 120px;
+  }
+}

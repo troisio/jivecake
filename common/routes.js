@@ -31,6 +31,16 @@ export class Routes {
     return url;
   }
 
+  eventPersist(id) {
+    let result = `${this.prefix}/event/persist`;
+
+    if (typeof id !== 'undefined') {
+      result += '/' + id;
+    }
+
+    return result;
+  }
+
   organizationPersist(id = null) {
     let result = `${this.prefix}/organization/persist`;
 

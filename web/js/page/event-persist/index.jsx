@@ -10,21 +10,19 @@ import { Button } from 'component/button';
 import { AvatarImageUpload } from 'component/avatar-image-upload';
 import './style.scss';
 
-export class OrganizationPersist extends React.PureComponent {
+export class EventPersist extends React.PureComponent {
   static propTypes = {
+    event: PropTypes.object,
     organization: PropTypes.object,
-    onOrganizationPersisted: PropTypes.func.isRequired,
+    onPersisted: PropTypes.func.isRequired,
     fetch: PropTypes.func.isRequired
   }
 
   constructor(props) {
     super(props);
 
-    const { organization } = this.props;
-
     this.state = {
       name: '',
-      email: '',
       avatar: null,
       loading: false,
       file: null,
@@ -33,10 +31,11 @@ export class OrganizationPersist extends React.PureComponent {
       avatarTooLarge: false
     };
 
-    if (organization !== null) {
-      this.state.name = organization.name;
-      this.state.email = organization.email;
-      this.state.avatar = organization.avatar;
+    const { event } = this.props;
+
+    if (event !== null) {
+      this.state.name = event.name;
+      this.state.avatar = event.avatar;
     }
   }
 
@@ -47,7 +46,7 @@ export class OrganizationPersist extends React.PureComponent {
       return;
     }
 
-    const { fetch, onOrganizationPersisted, organization } = this.props;
+    const { fetch, onPersisted, event } = this.props;
 
     this.setState({
       loading: true,
@@ -56,7 +55,7 @@ export class OrganizationPersist extends React.PureComponent {
       avatarTooLarge: false
     });
 
-    const url = organization === null ? '/organization' : `/organization/${organization._id}`;
+    const url = event === null ? '/event' : `/event/${event._id}`;
 
     fetch(url, {
       method: 'POST',
@@ -77,7 +76,7 @@ export class OrganizationPersist extends React.PureComponent {
 
       if (this.state.file === null) {
         intercept();
-        onOrganizationPersisted();
+        onPersisted(body);
         return;
       }
 
@@ -86,9 +85,9 @@ export class OrganizationPersist extends React.PureComponent {
         body: this.state.file
       });
 
-      if (organization === null) {
+      if (event === null) {
         intercept();
-        onOrganizationPersisted();
+        onPersisted(body);
         return;
       }
 
@@ -99,7 +98,7 @@ export class OrganizationPersist extends React.PureComponent {
             avatarTooLarge: true
           });
         } else if (response.status === 200) {
-          onOrganizationPersisted();
+          onPersisted();
         } else {
           this.setState({
             loading: false,
@@ -141,8 +140,8 @@ export class OrganizationPersist extends React.PureComponent {
   }
 
   render() {
-    const { organization } = this.props;
-    const submitText = organization === null ? T('Create') : T('Update');
+    const { event } = this.props;
+    const submitText = event === null ? T('Create') : T('Update');
 
     let unableToPersistError = null;
     let unableToPersistAvatarError = null;
@@ -181,25 +180,11 @@ export class OrganizationPersist extends React.PureComponent {
         {avatarTooLargeError}
         <AvatarImageUpload styleName='avatar-image-upload' onFile={this.onFile} { ...avatarUploadProps } />
         <Input
-          placeholder={T('Organization Name')}
+          placeholder={T('Event Name')}
           onChange={this.onNameChange}
           value={this.state.name}
           required
         />
-        <div styleName='email-section'>
-          <Input
-            placeholder={T('Email')}
-            type='email'
-            value={this.state.email}
-            required
-            onChange={this.onEmailChange}
-          />
-          <div styleName='email-note'>
-            {T('This email will be used so your customers can contact you.')}
-            &nbsp;
-            {T('We will also use this email to send you organization specific communication.')}
-          </div>
-        </div>
         <Button loading={this.state.loading}>
           {submitText}
         </Button>
