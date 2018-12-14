@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { OrganizationContext } from 'js/context/organization';
+import { OrganizationContext } from 'js/context';
 import { routes } from 'js/routes';
 import { OrganizationPersist } from 'js/page/organization-persist';
 

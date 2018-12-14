@@ -14,13 +14,15 @@ import { NotFound } from 'page/not-found';
 import { Login } from 'page/login';
 import { Organization } from 'page/organization';
 import { ForgotPassword } from 'page/forgot-password';
-import { ApplicationContext } from 'js/context/application';
-import { OrganizationContext } from 'js/context/organization';
-import { UserOrganizationContext } from 'js/context/user-organization';
-import { UserContext } from 'js/context/user';
 import { Events } from 'js/page/events';
 import { CreateOrganization } from 'js/page/create-organization';
 import { UpdateOrganization } from 'js/page/update-organization';
+import {
+  ApplicationContext,
+  OrganizationContext,
+  UserContext,
+  UserOrganizationContext
+} from 'js/context';
 
 import './style.scss';
 

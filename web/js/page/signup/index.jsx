@@ -12,7 +12,7 @@ import { T } from 'common/i18n';
 import { getNavigatorLanguage } from 'common/helpers';
 
 import { MessageBlock } from 'component/message-block';
-import { ApplicationContext } from 'js/context/application';
+import { ApplicationContext } from 'js/context';
 import { Button } from 'component/button';
 import { Anchor } from 'component/anchor';
 import { Input } from 'component/input';
@@ -271,13 +271,13 @@ export class Signup extends React.Component {
       content = (
         <div styleName='vertical-content'>
           <Anchor to={routes.transactions()} button={true}>
-            {T('Go to my transactions')}
+            {T('My transactions')}
           </Anchor>
           <Anchor to={routes.organization()} button={true}>
-            {T('Go to my organizations')}
+            {T('My organizations')}
           </Anchor>
-          <Anchor to={routes.events()} button={true}>
-            {T('Go to events')}
+          <Anchor to={routes.event()} button={true}>
+            {T('My events')}
           </Anchor>
         </div>
       );

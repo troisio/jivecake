@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Link }from 'react-router-dom';
 
 import { T } from 'common/i18n';
-import { ApplicationContext } from 'js/context/application';
+import { ApplicationContext } from 'js/context';
 import { Routes } from 'common/routes';
 
 import { Anchor } from 'component/anchor';

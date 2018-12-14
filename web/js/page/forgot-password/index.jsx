@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link }from 'react-router-dom';
 
-import { ApplicationContext } from 'js/context/application';
+import { ApplicationContext } from 'js/context';
 import { Routes } from 'common/routes';
 import { T } from 'common/i18n';
 

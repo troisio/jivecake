@@ -8,7 +8,13 @@ export class Routes {
   }
 
   event(eventId) {
-    return `${this.prefix}/event/${eventId}`;
+    let url = `${this.prefix}/event`;
+
+    if (typeof eventId !== 'undefined') {
+      url += '/' + eventId;
+    }
+
+    return url;
   }
 
   myTransactions(userId) {

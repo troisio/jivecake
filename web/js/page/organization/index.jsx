@@ -12,7 +12,7 @@ import { routes } from 'js/routes';
 
 import './style.scss';
 
-export class Organization extends React.Component {
+export class Organization extends React.PureComponent {
   static propTypes = {
     userId: PropTypes.string.isRequired,
     history: PropTypes.object.isRequired,

@@ -67,50 +67,51 @@ export class OrganizationPersist extends React.PureComponent {
     }, {
       intercept: false
     }).then(({ response, body, intercept }) => {
-      if (response.ok) {
-        if (this.state.file === null) {
-          intercept();
-          onOrganizationPersisted();
-          return;
-        }
-
-        const fileUpdatePromise = fetch(`/organization/${body._id}/avatar`, {
-          method: 'POST',
-          body: this.state.file
-        })
-
-        if (organization === null) {
-          intercept();
-          onOrganizationPersisted();
-          return;
-        }
-
-        fileUpdatePromise.then(({ response }) => {
-          if (response.status === 413) {
-            this.setState({
-              loading: false,
-              avatarTooLarge: true
-            });
-          } else if (response.status === 200) {
-            onOrganizationPersisted();
-          } else {
-            this.setState({
-              loading: false,
-              displayUnableToPersistAvatarError: true
-            });
-          }
-        }, () => {
-          this.setState({
-            loading: false,
-            displayUnableToPersistAvatarError: true
-          });
-        })
-      } else {
+      if (!response.ok) {
         this.setState({
           loading: false,
           displayUnableToPersistError: true
         });
+        return;
       }
+
+      if (this.state.file === null) {
+        intercept();
+        onOrganizationPersisted();
+        return;
+      }
+
+      const fileUpdatePromise = fetch(`/organization/${body._id}/avatar`, {
+        method: 'POST',
+        body: this.state.file
+      });
+
+      if (organization === null) {
+        intercept();
+        onOrganizationPersisted();
+        return;
+      }
+
+      fileUpdatePromise.then(({ response }) => {
+        if (response.status === 413) {
+          this.setState({
+            loading: false,
+            avatarTooLarge: true
+          });
+        } else if (response.status === 200) {
+          onOrganizationPersisted();
+        } else {
+          this.setState({
+            loading: false,
+            displayUnableToPersistAvatarError: true
+          });
+        }
+      }, () => {
+        this.setState({
+          loading: false,
+          displayUnableToPersistAvatarError: true
+        });
+      });
     }, () => {
       this.setState({
         loading: false,
