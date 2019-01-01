@@ -4,11 +4,13 @@ import { T } from 'common/i18n';
 
 import './style.scss';
 
-export class NotFound extends React.Component {
+export class NotFoundPage extends React.Component {
   render() {
     return (
       <div styleName='root'>
-        {T('Sorry, we can not find the page you are looking for')}
+        <span>
+          {T('Sorry, the page you are looking for does not exist or you do not have permission to see it')}
+        </span>
       </div>
     );
   }

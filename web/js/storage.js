@@ -2,6 +2,18 @@ import Ajv from 'ajv';
 
 const key = 'jivecakestorage';
 
+const ajv = new Ajv();
+const validateUserSchema = ajv.compile({
+  type: 'object',
+  properties: {
+    userId: {
+      type: 'string',
+    },
+    token: {
+      type: 'string'
+    }
+  }
+});
 const DEFAULT_LOCAL_STORAGE = {
   userId: null,
   token: null
@@ -19,31 +31,7 @@ export const getLocalStorage = () => {
     item = JSON.parse(localStorage.getItem(key));
   } catch (e) {
     item = null;
-    writeLocalStorage(DEFAULT_LOCAL_STORAGE);
-    item = { ...DEFAULT_LOCAL_STORAGE };
   }
 
-  const ajv = new Ajv();
-  const validate = ajv.compile({
-    type: 'object',
-    properties: {
-      userId: {
-        type: 'string',
-      },
-      token: {
-        type: 'string'
-      }
-    }
-  });
-
-  let result;
-
-  if (validate(item)) {
-    result = item;
-  } else {
-    result = { ...DEFAULT_LOCAL_STORAGE };
-    writeLocalStorage(result);
-  }
-
-  return result;
+  return item === null || !validateUserSchema(item) ? writeLocalStorage() : item;
 }

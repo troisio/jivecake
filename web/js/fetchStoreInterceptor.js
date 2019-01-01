@@ -38,6 +38,18 @@ export function fetchStoreInterceptor(
   if (method === 'POST') {
     const isOrganizationBody = ORGANIZATION_IN_BODY.some(regex => regex.test(url));
 
+    if (url === '/token/password') {
+      operations.updateUsers([ body.user ]);
+      operations.updateCredentials({
+        userId: body.user._id,
+        token: body.token
+      });
+    }
+
+    if (url === '/account') {
+      operations.updateUsers([ body ]);
+    }
+
     if (isOrganizationBody) {
       operations.updateOrganizations([body]);
     }

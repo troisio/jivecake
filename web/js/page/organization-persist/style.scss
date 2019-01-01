@@ -41,10 +41,6 @@
 }
 
 @include phone() {
-  .root {
-    padding: 15px;
-  }
-
   .avatar-image-upload img {
     width: 80px;
     height: 80px;
@@ -52,10 +48,6 @@
 }
 
 @include not_phone() {
-  .root {
-    width: 60%;
-  }
-
   .avatar-image-upload img {
     width: 120px;
     height: 120px;

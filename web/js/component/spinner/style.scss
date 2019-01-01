@@ -15,6 +15,11 @@
   }
 }
 
+.root-natural-spinner {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+}
 
 .loading:hover path {
   fill: red;

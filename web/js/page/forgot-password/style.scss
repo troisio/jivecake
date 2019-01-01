@@ -1,5 +1,4 @@
 @import '~sass/color';
-@import '~sass/media';
 
 .fa-key {
   font-size: 3rem;
@@ -26,16 +25,4 @@
   align-self: center;
   font-size: 2rem;
   color: $title;
-}
-
-@include phone() {
-  .root {
-    padding: 15px;
-  }
-}
-
-@include not_phone() {
-  .root {
-    width: 60%;
-  }
 }

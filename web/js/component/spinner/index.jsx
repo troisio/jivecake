@@ -34,3 +34,14 @@ export class Spinner extends React.Component {
     );
   }
 }
+
+export class NaturalSpinner extends React.Component {
+  render() {
+    const props = _.omit(this.props, ['className']);
+    return (
+      <div styleName='root-natural-spinner' {...props}>
+        <Spinner />
+      </div>
+    )
+  }
+}

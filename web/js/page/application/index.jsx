@@ -5,20 +5,19 @@ import _ from 'lodash';
 
 import { getFetch } from 'js/fetch';
 import { fetchStoreInterceptor } from 'js/fetchStoreInterceptor';
-
 import { routes } from 'js/routes';
 import { getLocalStorage, writeLocalStorage } from 'js/storage';
 import { Header } from 'component/header';
 import { Signup } from 'page/signup';
-import { NotFound } from 'page/not-found';
+import { NotFoundPage } from 'page/not-found';
 import { Login } from 'page/login';
 import { Organization } from 'page/organization';
+import { EventPersist } from 'page/event-persist';
 import { ForgotPassword } from 'page/forgot-password';
 import { Events } from 'js/page/events';
-import { CreateOrganization } from 'js/page/create-organization';
+import { OrganizationPersist } from 'js/page/organization-persist';
 import { UpdateOrganization } from 'js/page/update-organization';
 import { UpdateEvent } from 'js/page/update-event';
-import { CreateEvent } from 'js/page/create-event';
 import {
   ApplicationContext,
   OrganizationContext,
@@ -31,9 +30,26 @@ import {
 import './style.scss';
 
 export class Application extends React.Component {
+  interceptor = (
+    url,
+    options,
+    response,
+    body
+  ) => {
+    return fetchStoreInterceptor(url, options, response, body, {
+      updateOrganizations: this.updateOrganizations,
+      updateEvents: this.updateEvents,
+      updateUsers: this.updateUsers,
+      updateUserOrganizations: this.updateUserOrganizations,
+      updateOrganizationEvents: this.updateOrganizationEvents,
+      updateCredentials: this.updateCredentials,
+    });
+  };
+
   DEFAULT_STATE = {
-    applicationContextValue: {
-      userId: null
+    application: {
+      userId: getLocalStorage().userId,
+      fetch: getFetch(this.interceptor)
     },
     organizations: {
     },
@@ -51,63 +67,44 @@ export class Application extends React.Component {
     }
   };
 
-  constructor(props) {
-    super(props);
+  state = { ...this.DEFAULT_STATE };
 
-    const storage = getLocalStorage();
-    this.state = {
-      ...this.DEFAULT_STATE,
-      applicationContextValue: {
-        userId: storage.userId
-      }
+  updateCredentials = (credentials) => {
+    const writtenCredentials = writeLocalStorage(credentials);
+    this.setState({ application: {
+      ...this.state.application,
+      userId: writtenCredentials.userId
+    }});
+  }
+
+  updateOrganizations = (newOrganizations) => {
+    const organizations = {
+      ...this.state.organizations,
+      ..._.keyBy(newOrganizations, '_id')
     };
 
-    const interceptor = (
-      url,
-      options,
-      response,
-      body
-    ) => {
-      return fetchStoreInterceptor(url, options, response, body, {
-        updateOrganizations: this.updateOrganizations,
-        updateEvents: this.updateEvents,
-        updateUsers: this.updateUsers,
-        updateUserOrganizations: this.updateUserOrganizations,
-        updateOrganizationEvents: this.updateOrganizationEvents
-      });
+    this.setState({ organizations });
+  }
+
+  updateEvents = (newEvents) => {
+    const events = {
+      ...this.state.events,
+      ..._.keyBy(newEvents, '_id')
     };
-
-    this.fetch = getFetch(interceptor);
+    this.setState({ events });
   }
 
-  updateOrganizations = (organizations) => {
-    const data = organizations
-      .map(organization => ({ [organization._id] : organization }))
-      .reduce((a, b) => ({ ...a, ...b }), []);
-    const newOrganizations = _.merge({ ...this.state.organizations }, data );
-
-    this.setState({ organizations: newOrganizations});
-  }
-
-  updateEvents = (events) => {
-    const data = events
-      .map(events => ({ [events._id] : events }))
-      .reduce((a, b) => ({ ...a, ...b }), []);
-    const entities = _.merge({ ...this.state.events }, data );
-    this.setState({ events: entities });
-  }
-
-  updateUsers = (users) => {
-    const data = users
-      .map(user => ({ [user._id] : user }))
-      .reduce((a, b) => ({ ...a, ...b }), []);
-    const newUsers = _.merge({ ...this.state.users }, data);
-    this.setState({ users: newUsers });
+  updateUsers = (newUsers) => {
+    const users = {
+      ...this.state.users,
+      ..._.keyBy(newUsers, '_id')
+    };
+    this.setState({ users });
   }
 
   updateUserOrganizations = (userId, page, count, organizations) => {
     const ids = organizations.map(organization => organization._id);
-    const result = _.merge({ ...this.state.userOrganization }, {
+    const userOrganizations = _.merge({ ...this.state.userOrganization }, {
       [userId]: {
         count,
         pages: {
@@ -116,12 +113,12 @@ export class Application extends React.Component {
       }
     });
 
-    this.setState({ userOrganizations: result })
+    this.setState({ userOrganizations });
   }
 
   updateOrganizationEvents = (organizationId, page, count, events) => {
     const ids = events.map(({ _id }) => _id);
-    const result = _.merge({ ...this.state.organizationEvents }, {
+    const organizationEvents = _.merge({ ...this.state.organizationEvents }, {
       [organizationId]: {
         count,
         pages: {
@@ -130,14 +127,12 @@ export class Application extends React.Component {
       }
     });
 
-    this.setState({ organizationEvents: result })
+    this.setState({ organizationEvents });
   }
 
   onLogoutClick = () => {
     writeLocalStorage();
     this.setState({ ...this.DEFAULT_STATE });
-
-    /* TODO redirect to somewhere else */
   }
 
   onLogin = ({ user, token }) => {
@@ -148,7 +143,7 @@ export class Application extends React.Component {
     writeLocalStorage(storage);
 
     this.setState({
-      applicationContextValue: {
+      application: {
         userId: storage.userId
       },
       users: { ...this.state.users, [ user._id ]: user }
@@ -156,78 +151,24 @@ export class Application extends React.Component {
   }
 
   render() {
-    const { applicationContextValue } = this.state;
-    const signup = (props) => (
-      <Signup fetch={this.fetch} onLogin={this.onLogin} {...props} />
-    );
-
-    const login = (props) => (
-      <Login fetch={this.fetch} onLogin={this.onLogin} {...props} />
-    );
-
     let authenticatedRoutes = null;
 
-    if (applicationContextValue.userId !== null) {
-      const organization = (props) => (
-        <OrganizationContext.Consumer>
-          {organizations =>
-            <UserOrganizationContext.Consumer>
-              {
-                userOrganizations =>
-                  <Organization
-                    {...props}
-                    fetch={this.fetch}
-                    userId={applicationContextValue.userId}
-                    organizations={organizations}
-                    userOrganizations={userOrganizations}
-                  />
-              }
-            </UserOrganizationContext.Consumer>
-          }
-        </OrganizationContext.Consumer>
-      );
-
+    if (this.state.application.userId !== null) {
       authenticatedRoutes = (
-        <>
-          <Route exact path={routes.organization()} component={organization} />
-          <Route
-            exact
-            path={routes.organizationPersist(':organizationId')}
-            component={({ history, match }) => <UpdateOrganization match={match} history={history} fetch={this.fetch} />}
-          />
-          <Route
-            exact
-            path={routes.organizationPersist()}
-            component={({ history }) => <CreateOrganization history={history} fetch={this.fetch} />}
-          />
-          <Route
-            exact
-            path={routes.eventPersist()}
-            component={({ history }) => <CreateEvent history={history} fetch={this.fetch} />}
-          />
-          <Route
-            exact
-            path={routes.eventPersist(':eventId')}
-            component={({ history }) => <UpdateEvent history={history} fetch={this.fetch} />}
-          />
-          <Route
-            exact
-            path={routes.organizationEvents(':organizationId')}
-            component={({ history, match }) => (
-              <Events
-                userId={applicationContextValue.userId}
-                organizationId={match.params.organizationId}
-                history={history}
-                fetch={this.fetch}
-              />)}
-          />
-        </>
-      )
+        <Switch>
+          <Route path={routes.organizationPersist(':organizationId')} component={UpdateOrganization} />
+          <Route path={routes.organizationPersist()} component={OrganizationPersist} />
+          <Route path={routes.organization()} component={Organization} />
+          <Route path={routes.eventPersist(':eventId')} component={UpdateEvent} />
+          <Route path={routes.eventPersist()} component={EventPersist} />
+          <Route path={routes.organizationEvents(':organizationId')} component={Events} />
+        </Switch>
+      );
     }
 
     return (
       <BrowserRouter>
-        <ApplicationContext.Provider value={applicationContextValue}>
+        <ApplicationContext.Provider value={this.state.application}>
           <OrganizationContext.Provider value={this.state.organizations}>
             <UserOrganizationContext.Provider value={this.state.userOrganizations}>
               <UserContext.Provider value={this.state.user}>
@@ -235,13 +176,15 @@ export class Application extends React.Component {
                   <OrganizationEventsContext.Provider value={this.state.organizationEvents}>
                     <div styleName='root'>
                       <Header onLogoutClick={this.onLogoutClick} />
-                      <Switch>
-                        <Route exact path={routes.login()} component={login} />
-                        <Route exact path={routes.signup()} component={signup} />
-                        <Route exact path={routes.forgotPassword()} component={ForgotPassword} />
-                        {authenticatedRoutes}
-                        <Route component={NotFound} />
-                      </Switch>
+                      <div styleName='content'>
+                        <Switch>
+                          <Route path={routes.login()} component={Login} />
+                          <Route path={routes.signup()} component={Signup} />
+                          <Route path={routes.forgotPassword()} component={ForgotPassword} />
+                          {authenticatedRoutes}
+                          <Route component={NotFoundPage} />
+                        </Switch>
+                      </div>
                     </div>
                   </OrganizationEventsContext.Provider>
                 </EventContext.Provider>

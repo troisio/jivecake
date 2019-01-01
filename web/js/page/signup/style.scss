@@ -1,5 +1,4 @@
 @import '~sass/color';
-@import '~sass/media';
 
 .check-circle {
   color: grey;
@@ -53,16 +52,4 @@
 .root {
   display: flex;
   margin: 0 auto;
-}
-
-@include phone() {
-  .root {
-    padding: 15px;
-  }
-}
-
-@include not_phone() {
-  .root {
-    width: 60%;
-  }
 }

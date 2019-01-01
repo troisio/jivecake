@@ -8,9 +8,6 @@ import { OrganizationEventsContext } from 'js/context';
 export class Events extends React.Component {
   static propTypes = {
     organizationId: PropTypes.string.isRequired,
-    fetch: PropTypes.func.isRequired,
-    userId: PropTypes.string.isRequired,
-    history: PropTypes.object.isRequired
   }
 
   render() {
@@ -20,9 +17,6 @@ export class Events extends React.Component {
           <Component
             organizationId={this.props.organizationId}
             organizationEvents={organizationEvents}
-            fetch={this.props.fetch}
-            userId={this.props.userId}
-            history={this.props.history}
           />
         }}
       </OrganizationEventsContext.Consumer>

@@ -1,26 +1,31 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router';
+
+import {
+  ApplicationContext,
+  OrganizationContext
+} from 'js/context';
 
 import { T } from 'common/i18n';
 import { MAXIMUM_IMAGE_UPLOAD_BYTES } from 'common/schema';
-
+import { routes } from 'js/routes';
 import { MessageBlock } from 'component/message-block';
 import { Input } from 'component/input';
 import { Button } from 'component/button';
 import { AvatarImageUpload } from 'component/avatar-image-upload';
 import './style.scss';
 
-export class OrganizationPersist extends React.PureComponent {
+export class Component extends React.PureComponent {
   static propTypes = {
+    history: PropTypes.object,
     organization: PropTypes.object,
-    onOrganizationPersisted: PropTypes.func.isRequired,
+    organizations: PropTypes.object.isRequired,
     fetch: PropTypes.func.isRequired
-  }
+  };
 
   constructor(props) {
     super(props);
-
-    const { organization } = this.props;
 
     this.state = {
       name: '',
@@ -33,10 +38,21 @@ export class OrganizationPersist extends React.PureComponent {
       avatarTooLarge: false
     };
 
-    if (organization !== null) {
+    if (props.hasOwnProperty('organization')) {
+      const { organization } = this.props;
       this.state.name = organization.name;
       this.state.email = organization.email;
       this.state.avatar = organization.avatar;
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    const { history, organization, organizations } = this.props;
+    const didReceiveOrganization = organization !== prevProps.organization;
+    const didAddOrganization = Object.keys(organizations).length > Object.keys(prevProps.organizations).length
+
+    if (didReceiveOrganization || didAddOrganization) {
+      history.push(routes.organization());
     }
   }
 
@@ -47,7 +63,7 @@ export class OrganizationPersist extends React.PureComponent {
       return;
     }
 
-    const { fetch, onOrganizationPersisted, organization } = this.props;
+    const { fetch, organization } = this.props;
 
     this.setState({
       loading: true,
@@ -56,7 +72,7 @@ export class OrganizationPersist extends React.PureComponent {
       avatarTooLarge: false
     });
 
-    const url = organization === null ? '/organization' : `/organization/${organization._id}`;
+    const url = this.props.hasOwnProperty('organization') ? `/organization/${organization._id}` : '/organization';
 
     fetch(url, {
       method: 'POST',
@@ -77,7 +93,6 @@ export class OrganizationPersist extends React.PureComponent {
 
       if (this.state.file === null) {
         intercept();
-        onOrganizationPersisted();
         return;
       }
 
@@ -86,9 +101,8 @@ export class OrganizationPersist extends React.PureComponent {
         body: this.state.file
       });
 
-      if (organization === null) {
+      if (!this.props.hasOwnProperty('organization')) {
         intercept();
-        onOrganizationPersisted();
         return;
       }
 
@@ -98,9 +112,7 @@ export class OrganizationPersist extends React.PureComponent {
             loading: false,
             avatarTooLarge: true
           });
-        } else if (response.status === 200) {
-          onOrganizationPersisted();
-        } else {
+        } else if (response.status !== 200) {
           this.setState({
             loading: false,
             displayUnableToPersistAvatarError: true
@@ -206,4 +218,22 @@ export class OrganizationPersist extends React.PureComponent {
       </form>
     );
   }
+}
+
+const ComponentWithRouter = withRouter(Component);
+
+export const OrganizationPersist = (props) => (
+  <ApplicationContext.Consumer>
+    { ({ fetch }) =>
+      <OrganizationContext.Consumer>
+        { organizations =>
+          <ComponentWithRouter fetch={fetch} organizations={organizations} { ...props } />
+        }
+      </OrganizationContext.Consumer>
+    }
+  </ApplicationContext.Consumer>
+);
+
+OrganizationPersist.propTypes = {
+  organization: PropTypes.object
 }

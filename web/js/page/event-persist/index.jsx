@@ -1,6 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import {
+  ApplicationContext
+} from 'js/context';
+
 import { T } from 'common/i18n';
 import { MAXIMUM_IMAGE_UPLOAD_BYTES } from 'common/schema';
 
@@ -10,11 +14,9 @@ import { Button } from 'component/button';
 import { AvatarImageUpload } from 'component/avatar-image-upload';
 import './style.scss';
 
-export class EventPersist extends React.PureComponent {
+class Component extends React.PureComponent {
   static propTypes = {
     event: PropTypes.object,
-    organization: PropTypes.object,
-    onPersisted: PropTypes.func.isRequired,
     fetch: PropTypes.func.isRequired
   }
 
@@ -55,7 +57,7 @@ export class EventPersist extends React.PureComponent {
       avatarTooLarge: false
     });
 
-    const url = event === null ? '/event' : `/event/${event._id}`;
+    const url = this.props.hasOwnProperty('event') ? `/event/${event._id}` : '/event';
 
     fetch(url, {
       method: 'POST',
@@ -80,12 +82,12 @@ export class EventPersist extends React.PureComponent {
         return;
       }
 
-      const fileUpdatePromise = fetch(`/organization/${body._id}/avatar`, {
+      const fileUpdatePromise = fetch(`/event/${body._id}/avatar`, {
         method: 'POST',
         body: this.state.file
       });
 
-      if (event === null) {
+      if (!this.props.hasOwnProperty('event')) {
         intercept();
         onPersisted(body);
         return;
@@ -140,8 +142,7 @@ export class EventPersist extends React.PureComponent {
   }
 
   render() {
-    const { event } = this.props;
-    const submitText = event === null ? T('Create') : T('Update');
+    const submitText = this.props.hasOwnProperty('event') ? T('Update') : T('Create');
 
     let unableToPersistError = null;
     let unableToPersistAvatarError = null;
@@ -192,3 +193,15 @@ export class EventPersist extends React.PureComponent {
     );
   }
 }
+
+export const EventPersist = (props) => {
+  <ApplicationContext.Consumer>
+    {
+      ({ fetch }) => <Component { ...props } fetch={fetch} />
+    }
+  </ApplicationContext.Consumer>
+};
+
+EventPersist.propTypes = {
+  event: PropTypes.object
+};

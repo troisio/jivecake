@@ -1,23 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router';
 import { Link }from 'react-router-dom';
 
 import { ApplicationContext } from 'js/context';
-import { Routes } from 'common/routes';
 import { T } from 'common/i18n';
-
+import { routes } from 'js/routes';
 import { MessageBlock } from 'component/message-block';
 import { Button } from 'component/button';
 import { Input } from 'component/input';
 import './style.scss';
 
-export class Login extends React.Component {
-  static contextType = ApplicationContext;
+class Component extends React.Component {
   static propTypes = {
-    onLogin: PropTypes.func.isRequired,
     location: PropTypes.object.isRequired,
     fetch: PropTypes.func.isRequired,
-  }
+    userId: PropTypes.string
+  };
 
   constructor(props) {
     super(props);
@@ -36,6 +35,8 @@ export class Login extends React.Component {
 
   onSubmit = (e) => {
     e.preventDefault();
+
+    const { fetch } = this.props;
     const { loading } = this.state;
 
     if (loading) {
@@ -48,16 +49,14 @@ export class Login extends React.Component {
       displayInvalidCredentials: false
     });
 
-    this.props.fetch('/token/password', {
+    fetch('/token/password', {
       method: 'POST',
       body: {
         email: this.state.email,
         password: this.state.password
       }
-    }).then(({ response, body }) => {
-      if (response.ok) {
-        this.props.onLogin(body);
-      } else {
+    }).then(({ response }) => {
+      if (!response.ok) {
         this.setState({
           loading: false,
           displayInvalidCredentials: true
@@ -80,14 +79,23 @@ export class Login extends React.Component {
   }
 
   render() {
-    const routes = new Routes();
-    const { userId } = this.context;
     let invalidCredentialsWarning = null;
     let unableToValidateMessage = null;
 
     let content;
 
-    if (userId === null) {
+    if (this.props.hasOwnProperty('userId')) {
+      content = (
+        <div styleName='vertical-content'>
+          <MessageBlock>
+            {T('You are already logged in')}
+          </MessageBlock>
+          <Link to={routes.myTransactions(this.props.userId)}>
+            {T('Go to my transactions')}
+          </Link>
+        </div>
+      );
+    } else {
       if (this.state.displayInvalidCredentials) {
         invalidCredentialsWarning = (
           <MessageBlock>
@@ -134,17 +142,6 @@ export class Login extends React.Component {
           </Link>
         </form>
       );
-    } else {
-      content = (
-        <div styleName='vertical-content'>
-          <MessageBlock>
-            {T('You are already logged in')}
-          </MessageBlock>
-          <Link to={routes.myTransactions(userId)}>
-            {T('Go to my transactions')}
-          </Link>
-        </div>
-      );
     }
 
     return (
@@ -154,3 +151,12 @@ export class Login extends React.Component {
     );
   }
 }
+
+const ComponentWithRouter = withRouter(Component);
+export const Login = () => (
+  <ApplicationContext.Consumer>
+    {
+      ({ fetch }) => <ComponentWithRouter fetch={fetch} />
+    }
+  </ApplicationContext.Consumer>
+);

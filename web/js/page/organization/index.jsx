@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router';
 
 import { T } from 'common/i18n';
 import { Avatar } from 'component/avatar';
@@ -9,10 +10,15 @@ import { MessageBlock } from 'component/message-block';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { routes } from 'js/routes';
+import {
+  ApplicationContext,
+  OrganizationContext,
+  UserOrganizationContext
+} from 'js/context';
 
 import './style.scss';
 
-export class Organization extends React.PureComponent {
+class Component extends React.PureComponent {
   static propTypes = {
     userId: PropTypes.string.isRequired,
     history: PropTypes.object.isRequired,
@@ -111,3 +117,26 @@ export class Organization extends React.PureComponent {
     );
   }
 }
+
+const ComponentWithRouter = withRouter(Component);
+
+export const Organization = () => (
+  <ApplicationContext.Consumer>
+    { ({ fetch, userId }) =>
+      <OrganizationContext.Consumer>
+        {organizations =>
+          <UserOrganizationContext.Consumer>
+            { userOrganizations =>
+                <ComponentWithRouter
+                  fetch={fetch}
+                  userId={userId}
+                  organizations={organizations}
+                  userOrganizations={userOrganizations}
+                />
+            }
+          </UserOrganizationContext.Consumer>
+        }
+      </OrganizationContext.Consumer>
+    }
+  </ApplicationContext.Consumer>
+);

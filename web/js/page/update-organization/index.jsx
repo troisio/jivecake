@@ -1,48 +1,98 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router';
 
-import { OrganizationContext } from 'js/context';
-import { routes } from 'js/routes';
+import { ErrorPage } from 'page/error';
+import { NotFoundPage } from 'page/not-found';
+import { NaturalSpinner } from 'component/spinner';
+import { ApplicationContext, OrganizationContext } from 'js/context';
 import { OrganizationPersist } from 'js/page/organization-persist';
 
-import { Spinner } from 'js/component/spinner';
-
-export class UpdateOrganization extends React.PureComponent {
+class Component extends React.PureComponent {
   static propTypes = {
-    match: PropTypes.object,
-    history: PropTypes.object,
-    fetch: PropTypes.func.isRequired
+    match: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired,
+    fetch: PropTypes.func.isRequired,
+    organizations: PropTypes.object.isRequired
+  };
+
+  state = {
+    displayError: false,
+    displayNotFound: false,
+    loading: false
+  };
+
+  hasOrganization() {
+    return this.props.organizations.hasOwnProperty(this.props.match.params.organizationId);
   }
 
-  onOrganizationPersisted = () => {
-    this.props.history.push(routes.organization());
+  fetchOrganization = () => {
+    const { fetch, match } = this.props;
+
+    this.setState({ displayError: false, loading: true });
+
+    fetch(`/organization/${match.params.organizationId}`).then(({ response }) => {
+      if (response.ok) {
+        this.setState({ loading: false });
+      } else if (response.status === 404) {
+        this.setState({ loading: false, displayNotFound: true });
+      } else {
+        this.setState({ displayError: true, loading: false });
+      }
+    }, () => {
+      this.setState({ displayError: true, loading: false });
+    });
+  }
+
+  onRetry = () => {
+    if (!this.state.loading) {
+      this.fetchOrganization();
+    }
+  }
+
+  componentDidMount() {
+    if (!this.hasOrganization()) {
+      this.fetchOrganization();
+    }
   }
 
   render() {
-    const { fetch, match } = this.props;
+    const { match, organizations } = this.props;
 
-    return (
-      <OrganizationContext.Consumer>
-        {organizations => {
-          const inStore = organizations.hasOwnProperty(match.params.organizationId);
+    if (this.state.displayNotFound) {
+      return <NotFoundPage onRetry={this.onRetry} />
+    }
 
-          if (inStore) {
-            const organization = organizations[match.params.organizationId];
+    if (this.state.displayError) {
+      return <ErrorPage onRetry={this.onRetry} />
+    }
 
-            return (
-              <OrganizationPersist
-                fetch={fetch}
-                organization={organization}
-                onOrganizationPersisted={this.onOrganizationPersisted}
-              />
-            );
-          }
+    if (this.state.loading) {
+      return <NaturalSpinner />;
+    }
 
-          fetch(`/organization/${match.params.organizationId}`);
+    if (this.hasOrganization()) {
+      const organization = organizations[match.params.organizationId];
 
-          return <Spinner />;
-        }}
-      </OrganizationContext.Consumer>
-    );
+      return (
+        <OrganizationPersist organization={organization} />
+      );
+    }
+
+    return null;
   }
 }
+
+const ComponentWithRouter = withRouter(Component);
+
+export const UpdateOrganization = () => (
+  <ApplicationContext.Consumer>
+    { ({ fetch }) =>
+      <OrganizationContext.Consumer>
+        { organizations =>
+          <ComponentWithRouter fetch={fetch} organizations={organizations} />
+        }
+      </OrganizationContext.Consumer>
+    }
+  </ApplicationContext.Consumer>
+);

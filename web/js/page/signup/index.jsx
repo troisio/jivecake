@@ -1,4 +1,5 @@
 import React from 'react';
+import { withRouter } from 'react-router';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
 import URLSearchParams from 'url-search-params';
@@ -7,10 +8,9 @@ import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import * as Sentry from '@sentry/browser';
 
 import { USER_SCHEMA } from 'common/schema';
-import { Routes } from 'common/routes';
 import { T } from 'common/i18n';
 import { getNavigatorLanguage } from 'common/helpers';
-
+import { routes } from 'js/routes';
 import { MessageBlock } from 'component/message-block';
 import { ApplicationContext } from 'js/context';
 import { Button } from 'component/button';
@@ -18,11 +18,10 @@ import { Anchor } from 'component/anchor';
 import { Input } from 'component/input';
 import './style.scss';
 
-export class Signup extends React.Component {
-  static contextType = ApplicationContext;
+class Component extends React.PureComponent {
   static propTypes = {
-    onLogin: PropTypes.func.isRequired,
-    fetch: PropTypes.func.isRequired
+    fetch: PropTypes.func.isRequired,
+    userId: PropTypes.string
   };
 
   state = {
@@ -41,26 +40,28 @@ export class Signup extends React.Component {
 
   onSubmit = (e) => {
     e.preventDefault();
-    const { fetch } = this.props;
 
     if (this.state.loading) {
       return;
     }
 
+    const { fetch } = this.props;
     const displayPasswordsDoNoMatch = this.state.password !== this.state.passwordConfirm;
     const displayPasswordLengthError = this.state.password.length < USER_SCHEMA.password.minLength ||
       this.state.passwordConfirm.length < USER_SCHEMA.password.minLength;
     const displayCommonPasswordError = USER_SCHEMA.password.not.enum.includes(this.state.password);
-
-    this.setState({
+    const nextState = {
       loading: true,
       displayUnableToCreateAccount: false,
       displayPasswordsDoNoMatch,
       displayPasswordLengthError,
       displayCommonPasswordError
-    });
+    };
 
     const hasError = displayCommonPasswordError || displayPasswordLengthError || displayPasswordsDoNoMatch;
+    nextState.loading = !hasError;
+
+    this.setState(nextState);
 
     if (hasError) {
       return;
@@ -81,10 +82,8 @@ export class Signup extends React.Component {
             email: this.state.email,
             password: this.state.password
           }
-        }).then(({ response, body }) => {
-          if (response.ok) {
-            this.props.onLogin(body);
-          } else {
+        }).then(({ response }) => {
+          if (!response.ok) {
             this.setState({
               onCreateAccountSuccess: true,
               loading: false,
@@ -109,7 +108,7 @@ export class Signup extends React.Component {
         });
       }
     }, () => {
-      Sentry.captureMessage('Unable to create account with status');
+      Sentry.captureMessage('Unable to create account');
       this.setState({
         displayUnableToCreateAccount: true,
         loading: false
@@ -145,9 +144,7 @@ export class Signup extends React.Component {
   }
 
   render() {
-    const routes = new Routes();
-    const { userId } = this.context;
-
+    const { userId } = this.props;
     let content;
 
     if (this.state.onCreateAccountSuccess) {
@@ -162,50 +159,26 @@ export class Signup extends React.Component {
         </div>
       );
     } else if (userId === null) {
-      let invalidCredentialsWarning = null;
-      let unableToCreateAccount = null;
-      let accountNotAvailable = null;
-      let passwordLengthError = null;
-      let commonPasswordError = null;
+      const errorMessages = [];
 
       if (this.state.displayCommonPasswordError) {
-        commonPasswordError = (
-          <MessageBlock>
-            {T('Your password is too common, please choose another password')}
-          </MessageBlock>
-        );
+        errorMessages.push(T('Your password is too common, please choose another password'));
       }
 
       if (this.state.displayPasswordLengthError) {
-        passwordLengthError = (
-          <MessageBlock>
-            {T('Your password must be at least 8 characters')}
-          </MessageBlock>
-        );
+        errorMessages.push(T('Your password must be at least 8 characters'));
       }
 
       if (this.state.displayAccountNotAvailable) {
-        accountNotAvailable = (
-          <MessageBlock>
-            {T('Sorry, this email is not available')}
-          </MessageBlock>
-        );
+        errorMessages.push(T('Sorry, this email is not available'));
       }
 
       if (this.state.displayUnableToCreateAccount) {
-        unableToCreateAccount = (
-          <MessageBlock>
-            {T('Sorry, we are not able to create your account. Please try again')}
-          </MessageBlock>
-        );
+        errorMessages.push(T('Sorry, we are not able to create your account. Please try again'));
       }
 
       if (this.state.displayInvalidCredentials) {
-        invalidCredentialsWarning = (
-          <MessageBlock>
-            {T('Sorry, invalid credentials')}
-          </MessageBlock>
-        );
+        errorMessages.push(T('Sorry, invalid credentials'));
       }
 
       let iconStyleName;
@@ -220,11 +193,13 @@ export class Signup extends React.Component {
 
       content = (
         <form styleName='vertical-content' onSubmit={this.onSubmit}>
-          {accountNotAvailable}
-          {invalidCredentialsWarning}
-          {unableToCreateAccount}
-          {passwordLengthError}
-          {commonPasswordError}
+          {
+            errorMessages.map(message => (
+              <MessageBlock key={message}>
+                {message}
+              </MessageBlock>
+            ))
+          }
           <div styleName='email-row'>
             <Input
               onChange={this.onEmailChange}
@@ -290,3 +265,13 @@ export class Signup extends React.Component {
     );
   }
 }
+
+const SignupWithRouter = withRouter(Component);
+
+export const Signup = () => (
+  <ApplicationContext.Consumer>
+    { value =>
+      <SignupWithRouter userId={value.userId} fetch={value.fetch} />
+    }
+  </ApplicationContext.Consumer>
+);
