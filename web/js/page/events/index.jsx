@@ -8,17 +8,18 @@ import { OrganizationEventsContext } from 'js/context';
 export class Events extends React.Component {
   static propTypes = {
     organizationId: PropTypes.string.isRequired,
-  }
+  };
 
   render() {
     return (
       <OrganizationEventsContext.Consumer>
-        {organizationEvents => {
+        {
+          organizationEvents =>
           <Component
             organizationId={this.props.organizationId}
             organizationEvents={organizationEvents}
           />
-        }}
+        }
       </OrganizationEventsContext.Consumer>
     );
   }

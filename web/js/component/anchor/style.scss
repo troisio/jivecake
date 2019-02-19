@@ -1,11 +1,18 @@
 @import '~sass/color';
 
 .root {
-  color: $anchor;
+  &:not(.button) {
+    &:hover {
+      color: darken($anchor, 10%);
+    }
+
+    &:not(:hover) {
+      color: $anchor
+    }
+  }
 
   &.button {
     font-size: 1rem;
-    background-color: $main;
     color: $white;
     border: 0px solid;
     border-radius: 3px;
@@ -13,6 +20,14 @@
 
     &:not(.icon) {
       padding: 8px;
+    }
+
+    &:hover {
+      background-color: darken($main, 10%);
+    }
+
+    &:not(:hover) {
+      background-color: $main;
     }
   }
 

@@ -7,12 +7,22 @@
 }
 
 .root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 8px;
-  background-color: $main;
   color: $white;
   border: 0px solid;
   border-radius: 3px;
   font-size: 1rem;
+
+  &:hover {
+    background-color: darken($main, 10%);
+  }
+
+  &:not(:hover) {
+    background-color: $main;
+  }
 }
 
 .loading {

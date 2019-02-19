@@ -1,11 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { withRouter } from 'react-router';
-import PropTypes from 'prop-types';
-import _ from 'lodash';
-import URLSearchParams from 'url-search-params';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
-import * as Sentry from '@sentry/browser';
+
+import { useFetch } from 'js/reducer/useFetch';
 
 import { USER_SCHEMA } from 'common/schema';
 import { T } from 'common/i18n';
@@ -18,260 +16,198 @@ import { Anchor } from 'component/anchor';
 import { Input } from 'component/input';
 import './style.scss';
 
-class Component extends React.PureComponent {
-  static propTypes = {
-    fetch: PropTypes.func.isRequired,
-    userId: PropTypes.string
-  };
+import { AFTER, REQUEST } from 'js/reducer/useFetch';
 
-  state = {
-    email: '',
-    password: '',
-    passwordConfirm: '',
-    displayAccountNotAvailable: false,
-    displayUnableToCreateAccount: false,
-    displayPasswordsDoNoMatch: false,
-    displayPasswordLengthError: false,
-    displayCommonPasswordError: false,
-    emailAvailable: null,
-    loading: false,
-    onCreateAccountSuccess: false
-  };
+const FETCH_EMAIL = '/user/email';
+const CREATE_ACCOUNT = '/user/email';
 
-  onSubmit = (e) => {
+function Component() {
+  const [ email, setEmail ] = useState('');
+  const [ password, setPassword ] = useState('');
+  const [ passwordConfirm, setPasswordConfirm ] = useState('');
+  const [ commonPasswordError, setCommonPasswordError ] = useState(false);
+  const [ passwordLengthError, setPasswordLengthError ] = useState(false);
+  const [ passwordsDoNoMatch, setPasswordsDoNoMatch ] = useState(false);
+  const { userId } = useContext(ApplicationContext);
+  const [ fetchEmailState, fetchEmail ] = useFetch(FETCH_EMAIL);
+  const [ fetchCreateAccountState, fetchCreateAccount ] = useFetch(CREATE_ACCOUNT);
+
+  useEffect(() => {
+    if (email.length > 0) {
+      const params = new URLSearchParams();
+      params.append('email', email);
+      fetchEmail(`/user/email?${params.toString()}`);
+    }
+  }, [email]);
+
+  function onSubmit(e) {
     e.preventDefault();
+    const requestDone = fetchCreateAccountState === null || fetchCreateAccountState.type === AFTER;
 
-    if (this.state.loading) {
+    if (!requestDone) {
       return;
     }
 
-    const { fetch } = this.props;
-    const displayPasswordsDoNoMatch = this.state.password !== this.state.passwordConfirm;
-    const displayPasswordLengthError = this.state.password.length < USER_SCHEMA.password.minLength ||
-      this.state.passwordConfirm.length < USER_SCHEMA.password.minLength;
-    const displayCommonPasswordError = USER_SCHEMA.password.not.enum.includes(this.state.password);
-    const nextState = {
-      loading: true,
-      displayUnableToCreateAccount: false,
-      displayPasswordsDoNoMatch,
-      displayPasswordLengthError,
-      displayCommonPasswordError
-    };
+    const displayPasswordsDoNoMatch = password !== passwordConfirm;
+    const displayPasswordLengthError = password.length < USER_SCHEMA.password.minLength ||
+      passwordConfirm.length < USER_SCHEMA.password.minLength;
+    const displayCommonPasswordError = USER_SCHEMA.password.not.enum.includes(password);
+
+    setCommonPasswordError(displayCommonPasswordError);
+    setPasswordsDoNoMatch(displayPasswordsDoNoMatch);
+    setPasswordLengthError(displayPasswordLengthError);
+    setCommonPasswordError(displayCommonPasswordError);
 
     const hasError = displayCommonPasswordError || displayPasswordLengthError || displayPasswordsDoNoMatch;
-    nextState.loading = !hasError;
-
-    this.setState(nextState);
 
     if (hasError) {
       return;
     }
 
-    fetch('/account', {
+    fetchCreateAccount('/account', {
       method: 'POST',
       body: {
-        email: this.state.email,
-        password: this.state.password,
+        email: email,
+        password: password,
         lastLanguage: getNavigatorLanguage(window.navigator)
       }
-    }).then(({ response }) => {
-      if (response.ok) {
-        fetch('/token/password', {
-          method: 'POST',
-          body: {
-            email: this.state.email,
-            password: this.state.password
-          }
-        }).then(({ response }) => {
-          if (!response.ok) {
-            this.setState({
-              onCreateAccountSuccess: true,
-              loading: false,
-            });
-          }
-        }, () => {
-          this.setState({
-            onCreateAccountSuccess: true,
-            loading: false,
-          });
-        });
-      } else if (response.status === 409) {
-        this.setState({
-          displayAccountNotAvailable: true,
-          loading: false
-        });
-      } else {
-        Sentry.captureMessage('Unable to create account with status ' + response.status);
-        this.setState({
-          displayUnableToCreateAccount: true,
-          loading: false
-        });
-      }
-    }, () => {
-      Sentry.captureMessage('Unable to create account');
-      this.setState({
-        displayUnableToCreateAccount: true,
-        loading: false
-      });
     });
   }
 
-  onEmailChange = (e) => {
-    const email = e.target.value;
-    this.setState({ email }, () => {
-      this.checkEmail();
-    });
-  }
+  /*
+  fetch('/token/password', {
+    method: 'POST',
+    body: {
+      email: state.email,
+      password: state.password
+    }
+  })
+  */
 
-  checkEmail = _.debounce(() => {
-    const { fetch } = this.props;
-    const params = new URLSearchParams();
-    params.append('email', this.state.email);
+  let content;
 
-    fetch(`/user/email?${params.toString()}`).then(({ response }) => {
-      this.setState({ emailAvailable: response.status === 404 });
-    }, () => {
-      this.setState({ emailAvailable: null });
-    });
-  }, 200);
+  const didSucceed = fetchCreateAccountState !== null &&
+    fetchCreateAccountState.type === AFTER &&
+    fetchCreateAccountState.response.status < 400;
 
-  onPasswordChange = (e) => {
-    this.setState({ password: e.target.value });
-  }
+  if (didSucceed) {
+    content = (
+      <div styleName='vertical-content'>
+        <MessageBlock>
+          {T('Your account has been created')}
+        </MessageBlock>
+        <Anchor to={routes.login(email)} button={true}>
+          {T('Login')}
+        </Anchor>
+      </div>
+    );
+  } else if (userId === null) {
+    const errorMessages = [];
 
-  onPasswordConfirmChange = (e) => {
-    this.setState({ passwordConfirm: e.target.value });
-  }
+    if (commonPasswordError) {
+      errorMessages.push(T('Your password is too common, please choose another password'));
+    }
 
-  render() {
-    const { userId } = this.props;
-    let content;
+    if (passwordLengthError) {
+      errorMessages.push(T('Your password must be at least 8 characters'));
+    }
 
-    if (this.state.onCreateAccountSuccess) {
-      content = (
-        <div styleName='vertical-content'>
-          <MessageBlock>
-            {T('Your account has been created')}
-          </MessageBlock>
-          <Anchor to={routes.login(this.state.email)} button={true}>
-            {T('Login')}
-          </Anchor>
-        </div>
-      );
-    } else if (userId === null) {
-      const errorMessages = [];
-
-      if (this.state.displayCommonPasswordError) {
-        errorMessages.push(T('Your password is too common, please choose another password'));
-      }
-
-      if (this.state.displayPasswordLengthError) {
-        errorMessages.push(T('Your password must be at least 8 characters'));
-      }
-
-      if (this.state.displayAccountNotAvailable) {
-        errorMessages.push(T('Sorry, this email is not available'));
-      }
-
-      if (this.state.displayUnableToCreateAccount) {
+    if (fetchCreateAccountState !== null) {
+      if ( fetchCreateAccountState.type === AFTER && fetchCreateAccountState.response.status >= 400) {
         errorMessages.push(T('Sorry, we are not able to create your account. Please try again'));
       }
 
-      if (this.state.displayInvalidCredentials) {
+      if (fetchCreateAccountState.type === AFTER && fetchCreateAccountState.response.status === 400) {
         errorMessages.push(T('Sorry, invalid credentials'));
       }
-
-      let iconStyleName;
-
-      if (this.state.email.length === 0 || this.state.emailAvailable === null) {
-        iconStyleName = 'check-circle';
-      } else if (this.state.emailAvailable) {
-        iconStyleName = 'check-circle success';
-      } else {
-        iconStyleName = 'check-circle error';
-      }
-
-      content = (
-        <form styleName='vertical-content' onSubmit={this.onSubmit}>
-          {
-            errorMessages.map(message => (
-              <MessageBlock key={message}>
-                {message}
-              </MessageBlock>
-            ))
-          }
-          <div styleName='email-row'>
-            <Input
-              onChange={this.onEmailChange}
-              value={this.state.email}
-              placeholder={T('Email')}
-              type='email'
-              styleName='email-input'
-              autoComplete='email'
-              required={true}
-            />
-            <div styleName='check-icon-container'>
-              <FontAwesomeIcon styleName={iconStyleName} icon={faCheckCircle} />
-            </div>
-          </div>
-          <Input
-            onChange={this.onPasswordChange}
-            value={this.state.password}
-            placeholder={T('Password')}
-            type='password'
-            error={this.state.displayPasswordsDoNoMatch}
-            autoComplete='new-password'
-            minLength={USER_SCHEMA.password.minLength}
-            required={true}
-          />
-          <Input
-            onChange={this.onPasswordConfirmChange}
-            value={this.state.passwordConfirm}
-            placeholder={T('Password Confirm')}
-            type='password'
-            error={this.state.displayPasswordsDoNoMatch}
-            autoComplete='new-password'
-            minLength={USER_SCHEMA.password.minLength}
-            required={true}
-          />
-        <Button loading={this.state.loading}>
-            {T('Create Account')}
-          </Button>
-          <Anchor to={routes.login()}>
-            {T('Already have an account?')}
-          </Anchor>
-        </form>
-      );
-    } else {
-      content = (
-        <div styleName='vertical-content'>
-          <Anchor to={routes.transactions()} button={true}>
-            {T('My transactions')}
-          </Anchor>
-          <Anchor to={routes.organization()} button={true}>
-            {T('My organizations')}
-          </Anchor>
-          <Anchor to={routes.event()} button={true}>
-            {T('My events')}
-          </Anchor>
-        </div>
-      );
     }
 
-    return (
-      <div styleName='root'>
-        {content}
+    let iconStyleName;
+
+    if (email.length === 0) {
+      iconStyleName = 'check-circle';
+    } else if (fetchEmailState === null) {
+      iconStyleName = 'check-circle';
+    } else if (fetchEmailState.type === REQUEST) {
+      iconStyleName = 'check-circle';
+    } else if (fetchEmailState.type === AFTER && fetchEmailState.response.status === 200) {
+      iconStyleName = 'check-circle success';
+    } else {
+      iconStyleName = 'check-circle error';
+    }
+
+    content = (
+      <form styleName='vertical-content' onSubmit={onSubmit}>
+        {
+          errorMessages.map(message => (
+            <MessageBlock key={message}>
+              {message}
+            </MessageBlock>
+          ))
+        }
+        <div styleName='email-row'>
+          <Input
+            onChange={e => setEmail(e.target.value)}
+            value={email}
+            placeholder={T('Email')}
+            type='email'
+            styleName='email-input'
+            autoComplete='email'
+            required={true}
+          />
+          <div styleName='check-icon-container'>
+            <FontAwesomeIcon styleName={iconStyleName} icon={faCheckCircle} />
+          </div>
+        </div>
+        <Input
+          onChange={e => setPassword(e.targer.value)}
+          value={password}
+          placeholder={T('Password')}
+          type='password'
+          error={passwordsDoNoMatch}
+          autoComplete='new-password'
+          minLength={USER_SCHEMA.password.minLength}
+          required={true}
+        />
+        <Input
+          onChange={e => setPasswordConfirm(e.target.value)}
+          value={passwordConfirm}
+          placeholder={T('Password Confirm')}
+          type='password'
+          error={passwordsDoNoMatch}
+          autoComplete='new-password'
+          minLength={USER_SCHEMA.password.minLength}
+          required={true}
+        />
+      <Button>
+          {T('Create Account')}
+        </Button>
+        <Anchor to={routes.login()}>
+          {T('Already have an account?')}
+        </Anchor>
+      </form>
+    );
+  } else {
+    content = (
+      <div styleName='vertical-content'>
+        <Anchor to={routes.transactions()} button={true}>
+          {T('My transactions')}
+        </Anchor>
+        <Anchor to={routes.organization()} button={true}>
+          {T('My organizations')}
+        </Anchor>
+        <Anchor to={routes.event()} button={true}>
+          {T('My events')}
+        </Anchor>
       </div>
     );
   }
+
+  return (
+    <div styleName='root'>
+      {content}
+    </div>
+  );
 }
 
-const SignupWithRouter = withRouter(Component);
-
-export const Signup = () => (
-  <ApplicationContext.Consumer>
-    { value =>
-      <SignupWithRouter userId={value.userId} fetch={value.fetch} />
-    }
-  </ApplicationContext.Consumer>
-);
+export const Signup = withRouter(Component);

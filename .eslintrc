@@ -6,7 +6,8 @@
   "parser": "babel-eslint",
   "plugins": [
     "react",
-    "class-property"
+    "babel",
+    "react-hooks"
   ],
   "parserOptions": {
     "ecmaVersion": 7,
@@ -21,6 +22,8 @@
   "globals": {
     "Set": true,
     "console": true,
+    "setInterval": true,
+    "clearInterval": true,
     "document": true,
     "window": true,
     "location": true,
@@ -32,10 +35,11 @@
   },
   "settings": {
     "react": {
-      "version": "16.6.0"
+      "version": "16.8.2"
     }
   },
   "rules": {
-    "no-console": 0
+    "no-console": 0,
+    "babel/semi": 1
   }
 }

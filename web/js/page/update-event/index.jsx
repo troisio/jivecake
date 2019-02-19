@@ -12,11 +12,11 @@ export class Component extends React.PureComponent {
     history: PropTypes.object.isRequired,
     fetch: PropTypes.func.isRequired,
     events: PropTypes.object.isRequired
-  }
+  };
 
   onPersisted = (organization) => {
     this.props.history.push(routes.organizationEvents(organization._id));
-  }
+  };
 
   componentDidMount() {
     const { events, fetch, match } = this.props;

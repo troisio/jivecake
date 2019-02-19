@@ -34,4 +34,4 @@ export const getLocalStorage = () => {
   }
 
   return item === null || !validateUserSchema(item) ? writeLocalStorage() : item;
-}
+};

@@ -4,7 +4,7 @@ import { withRouter } from 'react-router';
 
 import { ErrorPage } from 'page/error';
 import { NotFoundPage } from 'page/not-found';
-import { NaturalSpinner } from 'component/spinner';
+import { NaturalSpinner } from 'component/natural-spinner';
 import { ApplicationContext, OrganizationContext } from 'js/context';
 import { OrganizationPersist } from 'js/page/organization-persist';
 
@@ -42,13 +42,13 @@ class Component extends React.PureComponent {
     }, () => {
       this.setState({ displayError: true, loading: false });
     });
-  }
+  };
 
   onRetry = () => {
     if (!this.state.loading) {
       this.fetchOrganization();
     }
-  }
+  };
 
   componentDidMount() {
     if (!this.hasOrganization()) {
@@ -60,11 +60,11 @@ class Component extends React.PureComponent {
     const { match, organizations } = this.props;
 
     if (this.state.displayNotFound) {
-      return <NotFoundPage onRetry={this.onRetry} />
+      return <NotFoundPage onRetry={this.onRetry} />;
     }
 
     if (this.state.displayError) {
-      return <ErrorPage onRetry={this.onRetry} />
+      return <ErrorPage onRetry={this.onRetry} />;
     }
 
     if (this.state.loading) {

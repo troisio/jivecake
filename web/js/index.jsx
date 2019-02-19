@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { fetch as fetchPolyfill } from 'whatwg-fetch'
-import URLSearchParams from 'url-search-params';
+import { fetch as fetchPolyfill } from 'whatwg-fetch';
+import URLSearchParams from '@ungap/url-search-params';
 import 'js/Sentry';
 
 import { Application } from 'js/page/application';

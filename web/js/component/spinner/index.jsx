@@ -11,37 +11,26 @@ export class Color {
   static white = 'white';
 }
 
-export class Spinner extends React.Component {
-  static propTypes = {
-    color: PropTypes.string,
-    className: PropTypes.string
-  };
+export function Spinner(props) {
+  const styleName = 'root ' + props.color;
+  const propsCopy = _.omit(props, ['color', 'className']);
 
-  static defaultProps = {
-    color: Color.main
-  };
-
-  render() {
-    const styleName = 'root ' + this.props.color;
-    const props = _.omit(this.props, ['color', 'className']);
-    return (
-      <FontAwesomeIcon
-        className={this.props.className}
-        styleName={styleName}
-        icon={faSyncAlt}
-        { ...props }
-      />
-    );
-  }
+  return (
+    <FontAwesomeIcon
+      className={props.className}
+      styleName={styleName}
+      icon={faSyncAlt}
+      { ...propsCopy }
+    />
+  );
 }
 
-export class NaturalSpinner extends React.Component {
-  render() {
-    const props = _.omit(this.props, ['className']);
-    return (
-      <div styleName='root-natural-spinner' {...props}>
-        <Spinner />
-      </div>
-    )
-  }
-}
+
+Spinner.propTypes = {
+  color: PropTypes.string,
+  className: PropTypes.string
+};
+
+Spinner.defaultProps = {
+  color: Color.main
+};

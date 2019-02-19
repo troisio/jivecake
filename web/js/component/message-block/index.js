@@ -11,23 +11,22 @@ export class MessageBlockType {
   static warning = 'warning';
 }
 
-export class MessageBlock extends React.Component {
-  static propTypes = {
-    type: PropTypes.string
-  };
+export function MessageBlock(props) {
+  const styleName = 'root ' + props.type;
+  const propsCopy = _.omit(props, ['type']);
 
-  static defaultProps = {
-    type: MessageBlockType.main
-  };
-
-  render() {
-    const styleName = 'root ' + this.props.type;
-    const props = _.omit(this.props, ['type']);
-
-    return (
-      <div styleName={styleName} { ...props }>
-        {this.props.children}
-      </div>
-    );
-  }
+  return (
+    <div styleName={styleName} { ...propsCopy }>
+      {props.children}
+    </div>
+  );
 }
+
+MessageBlock.propTypes = {
+  children: PropTypes.node.isRequired,
+  type: PropTypes.string
+};
+
+MessageBlock.defaultProps = {
+  type: MessageBlockType.main
+};

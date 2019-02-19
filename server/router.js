@@ -291,14 +291,14 @@ export class Router {
         console.error(e);
         return {
           hasAccess: false,
-          notFound: false,
+          notFound: false
         };
       }
     }
 
     return {
       hasAccess: true,
-      notFound: false,
+      notFound: false
     };
   }
 }

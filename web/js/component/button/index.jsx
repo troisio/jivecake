@@ -6,39 +6,34 @@ import './style.scss';
 
 import { Spinner, Color } from 'js/component/spinner';
 
-export class Button extends React.Component {
-  static propTypes = {
-    loading: PropTypes.bool
-  };
+export function Button(props) {
+  let content;
+  let styleName = 'root';
 
-  static defaultProps = {
-    loading: false
-  };
-
-  render() {
-    let content;
-    let styleName = 'root';
-
-    if (this.props.loading) {
-      content = (
-        <>
-          <div styleName='children'>
-            {this.props.children}
-          </div>
-          <Spinner color={Color.white} />
-        </>
-      );
-      styleName += ' loading';
-    } else {
-      content = this.props.children;
-    }
-
-    const props = _.omit(this.props, ['loading']);
-
-    return (
-      <button styleName={styleName} { ...props }>
-        {content}
-      </button>
+  if (props.loading) {
+    content = (
+      <>
+        <div styleName='children'>
+          {props.children}
+        </div>
+        <Spinner color={Color.white} />
+      </>
     );
+    styleName += ' loading';
+  } else {
+    content = props.children;
   }
+
+  const propsCopy = _.omit(props, ['loading']);
+
+  return (
+    <button styleName={styleName} { ...propsCopy }>
+      {content}
+    </button>
+  );
 }
+
+Button.propTypes = {
+  children: PropTypes.node.isRequired,
+  loading: PropTypes.bool
+};

@@ -7,6 +7,7 @@ import { ApplicationContext } from 'js/context';
 import { T } from 'common/i18n';
 import { routes } from 'js/routes';
 import { MessageBlock } from 'component/message-block';
+import { Anchor } from 'component/anchor';
 import { Button } from 'component/button';
 import { Input } from 'component/input';
 import './style.scss';
@@ -67,16 +68,16 @@ class Component extends React.Component {
         loading: false,
         displayUnableToValidate: true
       });
-    })
-  }
+    });
+  };
 
   onPasswordChange = (e) => {
     this.setState({ password: e.target.value });
-  }
+  };
 
   onEmailChange = (e) => {
     this.setState({ email: e.target.value });
-  }
+  };
 
   render() {
     let invalidCredentialsWarning = null;
@@ -134,12 +135,12 @@ class Component extends React.Component {
           <Button loading={this.state.loading}>
             {T('Log In')}
           </Button>
-          <Link to={routes.forgotPassword()}>
+          <Anchor to={routes.forgotPassword()}>
             {T('Forgot your password?')}
-          </Link>
-          <Link to={routes.signup()}>
+          </Anchor>
+          <Anchor to={routes.signup()}>
             {T('Create an account')}
-          </Link>
+          </Anchor>
         </form>
       );
     }

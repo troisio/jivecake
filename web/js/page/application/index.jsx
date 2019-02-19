@@ -75,7 +75,7 @@ export class Application extends React.Component {
       ...this.state.application,
       userId: writtenCredentials.userId
     }});
-  }
+  };
 
   updateOrganizations = (newOrganizations) => {
     const organizations = {
@@ -84,7 +84,7 @@ export class Application extends React.Component {
     };
 
     this.setState({ organizations });
-  }
+  };
 
   updateEvents = (newEvents) => {
     const events = {
@@ -92,7 +92,7 @@ export class Application extends React.Component {
       ..._.keyBy(newEvents, '_id')
     };
     this.setState({ events });
-  }
+  };
 
   updateUsers = (newUsers) => {
     const users = {
@@ -100,7 +100,7 @@ export class Application extends React.Component {
       ..._.keyBy(newUsers, '_id')
     };
     this.setState({ users });
-  }
+  };
 
   updateUserOrganizations = (userId, page, count, organizations) => {
     const ids = organizations.map(organization => organization._id);
@@ -114,7 +114,7 @@ export class Application extends React.Component {
     });
 
     this.setState({ userOrganizations });
-  }
+  };
 
   updateOrganizationEvents = (organizationId, page, count, events) => {
     const ids = events.map(({ _id }) => _id);
@@ -128,12 +128,12 @@ export class Application extends React.Component {
     });
 
     this.setState({ organizationEvents });
-  }
+  };
 
   onLogoutClick = () => {
     writeLocalStorage();
     this.setState({ ...this.DEFAULT_STATE });
-  }
+  };
 
   onLogin = ({ user, token }) => {
     writeLocalStorage();
@@ -148,7 +148,7 @@ export class Application extends React.Component {
       },
       users: { ...this.state.users, [ user._id ]: user }
     });
-  }
+  };
 
   render() {
     let authenticatedRoutes = null;

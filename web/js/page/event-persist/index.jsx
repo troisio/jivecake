@@ -17,8 +17,9 @@ import './style.scss';
 class Component extends React.PureComponent {
   static propTypes = {
     event: PropTypes.object,
-    fetch: PropTypes.func.isRequired
-  }
+    fetch: PropTypes.func.isRequired,
+    onPersisted: PropTypes.func.isRequired
+  };
 
   constructor(props) {
     super(props);
@@ -119,15 +120,15 @@ class Component extends React.PureComponent {
         displayUnableToPersistError: true
       });
     });
-  }
+  };
 
   onEmailChange = (e) => {
     this.setState({ email: e.target.value });
-  }
+  };
 
   onNameChange = (e) => {
     this.setState({ name: e.target.value });
-  }
+  };
 
   onFile = (file) => {
     const reader = new FileReader();
@@ -139,7 +140,7 @@ class Component extends React.PureComponent {
       });
     };
     reader.readAsDataURL(file);
-  }
+  };
 
   render() {
     const submitText = this.props.hasOwnProperty('event') ? T('Update') : T('Create');
@@ -194,13 +195,13 @@ class Component extends React.PureComponent {
   }
 }
 
-export const EventPersist = (props) => {
+export const EventPersist = (props) => (
   <ApplicationContext.Consumer>
     {
       ({ fetch }) => <Component { ...props } fetch={fetch} />
     }
   </ApplicationContext.Consumer>
-};
+);
 
 EventPersist.propTypes = {
   event: PropTypes.object

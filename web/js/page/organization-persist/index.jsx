@@ -49,7 +49,7 @@ export class Component extends React.PureComponent {
   componentDidUpdate(prevProps) {
     const { history, organization, organizations } = this.props;
     const didReceiveOrganization = organization !== prevProps.organization;
-    const didAddOrganization = Object.keys(organizations).length > Object.keys(prevProps.organizations).length
+    const didAddOrganization = Object.keys(organizations).length > Object.keys(prevProps.organizations).length;
 
     if (didReceiveOrganization || didAddOrganization) {
       history.push(routes.organization());
@@ -130,15 +130,15 @@ export class Component extends React.PureComponent {
         displayUnableToPersistError: true
       });
     });
-  }
+  };
 
   onEmailChange = (e) => {
     this.setState({ email: e.target.value });
-  }
+  };
 
   onNameChange = (e) => {
     this.setState({ name: e.target.value });
-  }
+  };
 
   onFile = (file) => {
     const reader = new FileReader();
@@ -150,7 +150,7 @@ export class Component extends React.PureComponent {
       });
     };
     reader.readAsDataURL(file);
-  }
+  };
 
   render() {
     const { organization } = this.props;
@@ -236,4 +236,4 @@ export const OrganizationPersist = (props) => (
 
 OrganizationPersist.propTypes = {
   organization: PropTypes.object
-}
+};

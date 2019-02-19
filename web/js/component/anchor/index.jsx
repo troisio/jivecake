@@ -5,46 +5,44 @@ import _ from 'lodash';
 
 import './style.scss';
 
-export class Anchor extends React.Component {
-  static propTypes = {
-    to: PropTypes.string,
-    styleName: PropTypes.string,
-    className: PropTypes.string,
-    button: PropTypes.bool,
-    href: PropTypes.string,
-    icon: PropTypes.bool,
+export function Anchor(props) {
+  const propsCopy = _.omit(props, ['to', 'className', 'styleName', 'button', 'icon']);
+  let styleName = 'root';
+
+  if (props.button) {
+    styleName += ' button';
   }
 
-  static defaultProps = {
-    className: '',
-    button: false,
-    icon: false,
+  if (props.icon) {
+    styleName += ' icon';
   }
 
-  render() {
-    const props = _.omit(this.props, ['to', 'className', 'styleName', 'button', 'icon']);
-    let styleName = 'root';
-
-    if (this.props.button) {
-      styleName += ' button';
-    }
-
-    if (this.props.icon) {
-      styleName += ' icon';
-    }
-
-    if (this.props.hasOwnProperty('to')) {
-      return (
-        <Link className={this.props.className} styleName={styleName} to={this.props.to} { ...props }>
-          {this.props.children}
-        </Link>
-      )
-    }
-
+  if (props.hasOwnProperty('to')) {
     return (
-      <a className={this.props.className} styleName={styleName} { ...props }>
-        {this.props.children}
-      </a>
+      <Link className={props.className} styleName={styleName} to={props.to} { ...propsCopy }>
+        {props.children}
+      </Link>
     );
   }
+
+  return (
+    <a className={props.className} styleName={styleName} { ...propsCopy }>
+      {props.children}
+    </a>
+  );
 }
+
+Anchor.propTypes = {
+  children: PropTypes.node.isRequired,
+  to: PropTypes.string,
+  styleName: PropTypes.string,
+  className: PropTypes.string,
+  button: PropTypes.bool,
+  href: PropTypes.string,
+  icon: PropTypes.bool
+};
+
+Anchor.defaultProps = {
+  button: false,
+  icon: false
+};
