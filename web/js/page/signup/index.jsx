@@ -3,23 +3,16 @@ import { withRouter } from 'react-router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 
-import { useFetch } from 'js/reducer/useFetch';
-
 import { USER_SCHEMA } from 'common/schema';
 import { T } from 'common/i18n';
 import { getNavigatorLanguage } from 'common/helpers';
 import { routes } from 'js/routes';
 import { MessageBlock } from 'component/message-block';
-import { ApplicationContext } from 'js/context';
+import { ApplicationContext, FetchDispatchContext, FetchStateContext } from 'js/context';
 import { Button } from 'component/button';
 import { Anchor } from 'component/anchor';
 import { Input } from 'component/input';
 import './style.scss';
-
-import { AFTER, REQUEST } from 'js/reducer/useFetch';
-
-const FETCH_EMAIL = '/user/email';
-const CREATE_ACCOUNT = '/user/email';
 
 function Component() {
   const [ email, setEmail ] = useState('');
@@ -29,20 +22,23 @@ function Component() {
   const [ passwordLengthError, setPasswordLengthError ] = useState(false);
   const [ passwordsDoNoMatch, setPasswordsDoNoMatch ] = useState(false);
   const { userId } = useContext(ApplicationContext);
-  const [ fetchEmailState, fetchEmail ] = useFetch(FETCH_EMAIL);
-  const [ fetchCreateAccountState, fetchCreateAccount ] = useFetch(CREATE_ACCOUNT);
+  const fetchDispatch = useContext(FetchDispatchContext);
+  const fetchState = useContext(FetchStateContext);
 
   useEffect(() => {
-    if (email.length > 0) {
+    const DISPATCH_ID = 'SEARCH_USER_EMAIL';
+    const isRequsting = fetchState.CALL[DISPATCH_ID];
+
+    if (email.length > 0 && !isRequsting) {
       const params = new URLSearchParams();
       params.append('email', email);
-      fetchEmail(`/user/email?${params.toString()}`);
+      fetchDispatch(`/user/email?${params.toString()}`, {}, DISPATCH_ID);
     }
   }, [email]);
 
   function onSubmit(e) {
     e.preventDefault();
-    const requestDone = fetchCreateAccountState === null || fetchCreateAccountState.type === AFTER;
+    const requestDone = true;
 
     if (!requestDone) {
       return;
@@ -64,7 +60,7 @@ function Component() {
       return;
     }
 
-    fetchCreateAccount('/account', {
+    fetchDispatch('/account', {
       method: 'POST',
       body: {
         email: email,
@@ -74,21 +70,9 @@ function Component() {
     });
   }
 
-  /*
-  fetch('/token/password', {
-    method: 'POST',
-    body: {
-      email: state.email,
-      password: state.password
-    }
-  })
-  */
-
   let content;
 
-  const didSucceed = fetchCreateAccountState !== null &&
-    fetchCreateAccountState.type === AFTER &&
-    fetchCreateAccountState.response.status < 400;
+  const didSucceed = false;
 
   if (didSucceed) {
     content = (
@@ -112,29 +96,7 @@ function Component() {
       errorMessages.push(T('Your password must be at least 8 characters'));
     }
 
-    if (fetchCreateAccountState !== null) {
-      if ( fetchCreateAccountState.type === AFTER && fetchCreateAccountState.response.status >= 400) {
-        errorMessages.push(T('Sorry, we are not able to create your account. Please try again'));
-      }
-
-      if (fetchCreateAccountState.type === AFTER && fetchCreateAccountState.response.status === 400) {
-        errorMessages.push(T('Sorry, invalid credentials'));
-      }
-    }
-
-    let iconStyleName;
-
-    if (email.length === 0) {
-      iconStyleName = 'check-circle';
-    } else if (fetchEmailState === null) {
-      iconStyleName = 'check-circle';
-    } else if (fetchEmailState.type === REQUEST) {
-      iconStyleName = 'check-circle';
-    } else if (fetchEmailState.type === AFTER && fetchEmailState.response.status === 200) {
-      iconStyleName = 'check-circle success';
-    } else {
-      iconStyleName = 'check-circle error';
-    }
+    const iconStyleName = 'check-circle';
 
     content = (
       <form styleName='vertical-content' onSubmit={onSubmit}>

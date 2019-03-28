@@ -1,16 +1,54 @@
+import _ from 'lodash';
+import { fetch } from 'whatwg-fetch';
+
 import { useReducer, useEffect } from 'react';
-
-import { useLocalStorage } from 'js/reducer/useLocalStorage';
-import settings from 'settings';
-
-export const REQUEST = 'REQUEST';
-export const AFTER = 'AFTER';
 
 function reducer(state, action) {
   switch (action.type) {
-    case AFTER :
-    case REQUEST : {
-      return { ...state, [action.id]: { ...action } };
+    case 'CALL' : {
+      return _.merge({}, state, {
+        CALL: {
+          [action.id] : action
+        }
+      });
+    }
+
+    case 'DELETE' : {
+      const copy = { ...state };
+      copy[action.key] = _.omit(copy[action.key], [action.id]);
+      return copy;
+    }
+
+    case 'RESPONSE' : {
+      return _.merge({}, state, {
+        RESPONSE: {
+          [action.id] : action
+        }
+      });
+    }
+
+    case 'RESPONSE_JSON' : {
+      return _.merge({}, state, {
+        RESPONSE_JSON: {
+          [action.id] : action
+        }
+      });
+    }
+
+    case 'RESPONSE_JSON_READ' : {
+      return _.merge({}, state, {
+        RESPONSE_JSON_READ: {
+          [action.id] : action
+        }
+      });
+    }
+
+    case 'ERROR' : {
+      return _.merge({}, state, {
+        ERROR: {
+          [action.id] : action
+        }
+      });
     }
 
     default:
@@ -18,95 +56,72 @@ function reducer(state, action) {
   }
 }
 
-export function useFetch(id) {
-  const [ state, dispatch ] = useReducer(reducer, {});
-  const [ storage ] = useLocalStorage();
+export function useFetch() {
+  const [ state, dispatch ] = useReducer(reducer, { RESPONSE: {}, CALL: {}, RESPONSE_JSON: {}, RESPONSE_JSON_READ: {}, ERROR: {} });
 
   useEffect(() => {
-    if (!state.hasOwnProperty(id)) {
-      return;
-    }
+    for (const key of Object.keys(state.CALL)) {
+      const action = state.CALL[key];
 
-    const { type } = state[id];
-    let doNext = true;
+      dispatch({
+        id: action.id,
+        key: 'CALL',
+        type: 'DELETE'
+      });
 
-    if (type === REQUEST) {
-      const { url, options } = state[id];
-      const headers = options.hasOwnProperty('headers') ? options.headers : {};
+      fetch(action.url, action.options).then(response => {
+        const contentType = response.headers.get('content-type');
+        const type = contentType && contentType.includes('application/json') ? 'RESPONSE_JSON' : 'RESPONSE';
 
-      if (options.hasOwnProperty('headers') && !headers.hasOwnProperty('Authorization') && storage.token !== null) {
-        headers.Authorization = `Bearer ${storage.token}`;
-      }
-
-      const derivedOptions = {
-        ...options,
-        headers
-      };
-
-      const stringify = derivedOptions.hasOwnProperty('body') &&
-        derivedOptions.body !== null &&
-        typeof derivedOptions.body === 'object';
-
-      if (derivedOptions.body instanceof File) {
-        derivedOptions.headers['Content-Type'] = derivedOptions.body.type;
-      } else if (stringify) {
-        derivedOptions.body = JSON.stringify(derivedOptions.body);
-        derivedOptions.headers['Content-Type'] = 'application/json';
-      }
-
-      let query = '';
-
-      if (options.hasOwnProperty('query')) {
-        const params = new URLSearchParams();
-
-        for (const key of Object.keys(options.query)) {
-          const value = options.query[key];
-          params.append(key, value);
-        }
-
-        query += `?${params.toString()}`;
-      }
-
-      const derivedUrl = settings.api.url + url + query;
-      const future = window.fetch(derivedUrl, derivedOptions);
-
-      future.then((response) => {
-        if (doNext) {
-          const isJson = response.headers.has('Content-Type') &&
-            response.headers.get('Content-Type').includes('application/json');
-
-          if (isJson) {
-            return response.json().then(body => {
-              if (doNext) {
-                dispatch({ type: AFTER, id, response, body });
-              }
-            }, (error) => {
-              dispatch({ type: AFTER, id, error });
-            });
-          }
-        }
+        dispatch({
+          ...action,
+          response,
+          type
+        });
       }, (error) => {
-        if (doNext) {
-          dispatch({ type: AFTER, id, error });
-        }
+        dispatch({
+          ...action,
+          error,
+          type: 'ERROR'
+        });
       });
     }
+  }, [state.CALL]);
 
-    return () => {
-      doNext = false;
-    };
-  });
+  useEffect(() => {
+    for (const key of Object.keys(state.RESPONSE_JSON)) {
+      const action = state.RESPONSE_JSON[key];
 
-  const resultState = state.hasOwnProperty(id) ? state[id] : null;
-  const resultDispatch = (url, options = {}) => {
-    const object = {
+      dispatch({
+        id: action.id,
+        key: 'RESPONSE_JSON',
+        type: 'DELETE'
+      });
+
+      action.response.json().then(json => {
+        dispatch({
+          ...action,
+          json,
+          type: 'RESPONSE_JSON_READ'
+        });
+      }, (error) => {
+        dispatch({
+          ...action,
+          error,
+          type: 'ERROR'
+        });
+      });
+    }
+  }, [state.RESPONSE_JSON]);
+
+  const resultDispatch = (url, options = {}, id = url) => {
+    return dispatch({
       url,
       options,
       id,
-      type: REQUEST
-    };
-    return dispatch(object);
+      type: 'CALL'
+    });
   };
 
-  return [ resultState, resultDispatch ];
+  return [ state, resultDispatch ];
 }
