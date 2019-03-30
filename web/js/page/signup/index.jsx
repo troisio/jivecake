@@ -2,6 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import { withRouter } from 'react-router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
+
+import { isValidEmail, onErrorOrUndefined } from 'js/helper';
 
 import { USER_SCHEMA } from 'common/schema';
 import { T } from 'common/i18n';
@@ -14,6 +17,12 @@ import { Anchor } from 'component/anchor';
 import { Input } from 'component/input';
 import './style.scss';
 
+import {
+  SEARCH_EMAIL,
+  CREATE_ACCOUNT,
+  TOKEN_FROM_PASSWORD
+} from 'js/reducer/useFetch';
+
 function Component() {
   const [ email, setEmail ] = useState('');
   const [ password, setPassword ] = useState('');
@@ -25,22 +34,38 @@ function Component() {
   const fetchDispatch = useContext(FetchDispatchContext);
   const fetchState = useContext(FetchStateContext);
 
-  useEffect(() => {
-    const DISPATCH_ID = 'SEARCH_USER_EMAIL';
-    const isRequsting = fetchState.CALL[DISPATCH_ID];
+  const emailFetchState = fetchState[SEARCH_EMAIL];
+  const createAccountState = fetchState[CREATE_ACCOUNT];
+  const fetchingEmail = onErrorOrUndefined(() => emailFetchState.state) === 'FETCHING';
+  const isCreatingAccount = onErrorOrUndefined(() => createAccountState.state === 'FETCHING', false);
+  const emailIsAvailable = onErrorOrUndefined(() => emailFetchState.response.status === 404, false);
+  const didFailToCreateAccount = onErrorOrUndefined(() => !createAccountState.response.ok, false) ||
+    onErrorOrUndefined(() => createAccountState.state.hasOwnProperty('error'), false);
 
-    if (email.length > 0 && !isRequsting) {
+  useEffect(() => {
+    if (createAccountState && createAccountState.body) {
+      fetchDispatch('/token/password', {
+        method: 'POST',
+        body: {
+          email: createAccountState.originalBody.email,
+          password: createAccountState.originalBody.password
+        }
+      }, TOKEN_FROM_PASSWORD);
+    }
+  }, [ createAccountState ]);
+
+  useEffect(() => {
+    if (isValidEmail(email)) {
       const params = new URLSearchParams();
       params.append('email', email);
-      fetchDispatch(`/user/email?${params.toString()}`, {}, DISPATCH_ID);
+      fetchDispatch(`/user/email?${params.toString()}`, {}, SEARCH_EMAIL);
     }
   }, [email]);
 
   function onSubmit(e) {
     e.preventDefault();
-    const requestDone = true;
 
-    if (!requestDone) {
+    if (onErrorOrUndefined(() => createAccountState.state) === 'FETCHING' || !emailIsAvailable) {
       return;
     }
 
@@ -60,32 +85,23 @@ function Component() {
       return;
     }
 
-    fetchDispatch('/account', {
-      method: 'POST',
-      body: {
-        email: email,
-        password: password,
-        lastLanguage: getNavigatorLanguage(window.navigator)
-      }
-    });
+    fetchDispatch(
+      '/account',
+      {
+        method: 'POST',
+        body: {
+          email,
+          password: password,
+          lastLanguage: getNavigatorLanguage(window.navigator)
+        },
+      },
+      CREATE_ACCOUNT
+    );
   }
 
   let content;
 
-  const didSucceed = false;
-
-  if (didSucceed) {
-    content = (
-      <div styleName='vertical-content'>
-        <MessageBlock>
-          {T('Your account has been created')}
-        </MessageBlock>
-        <Anchor to={routes.login(email)} button={true}>
-          {T('Login')}
-        </Anchor>
-      </div>
-    );
-  } else if (userId === null) {
+  if (userId === null) {
     const errorMessages = [];
 
     if (commonPasswordError) {
@@ -96,17 +112,22 @@ function Component() {
       errorMessages.push(T('Your password must be at least 8 characters'));
     }
 
-    const iconStyleName = 'check-circle';
+    if (didFailToCreateAccount) {
+      errorMessages.push(T('Unable to create your account. Please try again'));
+    }
+
+    let iconStyleName = 'check-circle';
+
+    if (email.length > 0 && !fetchingEmail) {
+      if (isValidEmail(email) && emailIsAvailable) {
+        iconStyleName = 'check-circle success';
+      } else {
+        iconStyleName = 'check-circle error';
+      }
+    }
 
     content = (
       <form styleName='vertical-content' onSubmit={onSubmit}>
-        {
-          errorMessages.map(message => (
-            <MessageBlock key={message}>
-              {message}
-            </MessageBlock>
-          ))
-        }
         <div styleName='email-row'>
           <Input
             onChange={e => setEmail(e.target.value)}
@@ -118,11 +139,11 @@ function Component() {
             required={true}
           />
           <div styleName='check-icon-container'>
-            <FontAwesomeIcon styleName={iconStyleName} icon={faCheckCircle} />
+            <FontAwesomeIcon styleName={iconStyleName} icon={fetchingEmail ? faSyncAlt : faCheckCircle} />
           </div>
         </div>
         <Input
-          onChange={e => setPassword(e.targer.value)}
+          onChange={e => setPassword(e.target.value)}
           value={password}
           placeholder={T('Password')}
           type='password'
@@ -141,17 +162,27 @@ function Component() {
           minLength={USER_SCHEMA.password.minLength}
           required={true}
         />
-      <Button>
+      <Button loading={isCreatingAccount}>
           {T('Create Account')}
         </Button>
         <Anchor to={routes.login()}>
           {T('Already have an account?')}
         </Anchor>
+        {
+          errorMessages.map(message => (
+            <MessageBlock key={message}>
+              {message}
+            </MessageBlock>
+          ))
+        }
       </form>
     );
   } else {
     content = (
       <div styleName='vertical-content'>
+        <div>
+          {T('You already have an account')}
+        </div>
         <Anchor to={routes.transactions()} button={true}>
           {T('My transactions')}
         </Anchor>

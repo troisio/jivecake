@@ -1,54 +1,20 @@
-import _ from 'lodash';
 import { fetch } from 'whatwg-fetch';
 
-import { useReducer, useEffect } from 'react';
+import settings from 'settings';
+
+import { useReducer } from 'react';
+
+export const SEARCH_EMAIL = 'SEARCH_USER_EMAIL';
+export const CREATE_ACCOUNT = 'CREATE_ACCOUNT';
+export const TOKEN_FROM_PASSWORD = 'TOKEN_FROM_PASSWORD';
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'CALL' : {
-      return _.merge({}, state, {
-        CALL: {
-          [action.id] : action
-        }
-      });
-    }
-
-    case 'DELETE' : {
-      const copy = { ...state };
-      copy[action.key] = _.omit(copy[action.key], [action.id]);
-      return copy;
-    }
-
-    case 'RESPONSE' : {
-      return _.merge({}, state, {
-        RESPONSE: {
-          [action.id] : action
-        }
-      });
-    }
-
-    case 'RESPONSE_JSON' : {
-      return _.merge({}, state, {
-        RESPONSE_JSON: {
-          [action.id] : action
-        }
-      });
-    }
-
-    case 'RESPONSE_JSON_READ' : {
-      return _.merge({}, state, {
-        RESPONSE_JSON_READ: {
-          [action.id] : action
-        }
-      });
-    }
-
-    case 'ERROR' : {
-      return _.merge({}, state, {
-        ERROR: {
-          [action.id] : action
-        }
-      });
+    case 'UPDATE' : {
+      return {
+        ...state,
+        [action.id]: action
+      };
     }
 
     default:
@@ -56,70 +22,60 @@ function reducer(state, action) {
   }
 }
 
-export function useFetch() {
-  const [ state, dispatch ] = useReducer(reducer, { RESPONSE: {}, CALL: {}, RESPONSE_JSON: {}, RESPONSE_JSON_READ: {}, ERROR: {} });
+export function useFetch(token) {
+  const [ state, dispatch ] = useReducer(reducer, {});
 
-  useEffect(() => {
-    for (const key of Object.keys(state.CALL)) {
-      const action = state.CALL[key];
+  const resultDispatch = (url, options = {}, id = url) => {
+    const action = {
+      url,
+      options: { ...options, headers: { ...options.headers } },
+      id,
+      state: 'FETCHING',
+      type: 'UPDATE'
+    };
 
-      dispatch({
-        id: action.id,
-        key: 'CALL',
-        type: 'DELETE'
-      });
+    if (!(action.options.body instanceof File) && typeof action.options.body === 'object' && action.options.body !== null) {
+      action.originalBody = options.body;
+      action.options.body = JSON.stringify(action.options.body);
+      action.options.headers['Content-Type'] = 'application/json';
+    }
 
-      fetch(action.url, action.options).then(response => {
-        const contentType = response.headers.get('content-type');
-        const type = contentType && contentType.includes('application/json') ? 'RESPONSE_JSON' : 'RESPONSE';
+    if (token) {
+      action.options.headers.Authorization = `Bearer ${token}`;
+    }
 
+    fetch(settings.api.url + action.url, action.options).then(response => {
+      const contentType = response.headers.get('content-type');
+      const dispatchJson = {
+        ...action,
+        type: 'UPDATE',
+        state: 'DONE',
+        response
+      };
+
+      if (contentType.includes('application/json')) {
+        response.json().then(body => {
+          dispatch({
+            ...dispatchJson,
+            body
+          });
+        }, (error) => {
+          dispatch({ ...dispatchJson, error });
+        });
+      } else {
         dispatch({
           ...action,
           response,
-          type
+          type: 'UPDATE',
+          state: 'DONE'
         });
-      }, (error) => {
-        dispatch({
-          ...action,
-          error,
-          type: 'ERROR'
-        });
-      });
-    }
-  }, [state.CALL]);
-
-  useEffect(() => {
-    for (const key of Object.keys(state.RESPONSE_JSON)) {
-      const action = state.RESPONSE_JSON[key];
-
+      }
+    }, (error) => {
       dispatch({
-        id: action.id,
-        key: 'RESPONSE_JSON',
-        type: 'DELETE'
+        ...action,
+        error,
+        type: 'RESPONSE'
       });
-
-      action.response.json().then(json => {
-        dispatch({
-          ...action,
-          json,
-          type: 'RESPONSE_JSON_READ'
-        });
-      }, (error) => {
-        dispatch({
-          ...action,
-          error,
-          type: 'ERROR'
-        });
-      });
-    }
-  }, [state.RESPONSE_JSON]);
-
-  const resultDispatch = (url, options = {}, id = url) => {
-    return dispatch({
-      url,
-      options,
-      id,
-      type: 'CALL'
     });
   };
 
