@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Route } from 'react-router-dom';
-import { BrowserRouter, Switch } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Switch, Route } from 'react-router-dom';
+
+import { safe } from 'js/helper';
 
 import { routes } from 'js/routes';
 import { Header } from 'component/header';
@@ -15,8 +16,6 @@ import { OrganizationPersist } from 'js/page/organization-persist';
 import { UpdateOrganization } from 'js/page/update-organization';
 import { UpdateEvent } from 'js/page/update-event';
 
-import { getLocalStorage } from 'js/storage';
-
 import {
   ApplicationContext,
   FetchDispatchContext,
@@ -24,49 +23,43 @@ import {
   UserContext
 } from 'js/context';
 import { useFetch, TOKEN_FROM_PASSWORD } from 'js/reducer/useFetch';
+import { useLocalStorage } from 'js/reducer/useLocalStorage';
 import { useUsers } from 'js/reducer/useUsers';
 import './style.scss';
 
 export function Application() {
-  const storage = getLocalStorage();
-  const [ applicationState, setApplicationState ] = useState(storage);
-  const [ fetchState, dispatchFetch ] = useFetch(applicationState.token);
+  const [ storage, dispatchLocalStorage ] = useLocalStorage();
+  const [ fetchState, dispatchFetch ] = useFetch(storage.token);
   const fetchTokenState = fetchState[TOKEN_FROM_PASSWORD];
   const [ usersState ] = useUsers(fetchState);
-  const userId = null;
-  let authenticatedRoutes = null;
+  const authenticatedRoutes = (
+    <Switch>
+      <Route path={routes.organizationPersist(':organizationId')} component={UpdateOrganization} />
+      <Route path={routes.organizationPersist()} component={OrganizationPersist} />
+      <Route path={routes.organization()} component={Organization} />
+      <Route path={routes.eventPersist(':eventId')} component={UpdateEvent} />
+      <Route path={routes.eventPersist()} component={EventPersist} />
+      <Route path={routes.organizationEvents(':organizationId')} component={Events} />
+    </Switch>
+  );
 
-  useEffect(() => {
-    if (!fetchTokenState) {
-      return;
-    }
-
-    setApplicationState({
-      userId: fetchTokenState.body.user._id,
-      token: fetchTokenState.body.token
-    });
-  }, [ fetchTokenState ]);
-
-  if (userId !== null) {
-    authenticatedRoutes = (
-      <Switch>
-        <Route path={routes.organizationPersist(':organizationId')} component={UpdateOrganization} />
-        <Route path={routes.organizationPersist()} component={OrganizationPersist} />
-        <Route path={routes.organization()} component={Organization} />
-        <Route path={routes.eventPersist(':eventId')} component={UpdateEvent} />
-        <Route path={routes.eventPersist()} component={EventPersist} />
-        <Route path={routes.organizationEvents(':organizationId')} component={Events} />
-      </Switch>
-    );
+  function onLogoutClick() {
+    dispatchLocalStorage({ type: 'RESET' });
   }
 
-  const onLogoutClick = () => {
-
-  };
+  useEffect(() => {
+    if (safe(() => fetchTokenState.body)) {
+      dispatchLocalStorage({
+        type: 'UPDATE',
+        userId: fetchTokenState.body.user._id,
+        token: fetchTokenState.body.token
+      });
+    }
+  }, [ fetchTokenState ]);
 
   return (
     <BrowserRouter>
-      <ApplicationContext.Provider value={applicationState}>
+      <ApplicationContext.Provider value={storage}>
         <FetchDispatchContext.Provider value={dispatchFetch}>
           <FetchStateContext.Provider value={fetchState}>
             <UserContext.Provider value={usersState}>
@@ -77,7 +70,7 @@ export function Application() {
                     <Route path={routes.login()} component={Login} />
                     <Route path={routes.signup()} component={Signup} />
                     <Route path={routes.forgotPassword()} component={ForgotPassword} />
-                    {authenticatedRoutes}
+                    {storage.userId === null ? null : authenticatedRoutes}
                     <Route component={NotFoundPage} />
                   </Switch>
                 </div>

@@ -4,15 +4,13 @@ import { Link }from 'react-router-dom';
 
 import { T } from 'common/i18n';
 import { ApplicationContext } from 'js/context';
-import { Routes } from 'common/routes';
+import { routes } from 'js/routes';
 
 import { Anchor } from 'component/anchor';
-import { Button } from 'component/button';
 import './style.scss';
 
 export function Header(props) {
   const { userId } = useContext(ApplicationContext);
-  const routes = new Routes();
   let rightContent = null;
 
   if (userId === null) {
@@ -23,9 +21,9 @@ export function Header(props) {
     );
   } else {
     rightContent = (
-      <Button onClick={props.onLogoutClick}>
+      <Anchor to={routes.landing()} button onClick={props.onLogoutClick}>
         {T('Logout')}
-      </Button>
+      </Anchor>
     );
   }
 

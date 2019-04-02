@@ -30,7 +30,6 @@ export function useFetch(token) {
       url,
       options: { ...options, headers: { ...options.headers } },
       id,
-      state: 'FETCHING',
       type: 'UPDATE'
     };
 
@@ -44,31 +43,27 @@ export function useFetch(token) {
       action.options.headers.Authorization = `Bearer ${token}`;
     }
 
+    dispatch({
+      ...action,
+      fetching: true
+    });
+
     fetch(settings.api.url + action.url, action.options).then(response => {
       const contentType = response.headers.get('content-type');
       const dispatchJson = {
         ...action,
         type: 'UPDATE',
-        state: 'DONE',
         response
       };
 
       if (contentType.includes('application/json')) {
         response.json().then(body => {
-          dispatch({
-            ...dispatchJson,
-            body
-          });
+          dispatch({ ...dispatchJson, body });
         }, (error) => {
           dispatch({ ...dispatchJson, error });
         });
       } else {
-        dispatch({
-          ...action,
-          response,
-          type: 'UPDATE',
-          state: 'DONE'
-        });
+        dispatch(dispatchJson);
       }
     }, (error) => {
       dispatch({

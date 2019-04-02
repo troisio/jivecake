@@ -74,6 +74,10 @@ export class Routes {
     return url;
   }
 
+  landing() {
+    return `${this.prefix}`;
+  }
+
   signup() {
     return `${this.prefix}/signup`;
   }

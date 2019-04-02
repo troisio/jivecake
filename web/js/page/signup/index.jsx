@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { withRouter } from 'react-router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 
-import { isValidEmail, onErrorOrUndefined } from 'js/helper';
+import { isValidEmail, safe } from 'js/helper';
 
 import { USER_SCHEMA } from 'common/schema';
 import { T } from 'common/i18n';
@@ -23,7 +22,7 @@ import {
   TOKEN_FROM_PASSWORD
 } from 'js/reducer/useFetch';
 
-function Component() {
+export function Signup() {
   const [ email, setEmail ] = useState('');
   const [ password, setPassword ] = useState('');
   const [ passwordConfirm, setPasswordConfirm ] = useState('');
@@ -36,11 +35,11 @@ function Component() {
 
   const emailFetchState = fetchState[SEARCH_EMAIL];
   const createAccountState = fetchState[CREATE_ACCOUNT];
-  const fetchingEmail = onErrorOrUndefined(() => emailFetchState.state) === 'FETCHING';
-  const isCreatingAccount = onErrorOrUndefined(() => createAccountState.state === 'FETCHING', false);
-  const emailIsAvailable = onErrorOrUndefined(() => emailFetchState.response.status === 404, false);
-  const didFailToCreateAccount = onErrorOrUndefined(() => !createAccountState.response.ok, false) ||
-    onErrorOrUndefined(() => createAccountState.state.hasOwnProperty('error'), false);
+  const fetchingEmail = safe(() => emailFetchState.state.fetching, false);
+  const isCreatingAccount = safe(() => createAccountState.fetching, false);
+  const emailIsAvailable = safe(() => emailFetchState.response.status === 404, false);
+  const didFailToCreateAccount = safe(() => !createAccountState.response.ok, false) ||
+    safe(() => createAccountState.state.hasOwnProperty('error'), false);
 
   useEffect(() => {
     if (createAccountState && createAccountState.body) {
@@ -65,7 +64,7 @@ function Component() {
   function onSubmit(e) {
     e.preventDefault();
 
-    if (onErrorOrUndefined(() => createAccountState.state) === 'FETCHING' || !emailIsAvailable) {
+    if (safe(() => createAccountState.state) === 'FETCHING' || !emailIsAvailable) {
       return;
     }
 
@@ -202,5 +201,3 @@ function Component() {
     </div>
   );
 }
-
-export const Signup = withRouter(Component);
