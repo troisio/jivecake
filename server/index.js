@@ -128,5 +128,5 @@ export const run = () => {
     application.listen(settings.port, () => {
       console.log('listening on port ' + settings.port);
     });
-  })
+  });
 };

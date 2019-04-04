@@ -28,7 +28,7 @@ const decodedJWTFromRequest = (req) => {
   return new Promise(async (resolve) => {
     if (req.headers.authorization) {
       if (req.headers.authorization.startsWith('Bearer ')) {
-        const token = req.headers.authorization.substring('Bearer '.length)
+        const token = req.headers.authorization.substring('Bearer '.length);
         try {
           const decodedJWT = await Router.getJWT(token);
           resolve(decodedJWT);
@@ -42,7 +42,7 @@ const decodedJWTFromRequest = (req) => {
       resolve(null);
     }
   });
-}
+};
 
 export class Router {
   constructor(application, sentry, db, SibApiV3Sdk, T) {
@@ -185,7 +185,7 @@ export class Router {
       } else {
         res.sendStatus(200).end();
       }
-    })
+    });
   }
 
   passesBodySchema(request, settings) {

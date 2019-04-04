@@ -39,7 +39,7 @@ export const CREATE_EVENT = {
     const searchedEvent = await db.collection(EventCollection).findOne({ _id: event.id });
     response.json(searchedEvent);
   }
-}
+};
 
 export const DELETE_EVENT = {
   method: Method.DELETE,
@@ -67,7 +67,7 @@ export const DELETE_EVENT = {
     await db.collection(EventCollection).deleteOne({ _id: eventId });
     response.sendStatus(200).end();
   }
-}
+};
 
 export const GET_EVENT = {
   method: Method.POST,
@@ -93,7 +93,7 @@ export const GET_EVENT = {
       .findOne({ _id: new mongodb.ObjectId(request.params.eventId) });
     response.json(searchedEvent);
   }
-}
+};
 
 export const GET_EVENT_ITEMS = {
   method: Method.POST,
@@ -123,7 +123,7 @@ export const GET_EVENT_ITEMS = {
       entity: await entityFuture
     });
   }
-}
+};
 
 export const GET_TRANSACTIONS = {
   method: Method.POST,
@@ -151,7 +151,7 @@ export const GET_TRANSACTIONS = {
     };
 
     if (request.query.hasOwnProperty('itemId')) {
-      query.itemId = new mongodb.ObjectID(request.query.itemId)
+      query.itemId = new mongodb.ObjectID(request.query.itemId);
     }
 
     const cursor = await db.collection(TransactionCollection)
@@ -167,4 +167,4 @@ export const GET_TRANSACTIONS = {
       entity: await entityFuture
     });
   }
-}
+};

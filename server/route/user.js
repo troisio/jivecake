@@ -34,7 +34,7 @@ export const GET_USER = {
     const user = await db.collection(UserCollection).findOne({ _id: new mongodb.ObjectID(request.params.id) });
     response.json(_.omit(user, ['hashedPassword']));
   }
-}
+};
 
 const getHashedPassword = (password) => {
   return new Promise((resolve, reject) => {
@@ -52,7 +52,7 @@ const getHashedPassword = (password) => {
       }
     });
   });
-}
+};
 
 export const PASSWORD_RECOVERY = {
   method: Method.POST,
@@ -104,7 +104,7 @@ export const PASSWORD_RECOVERY = {
 
     response.sendStatus(200);
   }
-}
+};
 
 export const USER_BY_EMAIL = {
   method: Method.GET,
@@ -127,7 +127,7 @@ export const USER_BY_EMAIL = {
       response.json(entity);
     }
   }
-}
+};
 
 export const GET_ORGANIZATIONS = {
   method: Method.GET,
@@ -177,7 +177,7 @@ export const GET_ORGANIZATIONS = {
       entity: await entityFuture
     });
   }
-}
+};
 
 export const UPDATE_USER = {
   method: Method.POST,
@@ -240,7 +240,7 @@ export const UPDATE_USER = {
     const entity = _.omit(value, ['hashedPassword']);
     response.json(entity);
   }
-}
+};
 
 export const CREATE_ACCOUNT = {
   method: Method.POST,
@@ -272,13 +272,13 @@ export const CREATE_ACCOUNT = {
 
       await db.collection(UserCollection).insertOne(user);
       const searchedUser = await db.collection(UserCollection).findOne({ _id: user._id });
-      const entity = _.omit(searchedUser, ['hashedPassword'])
+      const entity = _.omit(searchedUser, ['hashedPassword']);
       response.json(entity);
     } else {
       response.sendStatus(409).end();
     }
   }
-}
+};
 
 export const GET_TOKEN = {
   method: Method.POST,
@@ -314,4 +314,4 @@ export const GET_TOKEN = {
       });
     }
   }
-}
+};

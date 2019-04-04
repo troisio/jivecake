@@ -30,7 +30,7 @@ export const upload = (Key, Body, ContentType) => {
       }
    });
   });
-}
+};
 
 export const deleteObject = (Key) => {
   return new Promise((resolve, reject) => {
@@ -45,4 +45,4 @@ export const deleteObject = (Key) => {
       }
    });
   });
-}
+};

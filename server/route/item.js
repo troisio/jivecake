@@ -53,7 +53,7 @@ export const GET_ITEM = {
       .findOne({ _id: new mongodb.ObjectID(request.params.itemId) });
     response.json(entity);
   }
-}
+};
 
 export const DELETE_ITEM = {
   method: Method.DELETE,
@@ -81,7 +81,7 @@ export const DELETE_ITEM = {
     await db.collection(ItemCollection).deleteOne({ _id: itemId });
     response.sendStatus(200).end();
   }
-}
+};
 
 export const CREATE_ITEM = {
   method: Method.POST,
@@ -104,7 +104,7 @@ export const CREATE_ITEM = {
     const entity = await db.collection(ItemCollection).findOne({ _id: item.id });
     response.json(entity);
   }
-}
+};
 
 export const UPDATE_ITEM = {
   method: Method.POST,
@@ -125,4 +125,4 @@ export const UPDATE_ITEM = {
       .updateOne({ _id: new mongodb.ObjectId(request.params.itemId) }, updateObject);
     response.json(entity);
   }
-}
+};

@@ -33,4 +33,4 @@ export const settings = {
   web: {
     origin: 'http://127.0.0.1'
   }
-}
+};

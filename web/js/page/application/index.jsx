@@ -7,6 +7,7 @@ import { routes } from 'js/routes';
 import { Header } from 'component/header';
 import { Signup } from 'page/signup';
 import { NotFoundPage } from 'page/not-found';
+import { Landing } from 'page/landing';
 import { Login } from 'page/login';
 import { Organization } from 'page/organization';
 import { EventPersist } from 'page/event-persist';
@@ -65,8 +66,10 @@ export function Application() {
             <UserContext.Provider value={usersState}>
               <div styleName='root'>
                 <Header onLogoutClick={onLogoutClick} />
+                <Route exact path={routes.landing()} component={Landing} />
                 <div styleName='content'>
                   <Switch>
+                    <Route exact path={routes.landing()} component={() => null} />
                     <Route path={routes.login()} component={Login} />
                     <Route path={routes.signup()} component={Signup} />
                     <Route path={routes.forgotPassword()} component={ForgotPassword} />

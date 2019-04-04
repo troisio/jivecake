@@ -117,7 +117,7 @@ export const CREATE_ORGANIZATION = {
       .findOne({ _id: organization._id });
     response.json(searchOrganization);
   }
-}
+};
 
 export const GET_ORGANIZATION = {
   method: Method.GET,
@@ -135,7 +135,7 @@ export const GET_ORGANIZATION = {
       .findOne({ _id: new mongodb.ObjectID(request.params.id) });
     response.json(organization);
   }
-}
+};
 
 export const INVITE_USER = {
   method: Method.POST,
@@ -186,7 +186,7 @@ export const INVITE_USER = {
 
       response.json(entity);
   }
-}
+};
 
 export const DELETE_USER = {
   method: Method.DELETE,
@@ -255,7 +255,7 @@ export const DELETE_USER = {
 
     response.json(entity);
   }
-}
+};
 
 export const GET_ORGANIZATION_EVENTS = {
   method: Method.GET,
@@ -285,4 +285,4 @@ export const GET_ORGANIZATION_EVENTS = {
       entity: await eventsFuture
     });
   }
-}
+};

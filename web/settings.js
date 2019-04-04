@@ -7,6 +7,7 @@ export default {
   },
   digitalocean: {
     spaces: {
+      imageBucket: 'jivecake.nyc3',
       bucket: 'jivecake-development'
     }
   },
