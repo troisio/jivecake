@@ -21,15 +21,20 @@ export function Header(props) {
     );
   } else {
     rightContent = (
-      <Anchor to={routes.landing()} button onClick={props.onLogoutClick}>
-        {T('Logout')}
-      </Anchor>
+      <div styleName='actions'>
+        <Anchor to={routes.home()} button>
+          {T('Home')}
+        </Anchor>
+        <Anchor to={routes.landing()} button onClick={props.onLogoutClick}>
+          {T('Logout')}
+        </Anchor>
+      </div>
     );
   }
 
   return (
     <div styleName='root'>
-      <Link to='/' styleName='left'>
+      <Link to={routes.landing()} styleName='left'>
         <img styleName='logo' src='https://jivecake.nyc3.cdn.digitaloceanspaces.com/image/image/logo-60@3x.png'/>
         <h1 styleName='jivecake'>
           {T('JiveCake')}

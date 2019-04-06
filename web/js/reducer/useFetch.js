@@ -1,20 +1,29 @@
 import { fetch } from 'whatwg-fetch';
+import _ from 'lodash';
 
 import settings from 'settings';
 
 import { useReducer } from 'react';
 
+export const GET_USER = 'GET_USER';
+export const GET_USER_ORGANIZATIONS = 'GET_USER_ORGANIZATIONS';
 export const SEARCH_EMAIL = 'SEARCH_USER_EMAIL';
 export const CREATE_ACCOUNT = 'CREATE_ACCOUNT';
 export const TOKEN_FROM_PASSWORD = 'TOKEN_FROM_PASSWORD';
+export const GET_ITEM = 'GET_ITEM';
+export const GET_EVENT = 'GET_EVENT';
 
 function reducer(state, action) {
   switch (action.type) {
     case 'UPDATE' : {
       return {
         ...state,
-        [action.id]: action
+        [action.data.id]: action.data
       };
+    }
+
+    case 'DELETE' : {
+      return _.omit(state, action.data.ids);
     }
 
     default:
@@ -24,55 +33,66 @@ function reducer(state, action) {
 
 export function useFetch(token) {
   const [ state, dispatch ] = useReducer(reducer, {});
-
   const resultDispatch = (url, options = {}, id = url) => {
-    const action = {
+    const data = {
       url,
       options: { ...options, headers: { ...options.headers } },
-      id,
-      type: 'UPDATE'
+      id
     };
 
-    if (!(action.options.body instanceof File) && typeof action.options.body === 'object' && action.options.body !== null) {
-      action.originalBody = options.body;
-      action.options.body = JSON.stringify(action.options.body);
-      action.options.headers['Content-Type'] = 'application/json';
+    const isJson = !(data.options.body instanceof File) &&
+      typeof data.options.body === 'object' &&
+      data.options.body !== null;
+
+    if (isJson) {
+      data.originalBody = options.body;
+      data.options.body = JSON.stringify(data.options.body);
+      data.options.headers['Content-Type'] = 'application/json';
     }
 
     if (token) {
-      action.options.headers.Authorization = `Bearer ${token}`;
+      data.options.headers.Authorization = `Bearer ${token}`;
     }
 
     dispatch({
-      ...action,
-      fetching: true
+      type: 'UPDATE',
+      data: { ...data, fetching: true },
     });
 
-    fetch(settings.api.url + action.url, action.options).then(response => {
+    let derivedUrl = data.url;
+
+    if (Array.isArray(data.url)) {
+      derivedUrl = '/' + data.join('/');
+    }
+
+    fetch(settings.api.url + derivedUrl, data.options).then(response => {
       const contentType = response.headers.get('content-type');
-      const dispatchJson = {
-        ...action,
-        type: 'UPDATE',
-        response
+      const nextData = {
+        ...data,
+        response,
+        fetching: false,
       };
 
       if (contentType.includes('application/json')) {
         response.json().then(body => {
-          dispatch({ ...dispatchJson, body });
+          dispatch({ type: 'UPDATE', data: { ...nextData, body } });
         }, (error) => {
-          dispatch({ ...dispatchJson, error });
+          dispatch({ type: 'UPDATE', data: { ...nextData, error } });
         });
       } else {
-        dispatch(dispatchJson);
+        dispatch({ type: 'UPDATE', data: nextData });
       }
     }, (error) => {
-      dispatch({
-        ...action,
-        error,
-        type: 'RESPONSE'
-      });
+      dispatch({ type: 'UPDATE', data: { ...data, error } });
     });
   };
 
-  return [ state, resultDispatch ];
+  const deleteDispatch = (ids) => {
+    dispatch({
+      type: 'DELETE',
+      data: { ids }
+    });
+  };
+
+  return [ state, resultDispatch, deleteDispatch ];
 }

@@ -1,11 +1,10 @@
 import { useReducer, useEffect, useContext } from 'react';
 
-
 import { safe } from 'js/helper';
 
 import { FetchStateContext } from 'js/context';
 import {
-  GET_USER
+  GET_EVENT
 } from 'js/reducer/useFetch';
 
 function reducer(state, action) {
@@ -22,19 +21,19 @@ function reducer(state, action) {
   }
 }
 
-export function useUsers() {
+export function useEvents() {
   const [ state, dispatch ] = useReducer(reducer, {});
   const fetchState = useContext(FetchStateContext);
-  const getUserFetchState = fetchState[GET_USER];
+  const getEventState = fetchState[GET_EVENT];
 
   useEffect(() => {
-    if (safe(() => getUserFetchState.response.ok)) {
+    if (safe(() => getEventState.response.ok)) {
       dispatch({
         type: 'UPDATE',
-        data: getUserFetchState.body
+        data: getEventState.body
       });
     }
-  }, [getUserFetchState]);
+  }, [getEventState]);
 
   return [ state, dispatch ];
 }

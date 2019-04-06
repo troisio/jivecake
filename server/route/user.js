@@ -19,23 +19,6 @@ import { getUserLanguage } from 'common/helpers';
 
 const SELECTED_LANGUAGE_OPTIONS = [ ...SUPPORTED_LANGUAGE_IDS, null ];
 
-export const GET_USER = {
-  method: Method.GET,
-  path: '/user/:id',
-  accessRules: [
-    {
-      permission: Permission.READ,
-      collection: UserCollection,
-      param: 'id'
-    }
-  ],
-  requires: [ Require.Authenticated ],
-  on: async (request, response, { db }) => {
-    const user = await db.collection(UserCollection).findOne({ _id: new mongodb.ObjectID(request.params.id) });
-    response.json(_.omit(user, ['hashedPassword']));
-  }
-};
-
 const getHashedPassword = (password) => {
   return new Promise((resolve, reject) => {
     bcrypt.genSalt(10, (err, salt) => {
@@ -52,6 +35,23 @@ const getHashedPassword = (password) => {
       }
     });
   });
+};
+
+export const GET_USER = {
+  method: Method.GET,
+  path: '/user/:id',
+  accessRules: [
+    {
+      permission: Permission.READ,
+      collection: UserCollection,
+      param: 'id'
+    }
+  ],
+  requires: [ Require.Authenticated ],
+  on: async (request, response, { db }) => {
+    const user = await db.collection(UserCollection).findOne({ _id: new mongodb.ObjectID(request.params.id) });
+    response.json(_.omit(user, ['hashedPassword']));
+  }
 };
 
 export const PASSWORD_RECOVERY = {
@@ -271,9 +271,7 @@ export const CREATE_ACCOUNT = {
       user.created = new Date();
 
       await db.collection(UserCollection).insertOne(user);
-      const searchedUser = await db.collection(UserCollection).findOne({ _id: user._id });
-      const entity = _.omit(searchedUser, ['hashedPassword']);
-      response.json(entity);
+      response.sendStatus(200).end();
     } else {
       response.sendStatus(409).end();
     }
@@ -304,7 +302,7 @@ export const GET_TOKEN = {
               sentry.captureException(err);
               response.sendStatus(401).end();
             } else {
-              response.json({ user: _.omit(user, ['hashedPassword']), token });
+              response.json({ token });
             }
           });
         } else {

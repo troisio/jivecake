@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
+import PropTypes from 'prop-types';
+import { withRouter } from 'react-router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
@@ -10,6 +12,7 @@ import { T } from 'common/i18n';
 import { getNavigatorLanguage } from 'common/helpers';
 import { routes } from 'js/routes';
 import { MessageBlock } from 'component/message-block';
+import { DefaultLayout } from 'component/default-layout';
 import { ApplicationContext, FetchDispatchContext, FetchStateContext } from 'js/context';
 import { Button } from 'component/button';
 import { Anchor } from 'component/anchor';
@@ -22,7 +25,7 @@ import {
   TOKEN_FROM_PASSWORD
 } from 'js/reducer/useFetch';
 
-export function Signup() {
+export function SignupComponent({ history }) {
   const [ email, setEmail ] = useState('');
   const [ password, setPassword ] = useState('');
   const [ passwordConfirm, setPasswordConfirm ] = useState('');
@@ -30,9 +33,8 @@ export function Signup() {
   const [ passwordLengthError, setPasswordLengthError ] = useState(false);
   const [ passwordsDoNoMatch, setPasswordsDoNoMatch ] = useState(false);
   const { userId } = useContext(ApplicationContext);
-  const fetchDispatch = useContext(FetchDispatchContext);
+  const [ dispatchFetch, dispatchFetchDelete ] = useContext(FetchDispatchContext);
   const fetchState = useContext(FetchStateContext);
-
   const emailFetchState = fetchState[SEARCH_EMAIL];
   const createAccountState = fetchState[CREATE_ACCOUNT];
   const fetchingEmail = safe(() => emailFetchState.state.fetching, false);
@@ -42,8 +44,20 @@ export function Signup() {
     safe(() => createAccountState.state.hasOwnProperty('error'), false);
 
   useEffect(() => {
-    if (createAccountState && createAccountState.body) {
-      fetchDispatch('/token/password', {
+    return () => {
+      dispatchFetchDelete([TOKEN_FROM_PASSWORD, CREATE_ACCOUNT, SEARCH_EMAIL]);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (userId !== null) {
+      history.push(routes.home());
+    }
+  }, [ userId ]);
+
+  useEffect(() => {
+    if (safe(() => createAccountState.response.ok)) {
+      dispatchFetch('/token/password', {
         method: 'POST',
         body: {
           email: createAccountState.originalBody.email,
@@ -57,14 +71,14 @@ export function Signup() {
     if (isValidEmail(email)) {
       const params = new URLSearchParams();
       params.append('email', email);
-      fetchDispatch(`/user/email?${params.toString()}`, {}, SEARCH_EMAIL);
+      dispatchFetch(`/user/email?${params.toString()}`, {}, SEARCH_EMAIL);
     }
   }, [email]);
 
   function onSubmit(e) {
     e.preventDefault();
 
-    if (safe(() => createAccountState.state) === 'FETCHING' || !emailIsAvailable) {
+    if (safe(() => createAccountState.fetching) || !emailIsAvailable) {
       return;
     }
 
@@ -84,7 +98,7 @@ export function Signup() {
       return;
     }
 
-    fetchDispatch(
+    dispatchFetch(
       '/account',
       {
         method: 'POST',
@@ -98,34 +112,32 @@ export function Signup() {
     );
   }
 
-  let content;
+  const errorMessages = [];
 
-  if (userId === null) {
-    const errorMessages = [];
+  if (commonPasswordError) {
+    errorMessages.push(T('Your password is too common, please choose another password'));
+  }
 
-    if (commonPasswordError) {
-      errorMessages.push(T('Your password is too common, please choose another password'));
+  if (passwordLengthError) {
+    errorMessages.push(T('Your password must be at least 8 characters'));
+  }
+
+  if (didFailToCreateAccount) {
+    errorMessages.push(T('Unable to create your account. Please try again'));
+  }
+
+  let iconStyleName = 'check-circle';
+
+  if (email.length > 0 && !fetchingEmail) {
+    if (isValidEmail(email) && emailIsAvailable) {
+      iconStyleName = 'check-circle success';
+    } else {
+      iconStyleName = 'check-circle error';
     }
+  }
 
-    if (passwordLengthError) {
-      errorMessages.push(T('Your password must be at least 8 characters'));
-    }
-
-    if (didFailToCreateAccount) {
-      errorMessages.push(T('Unable to create your account. Please try again'));
-    }
-
-    let iconStyleName = 'check-circle';
-
-    if (email.length > 0 && !fetchingEmail) {
-      if (isValidEmail(email) && emailIsAvailable) {
-        iconStyleName = 'check-circle success';
-      } else {
-        iconStyleName = 'check-circle error';
-      }
-    }
-
-    content = (
+  return (
+    <DefaultLayout>
       <form styleName='vertical-content' onSubmit={onSubmit}>
         <div styleName='email-row'>
           <Input
@@ -135,7 +147,7 @@ export function Signup() {
             type='email'
             styleName='email-input'
             autoComplete='email'
-            required={true}
+            required
           />
           <div styleName='check-icon-container'>
             <FontAwesomeIcon styleName={iconStyleName} icon={fetchingEmail ? faSyncAlt : faCheckCircle} />
@@ -149,7 +161,7 @@ export function Signup() {
           error={passwordsDoNoMatch}
           autoComplete='new-password'
           minLength={USER_SCHEMA.password.minLength}
-          required={true}
+          required
         />
         <Input
           onChange={e => setPasswordConfirm(e.target.value)}
@@ -175,29 +187,12 @@ export function Signup() {
           ))
         }
       </form>
-    );
-  } else {
-    content = (
-      <div styleName='vertical-content'>
-        <div>
-          {T('You already have an account')}
-        </div>
-        <Anchor to={routes.transactions()} button={true}>
-          {T('My transactions')}
-        </Anchor>
-        <Anchor to={routes.organization()} button={true}>
-          {T('My organizations')}
-        </Anchor>
-        <Anchor to={routes.event()} button={true}>
-          {T('My events')}
-        </Anchor>
-      </div>
-    );
-  }
-
-  return (
-    <div styleName='root'>
-      {content}
-    </div>
+    </DefaultLayout>
   );
 }
+
+SignupComponent.propTypes = {
+  history: PropTypes.func.isRequired
+};
+
+export const Signup = withRouter(SignupComponent);

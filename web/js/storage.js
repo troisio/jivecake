@@ -5,17 +5,14 @@ const key = 'jivecakestorage';
 const ajv = new Ajv();
 const validateUserSchema = ajv.compile({
   type: 'object',
+  required: ['token'],
   properties: {
-    userId: {
-      type: 'string',
-    },
     token: {
       type: 'string'
     }
   }
 });
 const DEFAULT_LOCAL_STORAGE = {
-  userId: null,
   token: null
 };
 

@@ -15,6 +15,7 @@ import { MessageBlock } from 'component/message-block';
 import { Anchor } from 'component/anchor';
 import { Button } from 'component/button';
 import { Input } from 'component/input';
+import { DefaultLayout } from 'component/default-layout';
 import './style.scss';
 
 import { TOKEN_FROM_PASSWORD } from 'js/reducer/useFetch';
@@ -23,14 +24,12 @@ export function Login() {
   const [ email, setEmail ] = useState('');
   const [ password, setPassword ] = useState('');
   const { userId } = useContext(ApplicationContext);
-  const fetchDispatch = useContext(FetchDispatchContext);
+  const [ fetchDispatch ] = useContext(FetchDispatchContext);
   const fetchState = useContext(FetchStateContext);
   const tokenFromPasswordState = fetchState[TOKEN_FROM_PASSWORD];
 
   function onSubmit(e) {
     e.preventDefault();
-
-    console.log('tokenFromPasswordState', tokenFromPasswordState);
 
     if (safe(() => tokenFromPasswordState.fetching)) {
       return;
@@ -83,7 +82,7 @@ export function Login() {
           onChange={onEmailChange}
           placeholder={T('Email')}
           type='email'
-          required={true}
+          required
           autoComplete='email'
         />
         <Input
@@ -91,7 +90,7 @@ export function Login() {
           placeholder={T('Password')}
           type='password'
           autoComplete='current-password'
-          required={true}
+          required
           value={password}
         />
         <Button loading={safe(() => tokenFromPasswordState.response.status >= 400)}>
@@ -119,8 +118,8 @@ export function Login() {
   }
 
   return (
-    <div styleName='root'>
+    <DefaultLayout>
       {content}
-    </div>
+    </DefaultLayout>
   );
 }

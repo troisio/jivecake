@@ -1,6 +1,12 @@
 @import '~sass/color';
 @import '~sass/media';
 
+.actions {
+  > *:not(:first-child) {
+    margin-left: 6px;
+  }
+}
+
 .left {
   display: flex;
   align-items: center;

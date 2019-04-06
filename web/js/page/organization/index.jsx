@@ -13,31 +13,38 @@ import { routes } from 'js/routes';
 import {
   ApplicationContext,
   OrganizationContext,
-  UserOrganizationContext
+  UserOrganizationContext,
+  FetchDispatchContext
 } from 'js/context';
 
 import './style.scss';
 
-export function Component(props) {
-  const { fetch, userId } = useContext(ApplicationContext);
-  const { organizations } = useContext(OrganizationContext);
-  const { userOrganizations } = useContext(UserOrganizationContext);
+import { GET_USER_ORGANIZATIONS } from 'js/reducer/useFetch';
+
+export function OrganizationComponent(props) {
+  const { userId } = useContext(ApplicationContext);
+  const organizations = useContext(OrganizationContext);
+  const userOrganizations = useContext(UserOrganizationContext);
+  const [ dispatchFetch ] = useContext(FetchDispatchContext);
 
   useEffect(() => {
     if (!userOrganizations.hasOwnProperty(userId)) {
-      fetch(`/user/${userId}/organization`, {
+      dispatchFetch(`/user/${userId}/organization`, {
         query: {
           page: 0,
           lastUserActivity: -1
+        },
+        params: {
+          userId
         }
-      });
+      }, GET_USER_ORGANIZATIONS);
     }
-  });
+  }, []);
 
   function onOrganizationClick(organizationId) {
     const { history } = props;
 
-    fetch(`/user/${userId}`, {
+    dispatchFetch(`/user/${userId}`, {
       method: 'POST',
       body: {
         lastOrganizationId: organizationId,
@@ -90,7 +97,7 @@ export function Component(props) {
 
   return (
     <div styleName='root'>
-      <Anchor styleName='create-new' to={routes.organizationPersist()} button={true} icon={true}>
+      <Anchor styleName='create-new' to={routes.organizationPersist()} button icon>
         <FontAwesomeIcon icon={faPlus} />
       </Anchor>
       {noneFound}
@@ -100,12 +107,8 @@ export function Component(props) {
   );
 }
 
-Component.propTypes = {
-  userId: PropTypes.string.isRequired,
-  history: PropTypes.object.isRequired,
-  organizations: PropTypes.object.isRequired,
-  userOrganizations: PropTypes.object.isRequired,
-  fetch: PropTypes.func.isRequired
+OrganizationComponent.propTypes = {
+  history: PropTypes.object.isRequired
 };
 
-export const Organization = withRouter(Component);
+export const Organization = withRouter(OrganizationComponent);

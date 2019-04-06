@@ -6,7 +6,7 @@ import _ from 'lodash';
 import './style.scss';
 
 export function Anchor(props) {
-  const propsCopy = _.omit(props, ['to', 'className', 'styleName', 'button', 'icon']);
+  const propsCopy = _.omit(props, ['children', 'to', 'className', 'styleName', 'button', 'icon']);
   let styleName = 'root';
 
   if (props.button) {

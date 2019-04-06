@@ -1,7 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import jwt from 'jsonwebtoken';
 
 import { safe } from 'js/helper';
+
+import {
+  ApplicationContext,
+  FetchDispatchContext,
+  FetchStateContext,
+  LocalStorageContext,
+  UserContext,
+  LocalStorageDispatchContext
+} from 'js/context';
 
 import { routes } from 'js/routes';
 import { Header } from 'component/header';
@@ -17,22 +27,19 @@ import { OrganizationPersist } from 'js/page/organization-persist';
 import { UpdateOrganization } from 'js/page/update-organization';
 import { UpdateEvent } from 'js/page/update-event';
 
-import {
-  ApplicationContext,
-  FetchDispatchContext,
-  FetchStateContext,
-  UserContext
-} from 'js/context';
-import { useFetch, TOKEN_FROM_PASSWORD } from 'js/reducer/useFetch';
-import { useLocalStorage } from 'js/reducer/useLocalStorage';
-import { useUsers } from 'js/reducer/useUsers';
+import { TOKEN_FROM_PASSWORD, GET_USER } from 'js/reducer/useFetch';
 import './style.scss';
 
+const DEFAULT_APPLICATION_STATE = { userId: null, organizationId: null };
+
 export function Application() {
-  const [ storage, dispatchLocalStorage ] = useLocalStorage();
-  const [ fetchState, dispatchFetch ] = useFetch(storage.token);
+  const [ applicationState, setApplicationState ] = useState(DEFAULT_APPLICATION_STATE);
+  const storage = useContext(LocalStorageContext);
+  const dispatchLocalStorage = useContext(LocalStorageDispatchContext);
+  const [ dispatchFetch ] = useContext(FetchDispatchContext);
+  const usersState = useContext(UserContext);
+  const fetchState = useContext(FetchStateContext);
   const fetchTokenState = fetchState[TOKEN_FROM_PASSWORD];
-  const [ usersState ] = useUsers(fetchState);
   const authenticatedRoutes = (
     <Switch>
       <Route path={routes.organizationPersist(':organizationId')} component={UpdateOrganization} />
@@ -44,44 +51,62 @@ export function Application() {
     </Switch>
   );
 
-  function onLogoutClick() {
+  function onLogoutClick(e) {
+    e.preventDefault();
     dispatchLocalStorage({ type: 'RESET' });
   }
 
   useEffect(() => {
-    if (safe(() => fetchTokenState.body)) {
+    if (safe(() => fetchTokenState.response.ok)) {
       dispatchLocalStorage({
         type: 'UPDATE',
-        userId: fetchTokenState.body.user._id,
-        token: fetchTokenState.body.token
+        data: {
+          token: fetchTokenState.body.token
+        }
       });
     }
   }, [ fetchTokenState ]);
 
+  useEffect(() => {
+    const payload = jwt.decode(storage.token);
+
+    if (payload) {
+      dispatchFetch(`/user/${payload.sub}`, {}, GET_USER);
+    }
+  }, [ storage ]);
+
+  useEffect(() => {
+    const payload = jwt.decode(storage.token);
+    const nextApplicationState = { ...applicationState };
+
+    if (payload) {
+      if (usersState.hasOwnProperty(payload.sub)) {
+        nextApplicationState.userId = payload.sub;
+      }
+    } else {
+      nextApplicationState.userId = null;
+    }
+
+    if (nextApplicationState.userId !== applicationState.userId) {
+      setApplicationState(nextApplicationState);
+    }
+  }, [ usersState, storage, applicationState ]);
+
   return (
-    <BrowserRouter>
-      <ApplicationContext.Provider value={storage}>
-        <FetchDispatchContext.Provider value={dispatchFetch}>
-          <FetchStateContext.Provider value={fetchState}>
-            <UserContext.Provider value={usersState}>
-              <div styleName='root'>
-                <Header onLogoutClick={onLogoutClick} />
-                <Route exact path={routes.landing()} component={Landing} />
-                <div styleName='content'>
-                  <Switch>
-                    <Route exact path={routes.landing()} component={() => null} />
-                    <Route path={routes.login()} component={Login} />
-                    <Route path={routes.signup()} component={Signup} />
-                    <Route path={routes.forgotPassword()} component={ForgotPassword} />
-                    {storage.userId === null ? null : authenticatedRoutes}
-                    <Route component={NotFoundPage} />
-                  </Switch>
-                </div>
-              </div>
-            </UserContext.Provider>
-          </FetchStateContext.Provider>
-        </FetchDispatchContext.Provider>
-      </ApplicationContext.Provider>
-    </BrowserRouter>
+    <ApplicationContext.Provider value={applicationState}>
+      <BrowserRouter>
+        <div styleName='root'>
+          <Header onLogoutClick={onLogoutClick} />
+          <Switch>
+            <Route exact path={routes.landing()} component={Landing} />
+            <Route path={routes.login()} component={Login} />
+            <Route path={routes.signup()} component={Signup} />
+            <Route path={routes.forgotPassword()} component={ForgotPassword} />
+            {applicationState.userId === null ? null : authenticatedRoutes}
+            <Route component={NotFoundPage} />
+          </Switch>
+        </div>
+      </BrowserRouter>
+    </ApplicationContext.Provider>
   );
 }

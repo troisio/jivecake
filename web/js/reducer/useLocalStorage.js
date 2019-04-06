@@ -15,6 +15,9 @@ function reducer(state, action) {
       writeLocalStorage();
       return getLocalStorage();
     }
+
+    default:
+      return state;
   }
 }
 

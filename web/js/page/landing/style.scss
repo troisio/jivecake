@@ -18,6 +18,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  @include phone() {
+    & {
+      padding: 16px;
+    }
+  }
+
+  @include not_phone() {
+    > * {
+      max-width: 500px;
+    }
+  }
 }
 
 .section-title {
@@ -37,6 +49,16 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   margin-top: 32px;
+
+  > img {
+    width: 100%;
+  }
+
+  @include phone() {
+    & {
+      width: 100%;
+    }
+  }
 }
 
 .pricing {
@@ -44,27 +66,16 @@
   color: white;
 }
 
-@include phone() {
-  .section {
-    padding: 16px;
-  }
-
-  .image-row {
-    width: 100%;
-  }
-}
-
 @include not_phone() {
   .image-row {
     gap: 0 32px;
-    max-width: 500px;
     width: 100%;
   }
 
   .section {
     padding-top: 24px;
-    padding-right: 180px;
-    padding-left: 180px;
+    margin-left: auto;
+    margin-right: auto;
 
     &:not(:first-child) {
       padding-bottom: 268px;
@@ -73,13 +84,5 @@
     &:first-child {
       padding-bottom: 368px;
     }
-
-    padding-bottom: 368px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .description {
-    max-width: 500px;
   }
 }

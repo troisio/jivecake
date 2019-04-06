@@ -17,6 +17,10 @@ export class Routes {
     return url;
   }
 
+  home() {
+    return `${this.prefix}/home`;
+  }
+
   myTransactions(userId) {
     return `${this.prefix}/user/${userId}/transaction`;
   }
@@ -75,7 +79,7 @@ export class Routes {
   }
 
   landing() {
-    return `${this.prefix}`;
+    return `${this.prefix}/`;
   }
 
   signup() {
