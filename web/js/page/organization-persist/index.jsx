@@ -1,210 +1,133 @@
-import React from 'react';
+import React, { useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 
-import {
-  ApplicationContext,
-  OrganizationContext
-} from 'js/context';
-
 import { T } from 'common/i18n';
 import { MAXIMUM_IMAGE_UPLOAD_BYTES } from 'common/schema';
-import { routes } from 'js/routes';
+
+import { DefaultLayout } from 'component/default-layout';
+import { safe } from 'js/helper';
 import { MessageBlock } from 'component/message-block';
 import { Input } from 'component/input';
 import { Button } from 'component/button';
 import { AvatarImageUpload } from 'component/avatar-image-upload';
 import './style.scss';
 
-export class Component extends React.PureComponent {
-  static propTypes = {
-    history: PropTypes.object,
-    organization: PropTypes.object,
-    organizations: PropTypes.object.isRequired,
-    fetch: PropTypes.func.isRequired
-  };
+import { FetchDispatchContext, FetchStateContext } from 'js/context';
+import {
+  CREATE_ORGANIZATION,
+  UPDATE_ORGANIZATION,
+  UPDATE_ORGANIZATION_AVATAR
+} from 'js/reducer/useFetch';
 
-  constructor(props) {
-    super(props);
+export function OrganizationPersistComponent({ organization }) {
+  const submitText = organization === null ? T('Create') : T('Update');
+  const [ name, setName ] = useState(safe(() => organization.name, ''));
+  const [ email, setEmail ] = useState(safe(() => organization.email, ''));
+  const [ avatar, setAvatar ] = useState(safe(() => organization.avatar, null));
+  const avatarUploadProps = avatar === null ? {} : { src: avatar };
+  const [ file, setFile ] = useState(null);
+  const [ avatarTooLarge, setAvatarTooLarge ] = useState(false);
+  const fetchState = useContext(FetchStateContext);
+  const createOrganizationState = fetchState[CREATE_ORGANIZATION];
+  const updateOrganizationAvatarState = fetchState[UPDATE_ORGANIZATION_AVATAR];
+  const displayUnableToPersistAvatarError = safe(() => !updateOrganizationAvatarState.response.ok, false);
+  const displayUnableToPersistError = safe(() => !createOrganizationState.response.ok, false);
+  const [ dispatchFetch ] = useContext(FetchDispatchContext);
+  const loading = safe(() => createOrganizationState.fetching) ||
+    safe(() => updateOrganizationAvatarState.fetching);
 
-    this.state = {
-      name: '',
-      email: '',
-      avatar: null,
-      loading: false,
-      file: null,
-      displayUnableToPersistError: false,
-      displayUnableToPersistAvatarError: false,
-      avatarTooLarge: false
-    };
-
-    if (props.hasOwnProperty('organization')) {
-      const { organization } = this.props;
-      this.state.name = organization.name;
-      this.state.email = organization.email;
-      this.state.avatar = organization.avatar;
-    }
-  }
-
-  componentDidUpdate(prevProps) {
-    const { history, organization, organizations } = this.props;
-    const didReceiveOrganization = organization !== prevProps.organization;
-    const didAddOrganization = Object.keys(organizations).length > Object.keys(prevProps.organizations).length;
-
-    if (didReceiveOrganization || didAddOrganization) {
-      history.push(routes.organization());
-    }
-  }
-
-  onSubmit = (e) => {
+  function onSubmit(e) {
     e.preventDefault();
 
-    if (this.state.loading || this.state.avatarTooLarge) {
+    if (loading) {
       return;
     }
 
-    const { fetch, organization } = this.props;
-
-    this.setState({
-      loading: true,
-      displayUnableToPersistError: false,
-      displayUnableToPersistAvatarError: false,
-      avatarTooLarge: false
-    });
-
-    const url = this.props.hasOwnProperty('organization') ? `/organization/${organization._id}` : '/organization';
-
-    fetch(url, {
-      method: 'POST',
-      body: {
-        name: this.state.name,
-        email: this.state.email
-      }
-    }, {
-      intercept: false
-    }).then(({ response, body, intercept }) => {
-      if (!response.ok) {
-        this.setState({
-          loading: false,
-          displayUnableToPersistError: true
-        });
-        return;
-      }
-
-      if (this.state.file === null) {
-        intercept();
-        return;
-      }
-
-      const fileUpdatePromise = fetch(`/organization/${body._id}/avatar`, {
+    if (file) {
+      dispatchFetch(`/organization/${organization._id}/avatar`, {
         method: 'POST',
-        body: this.state.file
-      });
+        body: file,
+      }, UPDATE_ORGANIZATION_AVATAR);
+    }
 
-      if (!this.props.hasOwnProperty('organization')) {
-        intercept();
-        return;
-      }
+    if (organization) {
+      dispatchFetch(`/organization/${organization.id}`, {
+        method: 'POST',
+        body: {
+          name,
+          email
+        },
+      }, UPDATE_ORGANIZATION);
+    } else {
+      dispatchFetch('/organization', {
+        method: 'POST',
+        body: {
+          name,
+          email
+        },
+      }, CREATE_ORGANIZATION);
+    }
+  }
 
-      fileUpdatePromise.then(({ response }) => {
-        if (response.status === 413) {
-          this.setState({
-            loading: false,
-            avatarTooLarge: true
-          });
-        } else if (response.status !== 200) {
-          this.setState({
-            loading: false,
-            displayUnableToPersistAvatarError: true
-          });
-        }
-      }, () => {
-        this.setState({
-          loading: false,
-          displayUnableToPersistAvatarError: true
-        });
-      });
-    }, () => {
-      this.setState({
-        loading: false,
-        displayUnableToPersistError: true
-      });
-    });
-  };
-
-  onEmailChange = (e) => {
-    this.setState({ email: e.target.value });
-  };
-
-  onNameChange = (e) => {
-    this.setState({ name: e.target.value });
-  };
-
-  onFile = (file) => {
+  function onFile(file) {
     const reader = new FileReader();
     reader.onload = () => {
-      this.setState({
-        avatar: reader.result,
-        file,
-        avatarTooLarge: file.size > MAXIMUM_IMAGE_UPLOAD_BYTES
-      });
+      setAvatar(reader.result);
+      setFile(file);
+      setAvatarTooLarge(file.size > MAXIMUM_IMAGE_UPLOAD_BYTES);
     };
     reader.readAsDataURL(file);
-  };
+  }
 
-  render() {
-    const { organization } = this.props;
-    const submitText = organization === null ? T('Create') : T('Update');
+  let unableToPersistError = null;
+  let unableToPersistAvatarError = null;
+  let avatarTooLargeError = null;
 
-    let unableToPersistError = null;
-    let unableToPersistAvatarError = null;
-    let avatarTooLargeError = null;
+  if (avatarTooLarge) {
+    avatarTooLargeError = (
+      <MessageBlock>
+        {T('Sorry, your image is too large, please try a smaller image')}
+      </MessageBlock>
+    );
+  }
 
-    if (this.state.avatarTooLarge) {
-      avatarTooLargeError = (
-        <MessageBlock>
-          {T('Sorry, your image is too large, please try a smaller image')}
-        </MessageBlock>
-      );
-    }
+  if (displayUnableToPersistAvatarError) {
+    unableToPersistAvatarError = (
+      <MessageBlock>
+        {T('Sorry, we are not able to update your avatar, please try another image')}
+      </MessageBlock>
+    );
+  }
 
-    if (this.state.displayUnableToPersistAvatarError) {
-      unableToPersistAvatarError = (
-        <MessageBlock>
-          {T('Sorry, we are not able to update your avatar, please try another image')}
-        </MessageBlock>
-      );
-    }
+  if (displayUnableToPersistError) {
+    unableToPersistError = (
+      <MessageBlock>
+        {T('Sorry, we are not able save your data, please try again')}
+      </MessageBlock>
+    );
+  }
 
-    if (this.state.displayUnableToPersistError) {
-      unableToPersistError = (
-        <MessageBlock>
-          {T('Sorry, we are not able save your data, please try again')}
-        </MessageBlock>
-      );
-    }
-
-    const avatarUploadProps = this.state.avatar === null ? {} : { src: this.state.avatar };
-
-    return (
-      <form onSubmit={this.onSubmit} styleName='root'>
+  return (
+    <DefaultLayout>
+      <form onSubmit={onSubmit} styleName='root'>
         {unableToPersistAvatarError}
         {unableToPersistError}
         {avatarTooLargeError}
-        <AvatarImageUpload styleName='avatar-image-upload' onFile={this.onFile} { ...avatarUploadProps } />
+        <AvatarImageUpload styleName='avatar-image-upload' onFile={onFile} { ...avatarUploadProps } />
         <Input
           placeholder={T('Organization Name')}
-          onChange={this.onNameChange}
-          value={this.state.name}
+          onChange={e => setName(e.target.value)}
+          value={name}
           required
         />
         <div styleName='email-section'>
           <Input
             placeholder={T('Email')}
             type='email'
-            value={this.state.email}
+            value={email}
             required
-            onChange={this.onEmailChange}
+            onChange={e => setEmail(e.target.value)}
           />
           <div styleName='email-note'>
             {T('This email will be used so your customers can contact you.')}
@@ -212,28 +135,17 @@ export class Component extends React.PureComponent {
             {T('We will also use this email to send you organization specific communication.')}
           </div>
         </div>
-        <Button loading={this.state.loading}>
+        <Button loading={loading}>
           {submitText}
         </Button>
       </form>
-    );
-  }
+    </DefaultLayout>
+  );
 }
 
-const ComponentWithRouter = withRouter(Component);
-
-export const OrganizationPersist = (props) => (
-  <ApplicationContext.Consumer>
-    { ({ fetch }) =>
-      <OrganizationContext.Consumer>
-        { organizations =>
-          <ComponentWithRouter fetch={fetch} organizations={organizations} { ...props } />
-        }
-      </OrganizationContext.Consumer>
-    }
-  </ApplicationContext.Consumer>
-);
-
-OrganizationPersist.propTypes = {
+OrganizationPersistComponent.propTypes = {
+  history: PropTypes.object,
   organization: PropTypes.object
 };
+
+export const OrganizationPersist = withRouter(OrganizationPersistComponent);

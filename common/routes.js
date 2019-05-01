@@ -82,6 +82,10 @@ export class Routes {
     return `${this.prefix}/`;
   }
 
+  account() {
+    return `${this.prefix}/account`;
+  }
+
   signup() {
     return `${this.prefix}/signup`;
   }

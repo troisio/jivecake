@@ -1,5 +1,4 @@
 import React, { useState, useContext } from 'react';
-import { Link }from 'react-router-dom';
 
 import { safe } from 'js/helper';
 
@@ -110,9 +109,6 @@ export function Login() {
         <MessageBlock>
           {T('You are already logged in')}
         </MessageBlock>
-        <Link to={routes.myTransactions(userId)}>
-          {T('Go to my transactions')}
-        </Link>
       </div>
     );
   }

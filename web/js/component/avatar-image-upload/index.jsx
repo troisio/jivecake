@@ -19,12 +19,12 @@ export function AvatarImageUpload(props) {
   }
 
   const propsCopy = _.omit(props, ['className', 'styleName', 'onFile']);
-  const avatarProps = props.hasOwnProperty('src') ? { src: this.props.src } : {};
+  const avatarProps = props.hasOwnProperty('src') ? { src: props.src } : {};
 
   return (
     <button className={props.className} type='button' onClick={onClick} styleName='root' { ...propsCopy }>
       <input onChange={onChange} ref={input} type='file' accept='image/*;capture=camera' styleName='input' />
-      <Avatar { ...avatarProps } />
+      <Avatar styleName='avatar' { ...avatarProps } />
     </button>
   );
 }

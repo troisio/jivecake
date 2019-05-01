@@ -18,11 +18,13 @@ import { Header } from 'component/header';
 import { Signup } from 'page/signup';
 import { NotFoundPage } from 'page/not-found';
 import { Landing } from 'page/landing';
+import { Account } from 'page/account';
 import { Login } from 'page/login';
 import { Organization } from 'page/organization';
 import { EventPersist } from 'page/event-persist';
 import { ForgotPassword } from 'page/forgot-password';
 import { Events } from 'js/page/events';
+import { Home } from 'js/page/home';
 import { OrganizationPersist } from 'js/page/organization-persist';
 import { UpdateOrganization } from 'js/page/update-organization';
 import { UpdateEvent } from 'js/page/update-event';
@@ -48,6 +50,8 @@ export function Application() {
       <Route path={routes.eventPersist(':eventId')} component={UpdateEvent} />
       <Route path={routes.eventPersist()} component={EventPersist} />
       <Route path={routes.organizationEvents(':organizationId')} component={Events} />
+      <Route path={routes.home()} component={Home} />
+      <Route path={routes.account()} component={Account} />
     </Switch>
   );
 

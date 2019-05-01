@@ -5,10 +5,9 @@ import { withRouter } from 'react-router';
 import { ErrorPage } from 'page/error';
 import { NotFoundPage } from 'page/not-found';
 import { NaturalSpinner } from 'component/natural-spinner';
-import { ApplicationContext, OrganizationContext } from 'js/context';
 import { OrganizationPersist } from 'js/page/organization-persist';
 
-class Component extends React.PureComponent {
+class UpdateOrganizationComponent extends React.PureComponent {
   static propTypes = {
     match: PropTypes.object.isRequired,
     history: PropTypes.object.isRequired,
@@ -83,16 +82,4 @@ class Component extends React.PureComponent {
   }
 }
 
-const ComponentWithRouter = withRouter(Component);
-
-export const UpdateOrganization = () => (
-  <ApplicationContext.Consumer>
-    { ({ fetch }) =>
-      <OrganizationContext.Consumer>
-        { organizations =>
-          <ComponentWithRouter fetch={fetch} organizations={organizations} />
-        }
-      </OrganizationContext.Consumer>
-    }
-  </ApplicationContext.Consumer>
-);
+export const UpdateOrganization = withRouter(UpdateOrganizationComponent);

@@ -10,7 +10,7 @@ export function Avatar(props) {
   const propsCopy = _.omit(props, ['className', 'styleName', 'src']);
   let styleName = 'root';
 
-  if (this.props.src === EMPTY_IMAGE) {
+  if (props.src === EMPTY_IMAGE) {
     styleName += ' empty';
   }
 

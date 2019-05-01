@@ -12,6 +12,9 @@ export const CREATE_ACCOUNT = 'CREATE_ACCOUNT';
 export const TOKEN_FROM_PASSWORD = 'TOKEN_FROM_PASSWORD';
 export const GET_ITEM = 'GET_ITEM';
 export const GET_EVENT = 'GET_EVENT';
+export const CREATE_ORGANIZATION = 'CREATE_ORGANIZATION';
+export const UPDATE_ORGANIZATION_AVATAR = 'UPDATE_ORGANIZATION_AVATAR';
+export const UPDATE_ORGANIZATION = 'UPDATE_ORGANIZATION';
 
 function reducer(state, action) {
   switch (action.type) {
