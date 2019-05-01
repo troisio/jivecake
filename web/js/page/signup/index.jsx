@@ -40,8 +40,10 @@ export function SignupComponent({ history }) {
   const fetchingEmail = safe(() => emailFetchState.state.fetching, false);
   const isCreatingAccount = safe(() => createAccountState.fetching, false);
   const emailIsAvailable = safe(() => emailFetchState.response.status === 404, false);
+  const emailIsTaken = safe(() => emailFetchState.response.status === 200, false);
   const didFailToCreateAccount = safe(() => !createAccountState.response.ok, false) ||
     safe(() => createAccountState.state.hasOwnProperty('error'), false);
+  const errorMessages = [];
 
   useEffect(() => {
     return () => {
@@ -112,8 +114,6 @@ export function SignupComponent({ history }) {
     );
   }
 
-  const errorMessages = [];
-
   if (commonPasswordError) {
     errorMessages.push(T('Your password is too common, please choose another password'));
   }
@@ -127,6 +127,7 @@ export function SignupComponent({ history }) {
   }
 
   let iconStyleName = 'check-circle';
+  let emailTakenMessage;
 
   if (email.length > 0 && !fetchingEmail) {
     if (isValidEmail(email) && emailIsAvailable) {
@@ -134,6 +135,14 @@ export function SignupComponent({ history }) {
     } else {
       iconStyleName = 'check-circle error';
     }
+  }
+
+  if (emailIsTaken) {
+    emailTakenMessage = (
+      <MessageBlock>
+        {T('Sorry, that email already is taken.')}
+      </MessageBlock>
+    );
   }
 
   return (
@@ -152,6 +161,7 @@ export function SignupComponent({ history }) {
           <div styleName='check-icon-container'>
             <FontAwesomeIcon styleName={iconStyleName} icon={fetchingEmail ? faSyncAlt : faCheckCircle} />
           </div>
+          {emailTakenMessage}
         </div>
         <Input
           onChange={e => setPassword(e.target.value)}
