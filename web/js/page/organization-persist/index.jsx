@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 
@@ -19,9 +19,10 @@ import {
   UPDATE_ORGANIZATION,
   UPDATE_ORGANIZATION_AVATAR
 } from 'js/reducer/useFetch';
+import { routes } from 'js/routes';
 
-export function OrganizationPersistComponent({ organization }) {
-  const submitText = organization === null ? T('Create') : T('Update');
+export function OrganizationPersistComponent({ organization, history }) {
+  const submitText = organization ? T('Create') : T('Update');
   const [ name, setName ] = useState(safe(() => organization.name, ''));
   const [ email, setEmail ] = useState(safe(() => organization.email, ''));
   const [ avatar, setAvatar ] = useState(safe(() => organization.avatar, null));
@@ -33,22 +34,36 @@ export function OrganizationPersistComponent({ organization }) {
   const updateOrganizationAvatarState = fetchState[UPDATE_ORGANIZATION_AVATAR];
   const displayUnableToPersistAvatarError = safe(() => !updateOrganizationAvatarState.response.ok, false);
   const displayUnableToPersistError = safe(() => !createOrganizationState.response.ok, false);
-  const [ dispatchFetch ] = useContext(FetchDispatchContext);
+  const [ dispatchFetch, dispatchFetchDelete ] = useContext(FetchDispatchContext);
   const loading = safe(() => createOrganizationState.fetching) ||
     safe(() => updateOrganizationAvatarState.fetching);
+
+  useEffect(() => {
+    return () => {
+      dispatchFetchDelete([CREATE_ORGANIZATION, UPDATE_ORGANIZATION_AVATAR]);
+    };
+  }, []);
+
+  useEffect(() => {
+    const newId = safe(() => createOrganizationState.body._id);
+
+    if (newId) {
+      if (file) {
+        dispatchFetch(`/organization/${newId}/avatar`, {
+          method: 'POST',
+          body: file,
+        }, UPDATE_ORGANIZATION_AVATAR);
+      } else {
+        history.push(routes.account());
+      }
+    }
+  }, [ createOrganizationState, file ]);
 
   function onSubmit(e) {
     e.preventDefault();
 
     if (loading) {
       return;
-    }
-
-    if (file) {
-      dispatchFetch(`/organization/${organization._id}/avatar`, {
-        method: 'POST',
-        body: file,
-      }, UPDATE_ORGANIZATION_AVATAR);
     }
 
     if (organization) {
@@ -59,6 +74,13 @@ export function OrganizationPersistComponent({ organization }) {
           email
         },
       }, UPDATE_ORGANIZATION);
+
+      if (file) {
+        dispatchFetch(`/organization/${organization._id}/avatar`, {
+          method: 'POST',
+          body: file,
+        }, UPDATE_ORGANIZATION_AVATAR);
+      }
     } else {
       dispatchFetch('/organization', {
         method: 'POST',
@@ -114,7 +136,7 @@ export function OrganizationPersistComponent({ organization }) {
         {unableToPersistAvatarError}
         {unableToPersistError}
         {avatarTooLargeError}
-        <AvatarImageUpload styleName='avatar-image-upload' onFile={onFile} { ...avatarUploadProps } />
+        <AvatarImageUpload disabled={loading} styleName='avatar-image-upload' onFile={onFile} { ...avatarUploadProps } />
         <Input
           placeholder={T('Organization Name')}
           onChange={e => setName(e.target.value)}

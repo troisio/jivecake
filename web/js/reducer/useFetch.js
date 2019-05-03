@@ -5,6 +5,7 @@ import settings from 'settings';
 
 import { useReducer } from 'react';
 
+export const UPDATE_USER = 'GET_USER';
 export const GET_USER = 'GET_USER';
 export const GET_USER_ORGANIZATIONS = 'GET_USER_ORGANIZATIONS';
 export const SEARCH_EMAIL = 'SEARCH_USER_EMAIL';

@@ -18,7 +18,7 @@ import {
   USER_BY_EMAIL,
   UPDATE_USER,
   PASSWORD_RECOVERY,
-  GET_ORGANIZATIONS
+  GET_USER_ORGANIZATIONS
 } from 'route/user';
 
 import {
@@ -94,7 +94,7 @@ export const run = () => {
     const routes = [
       USER_BY_EMAIL,  /* must appear before GET_USER */
       PASSWORD_RECOVERY, /* must appear before GET_USER */
-      GET_ORGANIZATIONS, /* must appear before GET_USER */
+      GET_USER_ORGANIZATIONS, /* must appear before GET_USER */
       CREATE_ACCOUNT,
       GET_USER,
       GET_TOKEN,

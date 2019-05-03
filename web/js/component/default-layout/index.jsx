@@ -5,7 +5,7 @@ import './style.scss';
 
 export function DefaultLayout(props) {
   return (
-    <div { ..._.omit(props, ['children']) } styleName='root'>
+    <div { ..._.omit(props, ['children', 'className']) } className={props.className} styleName='root'>
       {props.children}
     </div>
   );
@@ -13,4 +13,5 @@ export function DefaultLayout(props) {
 
 DefaultLayout.propTypes = {
   children: PropTypes.node.isRequired,
+  className: PropTypes.string
 };

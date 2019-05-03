@@ -12,25 +12,7 @@ export function Home() {
   return (
     <DefaultLayout>
       <div styleName='navigation'>
-        <Anchor styleName='anchor' to={routes.account()}>
-          <img src={svgUrl('737-wrench.svg')} />
-          <span styleName='anchor-text'>
-            {T('My account')}
-          </span>
-        </Anchor>
-        <Anchor styleName='anchor' to={routes.account()}>
-          <img src={svgUrl('737-wrench.svg')} />
-          <span styleName='anchor-text'>
-            {T('My account')}
-          </span>
-        </Anchor>
-        <Anchor styleName='anchor' to={routes.account()}>
-          <img src={svgUrl('737-wrench.svg')} />
-          <span styleName='anchor-text'>
-            {T('My account')}
-          </span>
-        </Anchor>
-        <Anchor styleName='anchor' to={routes.account()}>
+        <Anchor button styleName='anchor' to={routes.account()}>
           <img src={svgUrl('737-wrench.svg')} />
           <span styleName='anchor-text'>
             {T('My account')}

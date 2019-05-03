@@ -33,5 +33,6 @@ AvatarImageUpload.propTypes = {
   styleName: PropTypes.string,
   className: PropTypes.string,
   onFile: PropTypes.func.isRequired,
-  src: PropTypes.string
+  src: PropTypes.string,
+  disabled: PropTypes.bool,
 };

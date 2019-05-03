@@ -18,7 +18,6 @@ export function useUserOrganizations() {
   const getUserOrganizationState = fetchState[GET_USER_ORGANIZATIONS];
 
   useEffect(() => {
-    console.log('getUserOrganizationState', getUserOrganizationState);
   }, [getUserOrganizationState]);
 
   return [ state, dispatch ];

@@ -129,7 +129,7 @@ export const USER_BY_EMAIL = {
   }
 };
 
-export const GET_ORGANIZATIONS = {
+export const GET_USER_ORGANIZATIONS = {
   method: Method.GET,
   path: '/user/:userId/organization',
   accessRules: [
@@ -157,6 +157,7 @@ export const GET_ORGANIZATIONS = {
       _.pick(request.query, ['lastUserActivity', 'lastSystemActivity']),
       value => Number(value)
     );
+
     const cursor = await db.collection(OrganizationCollection)
       .find({
         $or: [

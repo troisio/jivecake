@@ -133,9 +133,9 @@ export class Router {
         if (requires.includes(Require.Page)) {
           extra.pagination = { limit: DEFAULT_LIMIT };
 
-          const validLimit = req.query.hasOwnProperty('page') &&
+          const validLimit = req.query.hasOwnProperty('limit') &&
             typeof req.query.limit === 'string' &&
-            req.limit.length > 0;
+            req.query.limit.length > 0;
 
           if (validLimit) {
             const limit = Number(req.query.limit);

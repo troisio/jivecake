@@ -1,4 +1,7 @@
 import { useReducer, useEffect, useContext } from 'react';
+import _ from 'lodash';
+
+import { safe } from 'js/helper';
 
 import {
   GET_USER_ORGANIZATIONS
@@ -10,6 +13,11 @@ import {
 
 function reducer(state, action) {
   switch (action.type) {
+    case 'INSERT_MANY' : {
+      const map = _.keyBy(action.data, '_id');
+
+      return _.merge({}, state, map);
+    }
     default:
       return state;
   }
@@ -21,7 +29,14 @@ export function useOrganizations() {
   const getUserOrganizationState = fetchState[GET_USER_ORGANIZATIONS];
 
   useEffect(() => {
-    console.log('getUserOrganizationState', getUserOrganizationState);
+    const entities = safe(() => getUserOrganizationState.body.entity);
+
+    if (entities) {
+      dispatch({
+        type: 'INSERT_MANY',
+        data: entities
+      });
+    }
   }, [getUserOrganizationState]);
 
   return [ state, dispatch ];
