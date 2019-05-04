@@ -4,15 +4,23 @@ import _ from 'lodash';
 import settings from 'settings';
 
 import { useReducer } from 'react';
+import { safe } from 'js/helper';
 
-export const UPDATE_USER = 'GET_USER';
+export const UPDATE_USER = 'UPDATE_USER';
 export const GET_USER = 'GET_USER';
 export const GET_USER_ORGANIZATIONS = 'GET_USER_ORGANIZATIONS';
+
 export const SEARCH_EMAIL = 'SEARCH_USER_EMAIL';
 export const CREATE_ACCOUNT = 'CREATE_ACCOUNT';
 export const TOKEN_FROM_PASSWORD = 'TOKEN_FROM_PASSWORD';
 export const GET_ITEM = 'GET_ITEM';
+
 export const GET_EVENT = 'GET_EVENT';
+export const CREATE_EVENT = 'CREATE_EVENT';
+export const UPDATE_EVENT = 'UPDATE_EVENT';
+export const UPDATE_EVENT_AVATAR = 'UPDATE_EVENT_AVATAR';
+
+export const GET_ORGANIZATION = 'GET_ORGANIZATION';
 export const CREATE_ORGANIZATION = 'CREATE_ORGANIZATION';
 export const UPDATE_ORGANIZATION_AVATAR = 'UPDATE_ORGANIZATION_AVATAR';
 export const UPDATE_ORGANIZATION = 'UPDATE_ORGANIZATION';
@@ -63,13 +71,32 @@ export function useFetch(token) {
       data: { ...data, fetching: true },
     });
 
+    const query = safe(() => data.options.query, {});
+    const searchParams = new URLSearchParams();
+
+    for (const key of Object.keys(query)) {
+      const value = query[key];
+
+      if (Array.isArray(value)) {
+        for (const element of value) {
+          searchParams.append(key, element);
+        }
+      } else {
+        searchParams.append(key, value);
+      }
+    }
+
     let derivedUrl = data.url;
 
     if (Array.isArray(data.url)) {
       derivedUrl = '/' + data.join('/');
     }
 
-    fetch(settings.api.url + derivedUrl, data.options).then(response => {
+    if (searchParams.toString() !== '') {
+      derivedUrl += '?' + searchParams.toString();
+    }
+
+    return fetch(settings.api.url + derivedUrl, data.options).then(response => {
       const contentType = response.headers.get('content-type');
       const nextData = {
         ...data,
@@ -78,7 +105,7 @@ export function useFetch(token) {
       };
 
       if (contentType.includes('application/json')) {
-        response.json().then(body => {
+        return response.json().then(body => {
           dispatch({ type: 'UPDATE', data: { ...nextData, body } });
         }, (error) => {
           dispatch({ type: 'UPDATE', data: { ...nextData, error } });

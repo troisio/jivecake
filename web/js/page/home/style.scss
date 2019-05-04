@@ -18,9 +18,10 @@
 
 .navigation {
   display: grid;
+  gap: 16px;
 
   @include phone() {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   @include not_phone() {

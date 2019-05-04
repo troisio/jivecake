@@ -5,6 +5,7 @@ import mongodb from 'mongodb';
 
 import jwtkeysecret from 'extra/jwt/jwt.key';
 import { settings } from 'settings';
+import { EMAIL_COLLATION } from 'server/database';
 
 import { Method, Require, Permission } from 'router';
 import {
@@ -102,7 +103,7 @@ export const PASSWORD_RECOVERY = {
       await api.sendTransacEmail(options);
     }
 
-    response.sendStatus(200);
+    response.status(200);
   }
 };
 
@@ -117,12 +118,15 @@ export const USER_BY_EMAIL = {
     }
   },
   on: async (request, response, { db }) => {
-    const user = await db.collection(UserCollection)
-      .findOne({ email: request.query.email });
+    const usersWithSameEmail = await db.collection(UserCollection)
+      .find({ email: request.query.email })
+      .collation(EMAIL_COLLATION)
+      .toArray();
 
-    if (user === null) {
-      response.sendStatus(404);
+    if (usersWithSameEmail.length === 0) {
+      response.status(404).end();
     } else {
+      const user = usersWithSameEmail[0];
       const entity = _.pick(user, ['_id', 'email']);
       response.json(entity);
     }
@@ -214,6 +218,18 @@ export const UPDATE_USER = {
 
     const $set = { ...request.body };
 
+    if ($set.hasOwnProperty('email')) {
+      const userWithSameEmail = await db.collection(UserCollection)
+        .find({ _id: { $ne: user._id }, email: $set.email })
+        .collation(EMAIL_COLLATION)
+        .count();
+
+      if (userWithSameEmail > 0) {
+        response.status(409).end();
+        return;
+      }
+    }
+
     if ($set.hasOwnProperty('lastOrganizationId')) {
       $set.lastOrganizationId = new mongodb.ObjectID($set.lastOrganizationId);
 
@@ -236,10 +252,8 @@ export const UPDATE_USER = {
       $set.hashedPassword = await getHashedPassword(request.body.password);
     }
 
-    const { value } = await db.collection(UserCollection)
-      .findOneAndUpdate({ _id: user._id }, { $set });
-    const entity = _.omit(value, ['hashedPassword']);
-    response.json(entity);
+    await db.collection(UserCollection).updateOne({ _id: user._id }, { $set });
+    response.status(200).end();
   }
 };
 
@@ -272,9 +286,9 @@ export const CREATE_ACCOUNT = {
       user.created = new Date();
 
       await db.collection(UserCollection).insertOne(user);
-      response.sendStatus(200).end();
+      response.status(200).end();
     } else {
-      response.sendStatus(409).end();
+      response.status(409).end();
     }
   }
 };
@@ -287,12 +301,12 @@ export const GET_TOKEN = {
     const user = await db.collection(UserCollection).findOne({ email });
 
     if (user === null) {
-      response.sendStatus(404).end();
+      response.status(404).end();
     } else {
       bcrypt.compare(password, user.hashedPassword, (err, res) => {
         if (err) {
           sentry.captureException(err);
-          response.sendStatus(401).end();
+          response.status(401).end();
         } else if (res === true) {
           const sevenDaysAfter = new Date();
           sevenDaysAfter.setDate(sevenDaysAfter.getDate() + 7);
@@ -301,14 +315,14 @@ export const GET_TOKEN = {
           jwt.sign({ sub: user._id, exp }, jwtkeysecret, { algorithm: 'HS256' }, (err, token) => {
             if (err) {
               sentry.captureException(err);
-              response.sendStatus(401).end();
+              response.status(401).end();
             } else {
               response.json({ token });
             }
           });
         } else {
           sentry.captureMessage('invalid password attempt by ' + ip + ' for account ' + email);
-          response.sendStatus(401).end();
+          response.status(401).end();
         }
       });
     }

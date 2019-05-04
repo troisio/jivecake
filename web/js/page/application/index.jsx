@@ -16,13 +16,14 @@ import {
 import { routes } from 'js/routes';
 import { Header } from 'component/header';
 import { Signup } from 'page/signup';
-import { NotFoundPage } from 'page/not-found';
+import { NotFound } from 'page/not-found';
 import { Landing } from 'page/landing';
 import { Account } from 'page/account';
 import { Login } from 'page/login';
 import { Organization } from 'page/organization';
 import { EventPersist } from 'page/event-persist';
 import { ForgotPassword } from 'page/forgot-password';
+import { EventDashboard } from 'page/event-dashboard';
 import { Events } from 'js/page/events';
 import { Home } from 'js/page/home';
 import { OrganizationPersist } from 'js/page/organization-persist';
@@ -48,6 +49,7 @@ export function Application() {
       <Route path={routes.organizationPersist()} component={OrganizationPersist} />
       <Route path={routes.organization()} component={Organization} />
       <Route path={routes.eventPersist(':eventId')} component={UpdateEvent} />
+      <Route path={routes.eventDashboard(':eventId')} component={EventDashboard} />
       <Route path={routes.eventPersist()} component={EventPersist} />
       <Route path={routes.organizationEvents(':organizationId')} component={Events} />
       <Route path={routes.home()} component={Home} />
@@ -107,7 +109,7 @@ export function Application() {
             <Route path={routes.signup()} component={Signup} />
             <Route path={routes.forgotPassword()} component={ForgotPassword} />
             {applicationState.userId === null ? null : authenticatedRoutes}
-            <Route component={NotFoundPage} />
+            <Route component={NotFound} />
           </Switch>
         </div>
       </BrowserRouter>

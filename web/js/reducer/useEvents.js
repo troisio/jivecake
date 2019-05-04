@@ -1,4 +1,5 @@
 import { useReducer, useEffect, useContext } from 'react';
+import _ from 'lodash';
 
 import { safe } from 'js/helper';
 
@@ -8,12 +9,11 @@ import {
 } from 'js/reducer/useFetch';
 
 function reducer(state, action) {
-  switch (action.type) {
-    case 'UPDATE' : {
-      return {
-        ...state,
-        [action.data._id]: action.data
-      };
+  switch (action.id) {
+    case GET_EVENT: {
+      return _.merge(state, {}, {
+        [action.body._id]: action.body
+      });
     }
 
     default:
@@ -24,16 +24,15 @@ function reducer(state, action) {
 export function useEvents() {
   const [ state, dispatch ] = useReducer(reducer, {});
   const fetchState = useContext(FetchStateContext);
-  const getEventState = fetchState[GET_EVENT];
+  for (const type of [GET_EVENT]) {
+    const data = fetchState[type];
 
-  useEffect(() => {
-    if (safe(() => getEventState.response.ok)) {
-      dispatch({
-        type: 'UPDATE',
-        data: getEventState.body
-      });
-    }
-  }, [getEventState]);
+    useEffect(() => {
+      if (safe(() => data.response.ok)) {
+        dispatch(data);
+      }
+    }, [ data ]);
+  }
 
   return [ state, dispatch ];
 }

@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
-import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 
 import { isValidEmail, safe } from 'js/helper';
 
@@ -12,6 +9,7 @@ import { T } from 'common/i18n';
 import { getNavigatorLanguage } from 'common/helpers';
 import { routes } from 'js/routes';
 import { MessageBlock } from 'component/message-block';
+import { EmailSearchIcon } from 'component/email-search-icon';
 import { DefaultLayout } from 'component/default-layout';
 import { ApplicationContext, FetchDispatchContext, FetchStateContext } from 'js/context';
 import { Button } from 'component/button';
@@ -37,7 +35,6 @@ export function SignupComponent({ history }) {
   const fetchState = useContext(FetchStateContext);
   const emailFetchState = fetchState[SEARCH_EMAIL];
   const createAccountState = fetchState[CREATE_ACCOUNT];
-  const fetchingEmail = safe(() => emailFetchState.state.fetching, false);
   const isCreatingAccount = safe(() => createAccountState.fetching, false);
   const emailIsAvailable = safe(() => emailFetchState.response.status === 404, false);
   const emailIsTaken = safe(() => emailFetchState.response.status === 200, false);
@@ -71,9 +68,7 @@ export function SignupComponent({ history }) {
 
   useEffect(() => {
     if (isValidEmail(email)) {
-      const params = new URLSearchParams();
-      params.append('email', email);
-      dispatchFetch(`/user/email?${params.toString()}`, {}, SEARCH_EMAIL);
+      dispatchFetch(`/user/email`, { query: { email } }, SEARCH_EMAIL);
     }
   }, [email]);
 
@@ -126,16 +121,7 @@ export function SignupComponent({ history }) {
     errorMessages.push(T('Unable to create your account. Please try again'));
   }
 
-  let iconStyleName = 'check-circle';
   let emailTakenMessage;
-
-  if (email.length > 0 && !fetchingEmail) {
-    if (isValidEmail(email) && emailIsAvailable) {
-      iconStyleName = 'check-circle success';
-    } else {
-      iconStyleName = 'check-circle error';
-    }
-  }
 
   if (emailIsTaken) {
     emailTakenMessage = (
@@ -159,7 +145,7 @@ export function SignupComponent({ history }) {
             required
           />
           <div styleName='check-icon-container'>
-            <FontAwesomeIcon styleName={iconStyleName} icon={fetchingEmail ? faSyncAlt : faCheckCircle} />
+            <EmailSearchIcon />
           </div>
           {emailTakenMessage}
         </div>
@@ -202,7 +188,7 @@ export function SignupComponent({ history }) {
 }
 
 SignupComponent.propTypes = {
-  history: PropTypes.func.isRequired
+  history: PropTypes.object.isRequired
 };
 
 export const Signup = withRouter(SignupComponent);

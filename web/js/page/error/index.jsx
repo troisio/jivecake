@@ -5,7 +5,7 @@ import { Button } from 'component/button';
 import { T } from 'common/i18n';
 import './style.scss';
 
-export function ErrorPage(props) {
+export function Error(props) {
   let retry;
 
   if (props.hasOwnProperty('onRetry')) {
@@ -26,6 +26,6 @@ export function ErrorPage(props) {
   );
 }
 
-ErrorPage.propTypes = {
+Error.propTypes = {
   onRetry: PropTypes.func
 };

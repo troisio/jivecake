@@ -17,6 +17,14 @@ export class Routes {
     return url;
   }
 
+  eventDashboard(id) {
+    return `${this.prefix}/event/${id}/dashboard`;
+  }
+
+  eventPublic(hash) {
+    return `${this.prefix}/event/${hash}`;
+  }
+
   home() {
     return `${this.prefix}/home`;
   }

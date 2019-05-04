@@ -79,7 +79,7 @@ export const DELETE_ITEM = {
     }
 
     await db.collection(ItemCollection).deleteOne({ _id: itemId });
-    response.sendStatus(200).end();
+    response.status(200).end();
   }
 };
 

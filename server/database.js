@@ -11,6 +11,10 @@ export const PasswordRecoveryCollection = 'passwordRecovery';
 export const OrganizationInvitationCollection = 'organizationInvitation';
 
 export const SORT_DIRECTIONS_AS_STRING = ['-1', '1'];
+export const EMAIL_COLLATION = {
+  locale : 'en',
+  strength : 2
+};
 
 export const getDatabase = () => {
   return new Promise(async (resolve, reject) => {
@@ -21,7 +25,7 @@ export const getDatabase = () => {
         const db = client.db('jivecake');
 
         const userCollection = db.collection(UserCollection);
-        await userCollection.createIndex({email: 1}, { unique:true });
+        await userCollection.createIndex({email : 1}, { unique:true, collation: EMAIL_COLLATION });
 
         const organizationCollection = db.collection(OrganizationCollection);
         await organizationCollection.createIndex({ ownerId: 1 });

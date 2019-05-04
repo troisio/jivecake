@@ -1,208 +1,267 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-
-import {
-  ApplicationContext
-} from 'js/context';
+import { withRouter } from 'react-router';
+import _ from 'lodash';
 
 import { T } from 'common/i18n';
 import { MAXIMUM_IMAGE_UPLOAD_BYTES } from 'common/schema';
 
-import { MessageBlock } from 'component/message-block';
+import { routes } from 'js/routes';
+import {
+  ApplicationContext,
+  FetchStateContext,
+  FetchDispatchContext,
+  OrganizationContext
+} from 'js/context';
+import {
+  CREATE_ORGANIZATION,
+  CREATE_EVENT,
+  UPDATE_EVENT,
+  GET_USER_ORGANIZATIONS,
+  UPDATE_EVENT_AVATAR,
+  GET_ORGANIZATION,
+  UPDATE_ORGANIZATION_AVATAR,
+  GET_EVENT
+} from 'js/reducer/useFetch';
+
+import { safe } from 'js/helper';
 import { Input } from 'component/input';
 import { Button } from 'component/button';
+import { MessageBlock } from 'component/message-block';
 import { AvatarImageUpload } from 'component/avatar-image-upload';
+
 import './style.scss';
 
-class Component extends React.PureComponent {
-  static propTypes = {
-    event: PropTypes.object,
-    fetch: PropTypes.func.isRequired,
-    onPersisted: PropTypes.func.isRequired
+export function EventPersistComponent({ history, event }) {
+  const fetchState = useContext(FetchStateContext);
+  const [ dispatchFetch, dispatchFetchDelete ] = useContext(FetchDispatchContext);
+  const applicationState = useContext(ApplicationContext);
+  const organizationMap = useContext(OrganizationContext);
+
+  const organization = organizationMap[applicationState.organizationId];
+
+  const [ name, setName ] = useState(event ? event.name : '');
+  const [ organizationId, setOrganizationId ] = useState(organization ? organization._id : null);
+  const [ organizationName, setOrganizationName ] = useState('');
+  const [ organizationEmail, setOrganizationEmail ] = useState('');
+  const [ eventAvatar, setEventAvatar ] = useState(null);
+  const [ eventAvatarFile, setEventAvatarFile ] = useState(null);
+
+  const createEventState = fetchState[CREATE_EVENT];
+  const createOrganizationState = fetchState[CREATE_ORGANIZATION];
+  const updateEventAvatarState = fetchState[UPDATE_EVENT_AVATAR];
+
+  const avatarImageUploadProps = eventAvatar ? { src: eventAvatar } : {};
+  const submitText = event ? T('Update') : T('Create');
+  const organizations = _.values(organizationMap)
+    .filter(organization => organization.write.includes(applicationState.userId));
+  const loading = safe(() => createEventState.fetching) ||
+    safe(() => createOrganizationState.fetching) ||
+    safe(() => updateEventAvatarState.fetching);
+  const onOrganizationChange = (e) => {
+    setOrganizationId(e.target.value);
   };
-
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      name: '',
-      avatar: null,
-      loading: false,
-      file: null,
-      displayUnableToPersistError: false,
-      displayUnableToPersistAvatarError: false,
-      avatarTooLarge: false
-    };
-
-    const { event } = this.props;
-
-    if (event !== null) {
-      this.state.name = event.name;
-      this.state.avatar = event.avatar;
-    }
-  }
-
-  onSubmit = (e) => {
-    e.preventDefault();
-
-    if (this.state.loading || this.state.avatarTooLarge) {
-      return;
-    }
-
-    const { fetch, onPersisted, event } = this.props;
-
-    this.setState({
-      loading: true,
-      displayUnableToPersistError: false,
-      displayUnableToPersistAvatarError: false,
-      avatarTooLarge: false
-    });
-
-    const url = this.props.hasOwnProperty('event') ? `/event/${event._id}` : '/event';
-
-    fetch(url, {
-      method: 'POST',
-      body: {
-        name: this.state.name,
-        email: this.state.email
-      }
-    }, {
-      intercept: false
-    }).then(({ response, body, intercept }) => {
-      if (!response.ok) {
-        this.setState({
-          loading: false,
-          displayUnableToPersistError: true
-        });
-        return;
-      }
-
-      if (this.state.file === null) {
-        intercept();
-        onPersisted(body);
-        return;
-      }
-
-      const fileUpdatePromise = fetch(`/event/${body._id}/avatar`, {
-        method: 'POST',
-        body: this.state.file
-      });
-
-      if (!this.props.hasOwnProperty('event')) {
-        intercept();
-        onPersisted(body);
-        return;
-      }
-
-      fileUpdatePromise.then(({ response }) => {
-        if (response.status === 413) {
-          this.setState({
-            loading: false,
-            avatarTooLarge: true
-          });
-        } else if (response.status === 200) {
-          onPersisted();
-        } else {
-          this.setState({
-            loading: false,
-            displayUnableToPersistAvatarError: true
-          });
-        }
-      }, () => {
-        this.setState({
-          loading: false,
-          displayUnableToPersistAvatarError: true
-        });
-      });
-    }, () => {
-      this.setState({
-        loading: false,
-        displayUnableToPersistError: true
-      });
-    });
-  };
-
-  onEmailChange = (e) => {
-    this.setState({ email: e.target.value });
-  };
-
-  onNameChange = (e) => {
-    this.setState({ name: e.target.value });
-  };
-
-  onFile = (file) => {
+  const onEventAvatar = (file) => {
     const reader = new FileReader();
     reader.onload = () => {
-      this.setState({
-        avatar: reader.result,
-        file,
-        avatarTooLarge: file.size > MAXIMUM_IMAGE_UPLOAD_BYTES
-      });
+      setEventAvatar(reader.result);
+      setEventAvatarFile(file);
     };
     reader.readAsDataURL(file);
   };
+  const onSubmit = e => {
+    e.preventDefault();
 
-  render() {
-    const submitText = this.props.hasOwnProperty('event') ? T('Update') : T('Create');
+    const canSubmit = !loading &&
+      name.length > 0 &&
+      ( organizationId || organizationName.length > 0);
 
-    let unableToPersistError = null;
-    let unableToPersistAvatarError = null;
-    let avatarTooLargeError = null;
-
-    if (this.state.avatarTooLarge) {
-      avatarTooLargeError = (
-        <MessageBlock>
-          {T('Sorry, your image is too large, please try a smaller image')}
-        </MessageBlock>
-      );
+    if (!canSubmit) {
+      return;
     }
 
-    if (this.state.displayUnableToPersistAvatarError) {
-      unableToPersistAvatarError = (
-        <MessageBlock>
-          {T('Sorry, we are not able to update your avatar, please try another image')}
-        </MessageBlock>
-      );
+    if (event) {
+      dispatchFetch(`/event/${event._id}`, {
+        body: {
+          name
+        }
+      }, UPDATE_EVENT);
+
+      if (eventAvatarFile) {
+        dispatchFetch(`/event/${event._id}/avatar`, {
+          body: eventAvatarFile
+        }, UPDATE_EVENT_AVATAR);
+      }
+    } else if (organizationId) {
+      dispatchFetch(`/organization/${organizationId}/event`, {
+        body: {
+          name,
+          organizationId
+        }
+      }, CREATE_EVENT);
+    } else {
+      dispatchFetch(`/organization`, {
+        method: 'POST',
+        body: {
+          name: organizationName,
+          email: organizationEmail
+        }
+      }, CREATE_ORGANIZATION);
     }
+  };
 
-    if (this.state.displayUnableToPersistError) {
-      unableToPersistError = (
-        <MessageBlock>
-          {T('Sorry, we are not able save your data, please try again')}
-        </MessageBlock>
-      );
+  useEffect(() => {
+    dispatchFetch(
+      `/user/${applicationState.userId}/organization`,
+      {
+        query: {
+          page: 0
+        }
+      },
+      GET_USER_ORGANIZATIONS
+    );
+
+    return () => {
+      dispatchFetchDelete([
+        CREATE_EVENT,
+        GET_USER_ORGANIZATIONS,
+        GET_ORGANIZATION,
+        CREATE_ORGANIZATION,
+        UPDATE_EVENT_AVATAR,
+        UPDATE_ORGANIZATION_AVATAR,
+        GET_EVENT
+      ]);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (safe(() => createEventState.response.ok)) {
+      if (eventAvatarFile) {
+        dispatchFetch(`/event/${organizationId}/avatar`, {
+          body: eventAvatarFile
+        }, UPDATE_EVENT_AVATAR);
+      }
+
+      dispatchFetch(`/event/${createEventState.body._id}`, {
+        body: eventAvatarFile
+      }, GET_EVENT);
+
+      history.push(routes.eventDashboard(createEventState.body._id));
     }
+  }, [ createEventState ]);
 
-    const avatarUploadProps = this.state.avatar === null ? {} : { src: this.state.avatar };
+  useEffect(() => {
+    if (safe(() => createOrganizationState.response.ok)) {
+      const organizationId = createOrganizationState.body._id;
 
-    return (
-      <form onSubmit={this.onSubmit} styleName='root'>
-        {unableToPersistAvatarError}
-        {unableToPersistError}
-        {avatarTooLargeError}
-        <AvatarImageUpload styleName='avatar-image-upload' onFile={this.onFile} { ...avatarUploadProps } />
+      dispatchFetch(`/organization/${organizationId}`, {
+      }, GET_ORGANIZATION);
+
+      dispatchFetch(`/organization/${organizationId}/event`, {
+        method: 'POST',
+        body: {
+          name,
+        }
+      }, CREATE_EVENT);
+    }
+  }, [ createOrganizationState, name ]);
+
+  let organizationFields;
+  let eventAvatarTooLargeMessage;
+
+  if (organization) {
+    organizationFields = (
+      <div styleName='form-row'>
+        <label styleName='label'>
+          {T('Organization')}
+        </label>
         <Input
-          placeholder={T('Event Name')}
-          onChange={this.onNameChange}
-          value={this.state.name}
-          required
+          disabled
+          value={organization.name}
         />
-        <Button loading={this.state.loading}>
-          {submitText}
-        </Button>
-      </form>
+      </div>
+    );
+  } else if (organizations.length === 0)  {
+    organizationFields = (
+      <>
+        <div styleName='form-row'>
+          <label styleName='label'>
+            {T('Organization Name')}
+          </label>
+          <Input
+            required
+            value={organizationName}
+            onChange={e => setOrganizationName(e.target.value)}
+          />
+        </div>
+        <div styleName='form-row'>
+          <label htmlFor='create-event-organization-email' styleName='label'>
+            {T('Organization Email')}
+          </label>
+          <Input
+            required
+            id='create-event-organization-email'
+            type='email'
+            value={organizationEmail}
+            onChange={e => setOrganizationEmail(e.target.value)}
+          />
+        </div>
+      </>
+    );
+  } else {
+    organizationFields = (
+      <select onChange={onOrganizationChange}>
+        {
+          organizations.map(organization => {
+            return (
+              <option key={organization._id}>
+                {organization.name}
+              </option>
+            );
+          })
+        }
+      </select>
     );
   }
+
+  if (eventAvatarFile && eventAvatarFile.size > MAXIMUM_IMAGE_UPLOAD_BYTES) {
+    eventAvatarTooLargeMessage = (
+      <MessageBlock>
+        {T('Event avatar too large')}
+      </MessageBlock>
+    );
+  }
+
+  return (
+    <form onSubmit={onSubmit} styleName='root'>
+      <div styleName='form-row'>
+        <label styleName='label' htmlFor='event-avatar'>
+          {T('Event Avatar')}
+        </label>
+        <AvatarImageUpload { ...avatarImageUploadProps } id='event-avatar' onFile={onEventAvatar} />
+      </div>
+      <div styleName='form-row'>
+        <label styleName='label'>
+          {T('Event Name')}
+        </label>
+        <Input
+          required
+          value={name}
+          onChange={e => setName(e.target.value)}
+        />
+      </div>
+      {eventAvatarTooLargeMessage}
+      {organizationFields}
+      <Button loading={loading}>
+        {submitText}
+      </Button>
+    </form>
+  );
 }
 
-export const EventPersist = (props) => (
-  <ApplicationContext.Consumer>
-    {
-      ({ fetch }) => <Component { ...props } fetch={fetch} />
-    }
-  </ApplicationContext.Consumer>
-);
-
-EventPersist.propTypes = {
-  event: PropTypes.object
+EventPersistComponent.propTypes = {
+  event: PropTypes.object,
+  history: PropTypes.object.isRequired
 };
+
+export const EventPersist = withRouter(EventPersistComponent);

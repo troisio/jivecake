@@ -6,7 +6,7 @@ import _ from 'lodash';
 import './style.scss';
 
 export function Anchor(props) {
-  const propsCopy = _.omit(props, ['children', 'to', 'className', 'styleName', 'button', 'icon']);
+  const propsCopy = _.omit(props, ['box', 'children', 'to', 'className', 'styleName', 'button', 'icon']);
   let styleName = 'root';
 
   if (props.button) {
@@ -15,6 +15,10 @@ export function Anchor(props) {
 
   if (props.icon) {
     styleName += ' icon';
+  }
+
+  if (props.box) {
+    styleName += ' box';
   }
 
   if (props.hasOwnProperty('to')) {
@@ -39,10 +43,12 @@ Anchor.propTypes = {
   className: PropTypes.string,
   button: PropTypes.bool,
   href: PropTypes.string,
-  icon: PropTypes.bool
+  icon: PropTypes.bool,
+  box: PropTypes.bool
 };
 
 Anchor.defaultProps = {
   button: false,
-  icon: false
+  icon: false,
+  box: false
 };

@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 
-import { ErrorPage } from 'page/error';
-import { NotFoundPage } from 'page/not-found';
+import { Error } from 'page/error';
+import { NotFound } from 'page/not-found';
 import { NaturalSpinner } from 'component/natural-spinner';
 import { OrganizationPersist } from 'js/page/organization-persist';
 
@@ -59,11 +59,11 @@ class UpdateOrganizationComponent extends React.PureComponent {
     const { match, organizations } = this.props;
 
     if (this.state.displayNotFound) {
-      return <NotFoundPage onRetry={this.onRetry} />;
+      return <NotFound onRetry={this.onRetry} />;
     }
 
     if (this.state.displayError) {
-      return <ErrorPage onRetry={this.onRetry} />;
+      return <Error onRetry={this.onRetry} />;
     }
 
     if (this.state.loading) {

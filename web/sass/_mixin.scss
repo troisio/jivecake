@@ -1,0 +1,45 @@
+@import '~sass/color';
+@import '~sass/media';
+
+@mixin button() {
+  border-style: solid;
+  color: $white;
+  border-radius: 6px;
+  font-size: 1rem;
+  border-width: 2px 2px 4px;
+  border-color: darken($main, 10%);
+
+  &:hover {
+    background-color: lighten($main, 10%);
+  }
+
+  &:not(:hover) {
+    background-color: $main;
+  }
+}
+
+@mixin defaultLayout() {
+  @include phone() {
+    padding: 15px;
+  }
+
+  @include not_phone() {
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@mixin verticalMargin() {
+  & > *:not(:first-child) {
+    margin-top: 16px;
+  }
+}
+
+@mixin pageTitle() {
+  font-size: 1.5rem;
+}
+
+@mixin label() {
+  color: $label;
+}

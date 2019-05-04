@@ -11,7 +11,7 @@ import {
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'UPDATE' : {
+    case GET_USER: {
       return _.merge({}, state, {
         [action.data._id]: action.data
       });
@@ -25,26 +25,16 @@ function reducer(state, action) {
 export function useUsers() {
   const [ state, dispatch ] = useReducer(reducer, {});
   const fetchState = useContext(FetchStateContext);
-  const getUserFetchState = fetchState[GET_USER];
-  const updateUserFetchState = fetchState[UPDATE_USER];
 
-  useEffect(() => {
-    if (safe(() => getUserFetchState.response.ok)) {
-      dispatch({
-        type: 'UPDATE',
-        data: getUserFetchState.body
-      });
-    }
-  }, [getUserFetchState]);
+  for (const type of [GET_USER, UPDATE_USER]) {
+    const state = fetchState[type];
 
-  useEffect(() => {
-    if (safe(() => updateUserFetchState.response.ok)) {
-      dispatch({
-        type: 'UPDATE',
-        data: updateUserFetchState.body
-      });
-    }
-  }, [updateUserFetchState]);
+    useEffect(() => {
+      if (safe(() => state.response.ok)) {
+        dispatch({type, data: state.body });
+      }
+    }, [state]);
+  }
 
   return [ state, dispatch ];
 }

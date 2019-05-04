@@ -1,7 +1,13 @@
+import Ajv from 'ajv';
 import settings from 'settings';
 
+const validateEmailSchema = new Ajv().compile({
+  type: 'string',
+  format: 'email'
+});
+
 export function isValidEmail(email) {
-  return new RegExp(`[a-z0-9!#$%&'*+/=?^_\`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_\`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?`).test(email);
+  return validateEmailSchema(email);
 }
 
 export function svgUrl(name) {

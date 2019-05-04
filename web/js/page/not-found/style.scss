@@ -1,6 +1,8 @@
 @import '~sass/media';
+@import '~sass/mixin';
 
 .root {
   display: flex;
   justify-content: center;
+  @include defaultLayout();
 }

@@ -9,8 +9,7 @@ export const settings = {
     dsn: '',
     environment: 'development',
     debug: true,
-    release: packageJson.version,
-    local: true
+    release: packageJson.version
   },
   digitalocean: {
     spaces: {

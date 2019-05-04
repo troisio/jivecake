@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import './style.scss';
 
-const EMPTY_IMAGE = 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22/%3E';
+export const EMPTY_IMAGE = 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22/%3E';
 
 export function Avatar(props) {
   const propsCopy = _.omit(props, ['className', 'styleName', 'src']);

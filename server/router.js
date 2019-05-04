@@ -101,9 +101,9 @@ export class Router {
       }
 
       if (notFound) {
-        res.sendStatus(404).end();
+        res.status(404).end();
       } else if (!passesAuthentication || !passesAccessRules) {
-        res.sendStatus(401).end();
+        res.status(401).end();
       } else if (settings.hasOwnProperty('on')) {
         let decodedJwt = null;
 
@@ -143,7 +143,7 @@ export class Router {
             if (Number.isInteger(limit) && limit > -1 && limit < LIMIT_MAX) {
               extra.pagination.limit = limit;
             } else {
-              return res.sendStatus(400).end();
+              return res.status(400).end();
             }
           }
 
@@ -158,10 +158,10 @@ export class Router {
               extra.pagination.page = page;
               extra.pagination.skip = extra.pagination.limit * page;
             } else {
-              return res.sendStatus(400).end();
+              return res.status(400).end();
             }
           } else {
-            return res.sendStatus(400).end();
+            return res.status(400).end();
           }
         }
 
@@ -183,7 +183,7 @@ export class Router {
           });
         }
       } else {
-        res.sendStatus(200).end();
+        res.status(200).end();
       }
     });
   }

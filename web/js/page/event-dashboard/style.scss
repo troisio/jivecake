@@ -1,0 +1,9 @@
+@import '~sass/mixin';
+
+.page-title {
+  @include defaultLayout();
+}
+
+.root {
+  @include defaultLayout();
+}

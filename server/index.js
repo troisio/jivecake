@@ -48,12 +48,6 @@ import {
 
 Sentry.init(settings.sentry);
 
-const localSentry = {
-  captureException: (e) => console.error(e),
-  captureMessage: (e) => console.warn(e)
-};
-const sentry = settings.sentry.local ? localSentry : Sentry;
-
 const application = express();
 
 application.use((req, res, next) => {
@@ -80,16 +74,16 @@ application.use(bodyParser.raw({
 }));
 
 application.use((err, req, res, next) => {
-  sentry.captureMessage(err);
+  Sentry.captureMessage(err);
   next(err);
 });
 
 export const run = () => {
   getDatabase().then((db) => {
     SibApiV3Sdk.ApiClient.instance.authentications['api-key'].apiKey = settings.sendinblue.key;
-    return new Router(application, sentry, db, SibApiV3Sdk, T);
+    return new Router(application, Sentry, db, SibApiV3Sdk, T);
   }, (e) => {
-    sentry.captureException(e);
+    Sentry.captureException(e);
   }).then((router) => {
     const routes = [
       USER_BY_EMAIL,  /* must appear before GET_USER */

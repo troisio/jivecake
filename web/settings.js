@@ -3,7 +3,8 @@ export default {
     url: 'http://127.0.0.1:9000'
   },
   sentry: {
-    dsn: ''
+    dsn: '',
+    debug: true
   },
   digitalocean: {
     spaces: {

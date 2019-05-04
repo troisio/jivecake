@@ -4,6 +4,7 @@ import { Method, Require, Permission } from 'router';
 import { EventCollection, ItemCollection, OrganizationCollection, TransactionCollection } from 'database';
 import { Event } from 'common/models';
 import { DEFAULT_MAX_LENGTH } from 'common/schema';
+import { OBJECT_ID_REGEX_PORTION } from 'common/helpers';
 
 export const CREATE_EVENT = {
   method: Method.POST,
@@ -32,12 +33,12 @@ export const CREATE_EVENT = {
   on: async (request, response, { db }) => {
     const event = new Event();
     event.name = request.body.name;
+    event.published = request.body.published;
     event.organizationId = new mongodb.ObjectID(request.params.id);
     event.created = new Date();
 
     await db.collection(EventCollection).insertOne(event);
-    const searchedEvent = await db.collection(EventCollection).findOne({ _id: event.id });
-    response.json(searchedEvent);
+    response.json({ _id: event._id });
   }
 };
 
@@ -65,13 +66,13 @@ export const DELETE_EVENT = {
     }
 
     await db.collection(EventCollection).deleteOne({ _id: eventId });
-    response.sendStatus(200).end();
+    response.status(200).end();
   }
 };
 
 export const GET_EVENT = {
-  method: Method.POST,
-  path: '/event/:eventId',
+  method: Method.GET,
+  path: `/event/:eventId(${OBJECT_ID_REGEX_PORTION})`,
   accessRules: [
     {
       permission: Permission.READ,
@@ -79,15 +80,6 @@ export const GET_EVENT = {
       param: 'eventId'
     }
   ],
-  paramsSchema: {
-    type: 'object',
-    properties: {
-      eventId: {
-        type: 'string',
-        format: 'objectid'
-      },
-    }
-  },
   on: async (request, response, { db }) => {
     const searchedEvent = await db.collection(EventCollection)
       .findOne({ _id: new mongodb.ObjectId(request.params.eventId) });

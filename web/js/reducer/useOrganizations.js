@@ -12,10 +12,9 @@ import {
 } from 'js/context';
 
 function reducer(state, action) {
-  switch (action.type) {
-    case 'INSERT_MANY' : {
-      const map = _.keyBy(action.data, '_id');
-
+  switch (action.id) {
+    case GET_USER_ORGANIZATIONS: {
+      const map = _.keyBy(action.body.entities, '_id');
       return _.merge({}, state, map);
     }
     default:
@@ -26,18 +25,16 @@ function reducer(state, action) {
 export function useOrganizations() {
   const [ state, dispatch ] = useReducer(reducer, {});
   const fetchState = useContext(FetchStateContext);
-  const getUserOrganizationState = fetchState[GET_USER_ORGANIZATIONS];
 
-  useEffect(() => {
-    const entities = safe(() => getUserOrganizationState.body.entity);
+  for (const type of [GET_USER_ORGANIZATIONS]) {
+    const data = fetchState[type];
 
-    if (entities) {
-      dispatch({
-        type: 'INSERT_MANY',
-        data: entities
-      });
-    }
-  }, [getUserOrganizationState]);
+    useEffect(() => {
+      if (safe(() => data.response.ok)) {
+        dispatch(data);
+      }
+    }, [ data ]);
+  }
 
   return [ state, dispatch ];
 }

@@ -12,7 +12,19 @@ export function Home() {
   return (
     <DefaultLayout>
       <div styleName='navigation'>
-        <Anchor button styleName='anchor' to={routes.account()}>
+        <Anchor box button styleName='anchor' to={routes.event()}>
+          <img src={svgUrl('599-circus-tent.svg')} />
+          <span styleName='anchor-text'>
+            {T('My Events')}
+          </span>
+        </Anchor>
+        <Anchor box button styleName='anchor' to={routes.eventPersist()}>
+          <img src={svgUrl('731-calendar.svg')} />
+          <span styleName='anchor-text'>
+            {T('Create an Event')}
+          </span>
+        </Anchor>
+        <Anchor box button styleName='anchor' to={routes.account()}>
           <img src={svgUrl('737-wrench.svg')} />
           <span styleName='anchor-text'>
             {T('My account')}

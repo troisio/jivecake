@@ -113,9 +113,7 @@ export const CREATE_ORGANIZATION = {
     organization.lastUserActivity = new Date();
 
     await db.collection(OrganizationCollection).insertOne(organization);
-    const searchOrganization = await db.collection(OrganizationCollection)
-      .findOne({ _id: organization._id });
-    response.json(searchOrganization);
+    response.json({ _id: organization._id  });
   }
 };
 
@@ -170,7 +168,7 @@ export const INVITE_USER = {
       });
 
     if (exisitingInvitation !== null) {
-      return response.sendStatus(409).end();
+      return response.status(409).end();
     }
 
     const invitation = new OrganizationInvitation();
@@ -218,7 +216,7 @@ export const DELETE_USER = {
     const isDeletingOwner = organization.owner.equals(userIdDeleting);
 
     if (!isOwner) {
-      return response.sendStatus(401).end();
+      return response.status(401).end();
     }
 
     if (isDeletingOwner) {
@@ -234,7 +232,7 @@ export const DELETE_USER = {
       newWrite.length === organization.write.length;
 
     if (notFound) {
-      return response.sendStatus(404).end();
+      return response.status(404).end();
     }
 
     const _id = new mongodb.ObjectID(request.params.organizationId);

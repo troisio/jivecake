@@ -1,6 +1,6 @@
 import { Language } from 'common/models';
 
-export const OBJECT_ID_REGEX_PORTION = /[a-f0-9]{24}/i;
+export const OBJECT_ID_REGEX_PORTION = '[a-f0-9]{24}';
 
 export const getUserLanguage = (user = null, navigator = null) => {
 	let result = null;

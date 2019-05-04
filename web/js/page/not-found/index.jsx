@@ -4,7 +4,7 @@ import { T } from 'common/i18n';
 
 import './style.scss';
 
-export function NotFoundPage() {
+export function NotFound() {
   return (
     <div styleName='root'>
       <span>

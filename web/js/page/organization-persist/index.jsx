@@ -3,15 +3,10 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 
 import { T } from 'common/i18n';
-import { MAXIMUM_IMAGE_UPLOAD_BYTES } from 'common/schema';
-
-import { DefaultLayout } from 'component/default-layout';
-import { safe } from 'js/helper';
-import { MessageBlock } from 'component/message-block';
-import { Input } from 'component/input';
-import { Button } from 'component/button';
-import { AvatarImageUpload } from 'component/avatar-image-upload';
-import './style.scss';
+import {
+  MAXIMUM_IMAGE_UPLOAD_BYTES,
+  ORGANIZATION_SCHEMA
+} from 'common/schema';
 
 import { FetchDispatchContext, FetchStateContext } from 'js/context';
 import {
@@ -21,8 +16,16 @@ import {
 } from 'js/reducer/useFetch';
 import { routes } from 'js/routes';
 
+import { DefaultLayout } from 'component/default-layout';
+import { safe } from 'js/helper';
+import { MessageBlock } from 'component/message-block';
+import { Input } from 'component/input';
+import { Button } from 'component/button';
+import { AvatarImageUpload } from 'component/avatar-image-upload';
+import './style.scss';
+
 export function OrganizationPersistComponent({ organization, history }) {
-  const submitText = organization ? T('Create') : T('Update');
+  const submitText = organization ? T('Update') : T('Create');
   const [ name, setName ] = useState(safe(() => organization.name, ''));
   const [ email, setEmail ] = useState(safe(() => organization.email, ''));
   const [ avatar, setAvatar ] = useState(safe(() => organization.avatar, null));
@@ -53,9 +56,9 @@ export function OrganizationPersistComponent({ organization, history }) {
           method: 'POST',
           body: file,
         }, UPDATE_ORGANIZATION_AVATAR);
-      } else {
-        history.push(routes.account());
       }
+
+      history.push(routes.account());
     }
   }, [ createOrganizationState, file ]);
 
@@ -142,6 +145,7 @@ export function OrganizationPersistComponent({ organization, history }) {
           onChange={e => setName(e.target.value)}
           value={name}
           required
+          maxLength={ORGANIZATION_SCHEMA.name.maxLength}
         />
         <div styleName='email-section'>
           <Input
@@ -150,6 +154,7 @@ export function OrganizationPersistComponent({ organization, history }) {
             value={email}
             required
             onChange={e => setEmail(e.target.value)}
+            maxLength={ORGANIZATION_SCHEMA.email.maxLength}
           />
           <div styleName='email-note'>
             {T('This email will be used so your customers can contact you.')}
