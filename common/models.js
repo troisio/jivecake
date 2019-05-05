@@ -3,8 +3,6 @@ export class Event {
 	avatar = null;
   organizationId = null;
   published = false;
-  registrationOpenDate = null;
-  registrationClosedDate = null;
   facebookUrl = null;
   instagramUrl = null;
   twitterUrl = null;

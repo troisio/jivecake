@@ -20,17 +20,20 @@ export const CREATE_EVENT = 'CREATE_EVENT';
 export const UPDATE_EVENT = 'UPDATE_EVENT';
 export const UPDATE_EVENT_AVATAR = 'UPDATE_EVENT_AVATAR';
 
+export const GET_ORGANIZATION_EVENTS = 'GET_ORGANIZATION_EVENTS';
 export const GET_ORGANIZATION = 'GET_ORGANIZATION';
 export const CREATE_ORGANIZATION = 'CREATE_ORGANIZATION';
 export const UPDATE_ORGANIZATION_AVATAR = 'UPDATE_ORGANIZATION_AVATAR';
 export const UPDATE_ORGANIZATION = 'UPDATE_ORGANIZATION';
+
+const paramMatcher = new RegExp('/:[a-zA-Z]+', 'ig');
 
 function reducer(state, action) {
   switch (action.type) {
     case 'UPDATE' : {
       return {
         ...state,
-        [action.data.id]: action.data
+        [action.data.type]: action.data
       };
     }
 
@@ -45,11 +48,11 @@ function reducer(state, action) {
 
 export function useFetch(token) {
   const [ state, dispatch ] = useReducer(reducer, {});
-  const resultDispatch = (url, options = {}, id = url) => {
+  const resultDispatch = (url, options = {}, type = url) => {
     const data = {
       url,
       options: { ...options, headers: { ...options.headers } },
-      id
+      type
     };
 
     const isJson = !(data.options.body instanceof File) &&
@@ -66,11 +69,6 @@ export function useFetch(token) {
       data.options.headers.Authorization = `Bearer ${token}`;
     }
 
-    dispatch({
-      type: 'UPDATE',
-      data: { ...data, fetching: true },
-    });
-
     const query = safe(() => data.options.query, {});
     const searchParams = new URLSearchParams();
 
@@ -86,15 +84,34 @@ export function useFetch(token) {
       }
     }
 
-    let derivedUrl = data.url;
+    let derivedUrl;
 
     if (Array.isArray(data.url)) {
-      derivedUrl = '/' + data.join('/');
+      const derivedURLArray = data.url[0].split('/');
+      const params = {};
+      let index = 1;
+
+      for (const [ param ] of data.url[0].matchAll(paramMatcher)) {
+        const name = param.substring(2);
+        params[name] = data.url[index];
+        derivedURLArray[index] = data.url[index];
+        index++;
+      }
+
+      derivedUrl = '/' + derivedURLArray.join('/');
+      data.params = params;
+    } else {
+      derivedUrl = '/' + data.url;
     }
 
     if (searchParams.toString() !== '') {
       derivedUrl += '?' + searchParams.toString();
     }
+
+    dispatch({
+      type: 'UPDATE',
+      data: { ...data, fetching: true },
+    });
 
     return fetch(settings.api.url + derivedUrl, data.options).then(response => {
       const contentType = response.headers.get('content-type');

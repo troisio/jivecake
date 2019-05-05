@@ -15,6 +15,7 @@ import {
 
 import { routes } from 'js/routes';
 import { Header } from 'component/header';
+import { NaturalSpinner } from 'component/natural-spinner';
 import { Signup } from 'page/signup';
 import { NotFound } from 'page/not-found';
 import { Landing } from 'page/landing';
@@ -38,11 +39,18 @@ const DEFAULT_APPLICATION_STATE = { userId: null, organizationId: null };
 export function Application() {
   const [ applicationState, setApplicationState ] = useState(DEFAULT_APPLICATION_STATE);
   const storage = useContext(LocalStorageContext);
+  const jwtPayload = jwt.decode(storage.token);
   const dispatchLocalStorage = useContext(LocalStorageDispatchContext);
   const [ dispatchFetch ] = useContext(FetchDispatchContext);
   const usersState = useContext(UserContext);
   const fetchState = useContext(FetchStateContext);
   const fetchTokenState = fetchState[TOKEN_FROM_PASSWORD];
+  const getUserState = fetchState[GET_USER];
+  const user = usersState[applicationState.userId];
+  const onLogoutClick = e => {
+    e.preventDefault();
+    dispatchLocalStorage({ type: 'RESET' });
+  };
   const authenticatedRoutes = (
     <Switch>
       <Route path={routes.organizationPersist(':organizationId')} component={UpdateOrganization} />
@@ -51,16 +59,11 @@ export function Application() {
       <Route path={routes.eventPersist(':eventId')} component={UpdateEvent} />
       <Route path={routes.eventDashboard(':eventId')} component={EventDashboard} />
       <Route path={routes.eventPersist()} component={EventPersist} />
-      <Route path={routes.organizationEvents(':organizationId')} component={Events} />
+      <Route path={routes.event()} component={Events} />
       <Route path={routes.home()} component={Home} />
       <Route path={routes.account()} component={Account} />
     </Switch>
   );
-
-  function onLogoutClick(e) {
-    e.preventDefault();
-    dispatchLocalStorage({ type: 'RESET' });
-  }
 
   useEffect(() => {
     if (safe(() => fetchTokenState.response.ok)) {
@@ -74,20 +77,39 @@ export function Application() {
   }, [ fetchTokenState ]);
 
   useEffect(() => {
-    const payload = jwt.decode(storage.token);
-
-    if (payload) {
-      dispatchFetch(`/user/${payload.sub}`, {}, GET_USER);
+    if (jwtPayload) {
+      dispatchFetch(['user/:userId', jwtPayload.sub], {}, GET_USER);
     }
   }, [ storage ]);
 
   useEffect(() => {
-    const payload = jwt.decode(storage.token);
+    const lastOrganizationId = safe(() => user.lastOrganizationId);
+
+    if (lastOrganizationId && lastOrganizationId !== applicationState.organizationId) {
+      setApplicationState({
+        ...applicationState,
+        organizationId: user.lastOrganizationId
+      });
+    }
+  }, [ user ]);
+
+  useEffect(() => {
+    const status = safe(() => getUserState.response.status);
+    const userId = safe(() => getUserState.params.userId);
+
+    if (jwtPayload && jwtPayload.sub === userId) {
+      if (status === 401) {
+        dispatchLocalStorage({ type: 'RESET' });
+      }
+    }
+  }, [ getUserState, jwtPayload ]);
+
+  useEffect(() => {
     const nextApplicationState = { ...applicationState };
 
-    if (payload) {
-      if (usersState.hasOwnProperty(payload.sub)) {
-        nextApplicationState.userId = payload.sub;
+    if (jwtPayload) {
+      if (usersState.hasOwnProperty(jwtPayload.sub)) {
+        nextApplicationState.userId = jwtPayload.sub;
       }
     } else {
       nextApplicationState.userId = null;
@@ -98,19 +120,33 @@ export function Application() {
     }
   }, [ usersState, storage, applicationState ]);
 
+  let content;
+  const loading = safe(() => getUserState.fetching) ||
+    (applicationState.userId && !usersState.hasOwnProperty(applicationState.userId));
+
+  if (loading) {
+    content = <NaturalSpinner styleName='spinner' />;
+  } else {
+    content = (
+      <>
+        <Header onLogoutClick={onLogoutClick} />
+        <Switch>
+          <Route exact path={routes.landing()} component={Landing} />
+          <Route path={routes.login()} component={Login} />
+          <Route path={routes.signup()} component={Signup} />
+          <Route path={routes.forgotPassword()} component={ForgotPassword} />
+          {applicationState.userId === null ? null : authenticatedRoutes}
+          <Route component={NotFound} />
+        </Switch>
+      </>
+  );
+  }
+
   return (
     <ApplicationContext.Provider value={applicationState}>
       <BrowserRouter>
         <div styleName='root'>
-          <Header onLogoutClick={onLogoutClick} />
-          <Switch>
-            <Route exact path={routes.landing()} component={Landing} />
-            <Route path={routes.login()} component={Login} />
-            <Route path={routes.signup()} component={Signup} />
-            <Route path={routes.forgotPassword()} component={ForgotPassword} />
-            {applicationState.userId === null ? null : authenticatedRoutes}
-            <Route component={NotFound} />
-          </Switch>
+          {content}
         </div>
       </BrowserRouter>
     </ApplicationContext.Provider>

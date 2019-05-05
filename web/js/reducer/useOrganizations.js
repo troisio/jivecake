@@ -12,7 +12,7 @@ import {
 } from 'js/context';
 
 function reducer(state, action) {
-  switch (action.id) {
+  switch (action.type) {
     case GET_USER_ORGANIZATIONS: {
       const map = _.keyBy(action.body.entities, '_id');
       return _.merge({}, state, map);

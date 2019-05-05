@@ -1,13 +1,13 @@
 import mongodb from 'mongodb';
 
-import { Method, Require, Permission } from 'router';
+import { Require, Permission } from 'router';
 import { EventCollection, ItemCollection, OrganizationCollection, TransactionCollection } from 'database';
 import { Event } from 'common/models';
 import { DEFAULT_MAX_LENGTH } from 'common/schema';
 import { OBJECT_ID_REGEX_PORTION } from 'common/helpers';
 
 export const CREATE_EVENT = {
-  method: Method.POST,
+  method: 'POST',
   path: '/organization/:id/event',
   accessRules: [
     {
@@ -18,7 +18,7 @@ export const CREATE_EVENT = {
   ],
   bodySchema: {
     type: 'object',
-    required: ['name'],
+    required: ['name', 'published'],
     additionalProperties: false,
     properties: {
       name: {
@@ -36,42 +36,15 @@ export const CREATE_EVENT = {
     event.published = request.body.published;
     event.organizationId = new mongodb.ObjectID(request.params.id);
     event.created = new Date();
+    event.lastUserActivity = event.created;
 
     await db.collection(EventCollection).insertOne(event);
     response.json({ _id: event._id });
   }
 };
 
-export const DELETE_EVENT = {
-  method: Method.DELETE,
-  path: '/event/:eventId',
-  accessRules: [
-    {
-      permission: Permission.WRITE,
-      collection: EventCollection,
-      param: 'eventId'
-    }
-  ],
-  on: async (request, response, { db }) => {
-    const eventId = new mongodb.ObjectID(request.params.eventId);
-    const itemCount = await db.collection(ItemCollection)
-      .find({ eventId })
-      .count();
-
-    if (itemCount > 0) {
-      response.status(400);
-      return response.json({
-        error: 'item_exist'
-      });
-    }
-
-    await db.collection(EventCollection).deleteOne({ _id: eventId });
-    response.status(200).end();
-  }
-};
-
 export const GET_EVENT = {
-  method: Method.GET,
+  method: 'GET',
   path: `/event/:eventId(${OBJECT_ID_REGEX_PORTION})`,
   accessRules: [
     {
@@ -88,7 +61,7 @@ export const GET_EVENT = {
 };
 
 export const GET_EVENT_ITEMS = {
-  method: Method.POST,
+  method: 'POST',
   path: '/event/:eventId/item',
   accessRules: [
     {
@@ -118,7 +91,7 @@ export const GET_EVENT_ITEMS = {
 };
 
 export const GET_TRANSACTIONS = {
-  method: Method.POST,
+  method: 'POST',
   path: '/event/:eventId',
   accessRules: [
     {

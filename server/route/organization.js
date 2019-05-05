@@ -1,13 +1,13 @@
 import mongodb from 'mongodb';
 
 import { upload, deleteObject } from 'server/digitalocean';
-import { Method, Require, Permission } from 'router';
+import { Require, Permission } from 'router';
 import { EventCollection, OrganizationCollection, OrganizationInvitationCollection } from 'database';
 import { Organization, OrganizationInvitation } from 'common/models';
 import { ORGANIZATION_SCHEMA } from 'common/schema';
 
 export const UPDATE_ORGANIZATION_AVATAR = {
-  method: Method.POST,
+  method: 'POST',
   path: '/organization/:organizationId/avatar',
   requires: [ Require.Authenticated ],
   accessRules: [
@@ -53,7 +53,7 @@ export const UPDATE_ORGANIZATION_AVATAR = {
 };
 
 export const UPDATE_ORGANIZATION = {
-  method: Method.POST,
+  method: 'POST',
   path: '/organization/:organizationId',
   requires: [ Require.Authenticated ],
   accessRules: [
@@ -88,7 +88,7 @@ export const UPDATE_ORGANIZATION = {
 };
 
 export const CREATE_ORGANIZATION = {
-  method: Method.POST,
+  method: 'POST',
   path: '/organization',
   requires: [ Require.Authenticated ],
   bodySchema: {
@@ -118,7 +118,7 @@ export const CREATE_ORGANIZATION = {
 };
 
 export const GET_ORGANIZATION = {
-  method: Method.GET,
+  method: 'GET',
   path: '/organization/:id',
   accessRules: [
     {
@@ -136,7 +136,7 @@ export const GET_ORGANIZATION = {
 };
 
 export const INVITE_USER = {
-  method: Method.POST,
+  method: 'POST',
   path: '/organization/:organizationId/user/:userId',
   accessRules: [
     {
@@ -187,7 +187,7 @@ export const INVITE_USER = {
 };
 
 export const DELETE_USER = {
-  method: Method.DELETE,
+  method: 'DELETE',
   path: '/organization/:organizationId/user/:userId',
   accessRules: [
     {
@@ -256,7 +256,7 @@ export const DELETE_USER = {
 };
 
 export const GET_ORGANIZATION_EVENTS = {
-  method: Method.GET,
+  method: 'GET',
   path: '/organization/:id/event',
   accessRules: [
     {

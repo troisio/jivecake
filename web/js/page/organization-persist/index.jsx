@@ -52,7 +52,7 @@ export function OrganizationPersistComponent({ organization, history }) {
 
     if (newId) {
       if (file) {
-        dispatchFetch(`/organization/${newId}/avatar`, {
+        dispatchFetch(['organization/:organizationId/avatar', newId], {
           method: 'POST',
           body: file,
         }, UPDATE_ORGANIZATION_AVATAR);
@@ -70,7 +70,7 @@ export function OrganizationPersistComponent({ organization, history }) {
     }
 
     if (organization) {
-      dispatchFetch(`/organization/${organization.id}`, {
+      dispatchFetch(['organization/:organizationId', organization.id], {
         method: 'POST',
         body: {
           name,
@@ -79,13 +79,13 @@ export function OrganizationPersistComponent({ organization, history }) {
       }, UPDATE_ORGANIZATION);
 
       if (file) {
-        dispatchFetch(`/organization/${organization._id}/avatar`, {
+        dispatchFetch(['organization/:organizationId/avatar', organization._id], {
           method: 'POST',
           body: file,
         }, UPDATE_ORGANIZATION_AVATAR);
       }
     } else {
-      dispatchFetch('/organization', {
+      dispatchFetch('organization', {
         method: 'POST',
         body: {
           name,

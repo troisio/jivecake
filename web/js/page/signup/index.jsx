@@ -56,7 +56,7 @@ export function SignupComponent({ history }) {
 
   useEffect(() => {
     if (safe(() => createAccountState.response.ok)) {
-      dispatchFetch('/token/password', {
+      dispatchFetch('token/password', {
         method: 'POST',
         body: {
           email: createAccountState.originalBody.email,
@@ -68,7 +68,7 @@ export function SignupComponent({ history }) {
 
   useEffect(() => {
     if (isValidEmail(email)) {
-      dispatchFetch(`/user/email`, { query: { email } }, SEARCH_EMAIL);
+      dispatchFetch('user/email', { query: { email } }, SEARCH_EMAIL);
     }
   }, [email]);
 
@@ -96,7 +96,7 @@ export function SignupComponent({ history }) {
     }
 
     dispatchFetch(
-      '/account',
+      'account',
       {
         method: 'POST',
         body: {

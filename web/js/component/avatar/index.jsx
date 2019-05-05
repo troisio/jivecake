@@ -15,7 +15,7 @@ export function Avatar(props) {
   }
 
   return (
-    <img className={props.className} styleName={styleName} src={props.src} { ...propsCopy } />
+    <img alt='avatar' className={props.className} styleName={styleName} src={props.src} { ...propsCopy } />
   );
 }
 

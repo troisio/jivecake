@@ -5,15 +5,21 @@ import { safe } from 'js/helper';
 
 import { FetchStateContext } from 'js/context';
 import {
-  GET_EVENT
+  GET_EVENT,
+  GET_ORGANIZATION_EVENTS
 } from 'js/reducer/useFetch';
 
 function reducer(state, action) {
-  switch (action.id) {
+  switch (action.type) {
     case GET_EVENT: {
-      return _.merge(state, {}, {
+      return _.merge({}, state, {
         [action.body._id]: action.body
       });
+    }
+
+    case GET_ORGANIZATION_EVENTS: {
+      const events = _.keyBy(action.body.entity, '_id');
+      return _.merge({}, state, events);
     }
 
     default:
@@ -24,7 +30,7 @@ function reducer(state, action) {
 export function useEvents() {
   const [ state, dispatch ] = useReducer(reducer, {});
   const fetchState = useContext(FetchStateContext);
-  for (const type of [GET_EVENT]) {
+  for (const type of [GET_EVENT, GET_ORGANIZATION_EVENTS]) {
     const data = fetchState[type];
 
     useEffect(() => {

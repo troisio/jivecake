@@ -34,7 +34,7 @@ export function Login() {
       return;
     }
 
-    fetchDispatch('/token/password', {
+    fetchDispatch('token/password', {
       method: 'POST',
       body: {
         email: email,

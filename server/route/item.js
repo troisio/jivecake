@@ -1,7 +1,7 @@
 import mongodb from 'mongodb';
 
 import { Item, Currency } from 'common/models';
-import { Method, Permission } from 'router';
+import { Permission } from 'router';
 import { EventCollection, ItemCollection, TransactionCollection } from 'database';
 import { DEFAULT_MAX_LENGTH } from 'common/schema';
 
@@ -39,7 +39,7 @@ const ITEM_SCHEMA = {
 };
 
 export const GET_ITEM = {
-  method: Method.GET,
+  method: 'GET',
   path: '/item/:itemId',
   accessRules: [
     {
@@ -56,7 +56,7 @@ export const GET_ITEM = {
 };
 
 export const DELETE_ITEM = {
-  method: Method.DELETE,
+  method: 'DELETE',
   path: '/item/:itemId',
   accessRules: [
     {
@@ -84,7 +84,7 @@ export const DELETE_ITEM = {
 };
 
 export const CREATE_ITEM = {
-  method: Method.POST,
+  method: 'POST',
   path: '/event/:eventId/item',
   accessRules: [
     {
@@ -107,7 +107,7 @@ export const CREATE_ITEM = {
 };
 
 export const UPDATE_ITEM = {
-  method: Method.POST,
+  method: 'POST',
   path: '/item/:itemId',
   accessRules: [
     {

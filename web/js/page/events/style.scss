@@ -1,0 +1,13 @@
+@import '~sass/mixin';
+
+.event-name {
+  flex-grow: 1;
+}
+
+.root {
+  @include defaultLayout();
+}
+
+.row {
+  display: flex;
+}

@@ -13,12 +13,6 @@ export class Require {
   static Page = 'page';
 }
 
-export const Method = {
-  POST: 'POST',
-  GET: 'GET',
-  DELETE: 'DELETE',
-};
-
 export class Permission {
   static READ = 0;
   static WRITE = 1;
@@ -70,11 +64,11 @@ export class Router {
   register(settings) {
     let method = () => {};
 
-    if (settings.method === Method.POST) {
+    if (settings.method === 'POST') {
       method = this.application.post.bind(this.application);
-    } else if (settings.method === Method.DELETE) {
+    } else if (settings.method === 'DELETE') {
       method = this.application.delete.bind(this.application);
-    } else if (settings.method === Method.GET) {
+    } else if (settings.method === 'GET') {
       method = this.application.get.bind(this.application);
     } else {
       this.sentry.captureMessage('registered invalid route method with ' + settings);

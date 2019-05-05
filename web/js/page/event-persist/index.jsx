@@ -21,7 +21,8 @@ import {
   UPDATE_EVENT_AVATAR,
   GET_ORGANIZATION,
   UPDATE_ORGANIZATION_AVATAR,
-  GET_EVENT
+  GET_EVENT,
+  UPDATE_USER
 } from 'js/reducer/useFetch';
 
 import { safe } from 'js/helper';
@@ -81,26 +82,26 @@ export function EventPersistComponent({ history, event }) {
     }
 
     if (event) {
-      dispatchFetch(`/event/${event._id}`, {
+      dispatchFetch(['event/:eventId', event._id], {
         body: {
           name
         }
       }, UPDATE_EVENT);
 
       if (eventAvatarFile) {
-        dispatchFetch(`/event/${event._id}/avatar`, {
+        dispatchFetch(['event/:eventId/avatar', event._id], {
           body: eventAvatarFile
         }, UPDATE_EVENT_AVATAR);
       }
     } else if (organizationId) {
-      dispatchFetch(`/organization/${organizationId}/event`, {
+      dispatchFetch(['organization/:organizationId/event', organizationId], {
         body: {
           name,
-          organizationId
+          published: false
         }
       }, CREATE_EVENT);
     } else {
-      dispatchFetch(`/organization`, {
+      dispatchFetch('organization', {
         method: 'POST',
         body: {
           name: organizationName,
@@ -112,7 +113,7 @@ export function EventPersistComponent({ history, event }) {
 
   useEffect(() => {
     dispatchFetch(
-      `/user/${applicationState.userId}/organization`,
+      ['user/:userId/organization', applicationState.userId],
       {
         query: {
           page: 0
@@ -129,7 +130,8 @@ export function EventPersistComponent({ history, event }) {
         CREATE_ORGANIZATION,
         UPDATE_EVENT_AVATAR,
         UPDATE_ORGANIZATION_AVATAR,
-        GET_EVENT
+        GET_EVENT,
+        UPDATE_USER
       ]);
     };
   }, []);
@@ -137,12 +139,12 @@ export function EventPersistComponent({ history, event }) {
   useEffect(() => {
     if (safe(() => createEventState.response.ok)) {
       if (eventAvatarFile) {
-        dispatchFetch(`/event/${organizationId}/avatar`, {
+        dispatchFetch(['event/:organizationId/avatar', organizationId], {
           body: eventAvatarFile
         }, UPDATE_EVENT_AVATAR);
       }
 
-      dispatchFetch(`/event/${createEventState.body._id}`, {
+      dispatchFetch(['event/:eventId', createEventState.body._id], {
         body: eventAvatarFile
       }, GET_EVENT);
 
@@ -154,13 +156,20 @@ export function EventPersistComponent({ history, event }) {
     if (safe(() => createOrganizationState.response.ok)) {
       const organizationId = createOrganizationState.body._id;
 
-      dispatchFetch(`/organization/${organizationId}`, {
-      }, GET_ORGANIZATION);
+      dispatchFetch(['user/:userId', applicationState.userId], {
+        method: 'POST',
+        body: {
+          lastOrganizationId: organizationId
+        }
+      }, UPDATE_USER);
 
-      dispatchFetch(`/organization/${organizationId}/event`, {
+      dispatchFetch(['organization/:organizationId', organizationId], {}, GET_ORGANIZATION);
+
+      dispatchFetch(['organization/:organizationId/event', organizationId], {
         method: 'POST',
         body: {
           name,
+          published: false
         }
       }, CREATE_EVENT);
     }
@@ -210,7 +219,7 @@ export function EventPersistComponent({ history, event }) {
     );
   } else {
     organizationFields = (
-      <select onChange={onOrganizationChange}>
+      <select onBlur={onOrganizationChange}>
         {
           organizations.map(organization => {
             return (

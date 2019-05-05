@@ -48,7 +48,7 @@ export function Account() {
     }
 
     dispatchFetch(
-      `/user/${userId}`,
+      ['user/:userId', userId],
       {
         method: 'POST',
         body: { email }
@@ -70,7 +70,7 @@ export function Account() {
 
   useEffect(() => {
     dispatchFetch(
-      `/user/${userId}/organization`,
+      ['user/:userId/organization', userId],
       {
         query: {
           page: 0
@@ -87,7 +87,7 @@ export function Account() {
   useEffect(() => {
     if (safe(() => updateUserState.response.ok)) {
       dispatchFetch(
-        `/user/${userId}`,
+        ['user/:userId', userId],
         {},
         GET_USER
       );
@@ -96,7 +96,7 @@ export function Account() {
 
   useEffect(() => {
     if (isValidEmail(email) && email !== user.email) {
-      dispatchFetch(`/user/email`, { query: { email } }, SEARCH_EMAIL);
+      dispatchFetch('user/email', { query: { email } }, SEARCH_EMAIL);
     }
   }, [email]);
 

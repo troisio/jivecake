@@ -25,7 +25,7 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
   const event = eventState[eventId];
 
   useEffect(() => {
-    dispatchFetch(`/event/${eventId}`, {}, GET_EVENT);
+    dispatchFetch(['event/:eventId', eventId], {}, GET_EVENT);
     return () => {
       dispatchFetchDelete([ GET_EVENT ]);
     };

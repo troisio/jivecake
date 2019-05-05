@@ -13,7 +13,13 @@ function reducer(state, action) {
   switch (action.type) {
     case GET_USER: {
       return _.merge({}, state, {
-        [action.data._id]: action.data
+        [action.params.userId]: action.body
+      });
+    }
+
+    case UPDATE_USER: {
+      return _.merge({}, state, {
+        [action.params.userId]: action.originalBody
       });
     }
 
@@ -31,7 +37,7 @@ export function useUsers() {
 
     useEffect(() => {
       if (safe(() => state.response.ok)) {
-        dispatch({type, data: state.body });
+        dispatch(state);
       }
     }, [state]);
   }

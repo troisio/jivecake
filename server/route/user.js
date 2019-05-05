@@ -7,7 +7,7 @@ import jwtkeysecret from 'extra/jwt/jwt.key';
 import { settings } from 'settings';
 import { EMAIL_COLLATION } from 'server/database';
 
-import { Method, Require, Permission } from 'router';
+import { Require, Permission } from 'router';
 import {
   OrganizationCollection,
   PasswordRecoveryCollection,
@@ -39,7 +39,7 @@ const getHashedPassword = (password) => {
 };
 
 export const GET_USER = {
-  method: Method.GET,
+  method: 'GET',
   path: '/user/:id',
   accessRules: [
     {
@@ -56,7 +56,7 @@ export const GET_USER = {
 };
 
 export const PASSWORD_RECOVERY = {
-  method: Method.POST,
+  method: 'POST',
   path: '/user/password_recovery',
   bodySchema: {
     type: 'object',
@@ -108,7 +108,7 @@ export const PASSWORD_RECOVERY = {
 };
 
 export const USER_BY_EMAIL = {
-  method: Method.GET,
+  method: 'GET',
   path: '/user/email',
   querySchema: {
     type: 'object',
@@ -134,7 +134,7 @@ export const USER_BY_EMAIL = {
 };
 
 export const GET_USER_ORGANIZATIONS = {
-  method: Method.GET,
+  method: 'GET',
   path: '/user/:userId/organization',
   accessRules: [
     {
@@ -185,7 +185,7 @@ export const GET_USER_ORGANIZATIONS = {
 };
 
 export const UPDATE_USER = {
-  method: Method.POST,
+  method: 'POST',
   path: '/user/:userId',
   accessRules: [
     {
@@ -234,7 +234,14 @@ export const UPDATE_USER = {
       $set.lastOrganizationId = new mongodb.ObjectID($set.lastOrganizationId);
 
       const organization = await db.collection(OrganizationCollection)
-        .findOne({ _id: $set.lastOrganizationId });
+        .findOne({
+          _id: $set.lastOrganizationId,
+          $or: [
+            { read: user._id },
+            { write: user._id },
+            { owner: user._id }
+          ]
+        });
 
       if (organization === null) {
         response.status(404).json({
@@ -258,7 +265,7 @@ export const UPDATE_USER = {
 };
 
 export const CREATE_ACCOUNT = {
-  method: Method.POST,
+  method: 'POST',
   path: '/account',
   bodySchema: {
     type: 'object',
@@ -294,7 +301,7 @@ export const CREATE_ACCOUNT = {
 };
 
 export const GET_TOKEN = {
-  method: Method.POST,
+  method: 'POST',
   path: '/token/password',
   on: async (request, response, { db, sentry, ip }) => {
     const { body: { email, password } } = request;

@@ -29,7 +29,7 @@ export function OrganizationComponent(props) {
 
   useEffect(() => {
     if (!userOrganizations.hasOwnProperty(userId)) {
-      dispatchFetch(`/user/${userId}/organization`, {
+      dispatchFetch(['user/:userId/organization', userId], {
         query: {
           page: 0,
           lastUserActivity: -1
@@ -44,7 +44,7 @@ export function OrganizationComponent(props) {
   function onOrganizationClick(organizationId) {
     const { history } = props;
 
-    dispatchFetch(`/user/${userId}`, {
+    dispatchFetch(['user/:userId', userId], {
       method: 'POST',
       body: {
         lastOrganizationId: organizationId,
