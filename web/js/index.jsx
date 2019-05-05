@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import URLSearchParams from '@ungap/url-search-params';
-import 'js/Sentry';
+import 'js/sentry';
 
 import { Root } from 'js/page/root';
 
