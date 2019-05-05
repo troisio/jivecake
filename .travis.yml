@@ -5,13 +5,10 @@ node_js:
   - 8
 install:
   - yarn
-deploy:
-  provider: script
-  on:
-    branch: master
-  script:
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - docker build -t luissaybe/jivecake docker
-    - docker push luissaybe/jivecake:latest
 script:
   - npm run build
+deploy:
+  provider: script
+  script: bash docker/push.bash
+  on:
+    branch: master
