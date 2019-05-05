@@ -3,8 +3,7 @@
 ```sh
 npm -g install yarn
 yarn
-cd docker
-docker build --rm -t jivecake .
+docker build --rm -t luissaybe/jivecake .
 ```
 
 ### watch for web changes

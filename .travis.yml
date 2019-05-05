@@ -9,6 +9,6 @@ script:
   - npm run build
 deploy:
   provider: script
-  script: bash docker/push.bash
+  script: bash docker-push.bash
   on:
     branch: master
