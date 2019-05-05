@@ -15,4 +15,3 @@ deploy:
     - docker push luissaybe/jivecake:latest
 script:
   - npm run build
-  - npm run test
