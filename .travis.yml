@@ -1,8 +1,14 @@
 language: node_js
+services:
+  - docker
 node_js:
   - 8
 install:
   - yarn
+deploy:
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker build -t luissaybe/jivecake docker
+  - docker push luissaybe/jivecake:latest
 script:
   - npm run build
   - npm run test
