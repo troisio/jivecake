@@ -1,4 +1,4 @@
-import { fetch } from 'whatwg-fetch';
+import { fetch as whatWGFetch } from 'whatwg-fetch';
 import _ from 'lodash';
 
 import settings from 'settings';
@@ -113,6 +113,8 @@ export function useFetch(token) {
       data: { ...data, fetching: true },
     });
 
+    const fetch = window.fetch || whatWGFetch;
+
     return fetch(settings.api.url + derivedUrl, data.options).then(response => {
       const contentType = response.headers.get('content-type');
       const nextData = {
@@ -121,7 +123,7 @@ export function useFetch(token) {
         fetching: false,
       };
 
-      if (contentType.includes('application/json')) {
+      if (contentType && contentType.includes('application/json')) {
         return response.json().then(body => {
           dispatch({ type: 'UPDATE', data: { ...nextData, body } });
         }, (error) => {

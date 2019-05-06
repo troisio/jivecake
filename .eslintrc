@@ -33,7 +33,8 @@
     "Promise": true,
     "localStorage": true,
     "FileReader": true,
-    "File": true
+    "File": true,
+    "Headers": true
   },
   "settings": {
     "react": {

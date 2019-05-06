@@ -35,7 +35,9 @@ import {
     CREATE_EVENT,
     GET_EVENT,
     GET_EVENT_ITEMS,
-    GET_TRANSACTIONS
+    GET_TRANSACTIONS,
+    UPDATE_EVENT,
+    UPDATE_EVENT_AVATAR
 } from 'route/event';
 
 import {
@@ -102,6 +104,8 @@ export const run = () => {
       UPDATE_ORGANIZATION,
       UPDATE_ORGANIZATION_AVATAR,
 
+      UPDATE_EVENT,
+      UPDATE_EVENT_AVATAR,
       CREATE_EVENT,
       GET_EVENT,
       GET_EVENT_ITEMS,

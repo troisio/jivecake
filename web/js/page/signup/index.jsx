@@ -140,7 +140,6 @@ export function SignupComponent({ history }) {
             value={email}
             placeholder={T('Email')}
             type='email'
-            styleName='email-input'
             autoComplete='email'
             required
           />

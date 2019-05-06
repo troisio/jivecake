@@ -23,6 +23,17 @@ export const USER_SCHEMA = {
   }
 };
 
+export const EVENT_SCHEMA = {
+  name: {
+    type: 'string',
+    minLength: 1,
+    maxLength: DEFAULT_MAX_LENGTH
+  },
+  published: {
+    type: 'boolean'
+  }
+};
+
 export const ORGANIZATION_SCHEMA = {
   name: {
     type: 'string',

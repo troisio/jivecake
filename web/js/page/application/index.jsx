@@ -29,7 +29,6 @@ import { Events } from 'js/page/events';
 import { Home } from 'js/page/home';
 import { OrganizationPersist } from 'js/page/organization-persist';
 import { UpdateOrganization } from 'js/page/update-organization';
-import { UpdateEvent } from 'js/page/update-event';
 
 import { TOKEN_FROM_PASSWORD, GET_USER } from 'js/reducer/useFetch';
 import './style.scss';
@@ -56,7 +55,7 @@ export function Application() {
       <Route path={routes.organizationPersist(':organizationId')} component={UpdateOrganization} />
       <Route path={routes.organizationPersist()} component={OrganizationPersist} />
       <Route path={routes.organization()} component={Organization} />
-      <Route path={routes.eventPersist(':eventId')} component={UpdateEvent} />
+      <Route path={routes.eventPersist(':eventId')} component={EventPersist} />
       <Route path={routes.eventDashboard(':eventId')} component={EventDashboard} />
       <Route path={routes.eventPersist()} component={EventPersist} />
       <Route path={routes.event()} component={Events} />

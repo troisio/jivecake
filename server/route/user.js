@@ -251,9 +251,7 @@ export const UPDATE_USER = {
       }
     }
 
-    const now = new Date();
-    $set.lastUserActivity = now;
-    $set.updated = now;
+    $set.lastUserActivity = new Date();
 
     if (request.body.hasOwnProperty('password')) {
       $set.hashedPassword = await getHashedPassword(request.body.password);

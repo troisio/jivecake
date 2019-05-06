@@ -1,0 +1,10 @@
+@import '~sass/mixin';
+@import '~sass/media';
+
+.root {
+  @include defaultLayout();
+}
+
+.spinner {
+  font-size: 3rem;
+}

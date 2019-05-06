@@ -66,7 +66,6 @@ export class User {
 	lastOrganizationId = null;
 	hashedPassword = null;
 	created = null;
-	updated = null;
 	lastUserActivity = null;
 	lastSystemActivity = null;
 }

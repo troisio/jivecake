@@ -18,6 +18,8 @@ export class Permission {
   static WRITE = 1;
 }
 
+const PAGINATION_ERROR = { error: 'pagination' };
+
 const decodedJWTFromRequest = (req) => {
   return new Promise(async (resolve) => {
     if (req.headers.authorization) {
@@ -137,7 +139,7 @@ export class Router {
             if (Number.isInteger(limit) && limit > -1 && limit < LIMIT_MAX) {
               extra.pagination.limit = limit;
             } else {
-              return res.status(400).end();
+              return res.status(400).json(PAGINATION_ERROR).end();
             }
           }
 
@@ -152,10 +154,10 @@ export class Router {
               extra.pagination.page = page;
               extra.pagination.skip = extra.pagination.limit * page;
             } else {
-              return res.status(400).end();
+              return res.status(400).json(PAGINATION_ERROR).end();
             }
           } else {
-            return res.status(400).end();
+            return res.status(400).json(PAGINATION_ERROR).end();
           }
         }
 
