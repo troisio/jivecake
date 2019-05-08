@@ -24,7 +24,7 @@ export function AvatarImageUpload(props) {
 
   return (
     <button className={props.className} type='button' onClick={onClick} styleName='root' { ...propsCopy }>
-      <input id={props.id} onChange={onChange} ref={input} type='file' accept='image/*;capture=camera' styleName='input' />
+      <input id={props.id} onChange={onChange} ref={input} type='file' accept='image/*' styleName='input' />
       <Avatar styleName='avatar' { ...avatarProps } />
     </button>
   );

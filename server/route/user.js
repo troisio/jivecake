@@ -282,6 +282,11 @@ export const CREATE_ACCOUNT = {
     const user = await db.collection(UserCollection).findOne({ email });
 
     if (user === null) {
+      if (password.toLocaleLowerCase() === email.toLocaleLowerCase()) {
+        response.status(400).json({ error: 'password email same' }).end();
+        return;
+      }
+
       const hashedPassword = await getHashedPassword(password);
       const user = new User();
       user.email = email;

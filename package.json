@@ -40,6 +40,7 @@
     "babel-polyfill": "^6.26.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
+    "compressorjs": "^1.0.5",
     "css-loader": "^2.1.0",
     "eslint": "^5.14.1",
     "eslint-loader": "^2.1.2",

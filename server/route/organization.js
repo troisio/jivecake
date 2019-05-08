@@ -47,7 +47,7 @@ export const UPDATE_ORGANIZATION_AVATAR = {
     };
 
     const { value } = await db.collection(OrganizationCollection)
-      .findOneAndUpdate({ _id: organization._id }, { $set }, { returnOriginal: false });
+      .updateOne({ _id: organization._id }, { $set });
     response.json(value);
   }
 };
@@ -80,10 +80,9 @@ export const UPDATE_ORGANIZATION = {
       lastUserActivity: new Date()
     };
 
-    const { value } = await db.collection(OrganizationCollection)
-      .findOneAndUpdate({ _id }, { $set }, { returnOriginal: false });
-
-    response.json(value);
+    await db.collection(OrganizationCollection)
+      .updateOne({ _id }, { $set });
+    response.status(200).end();
   }
 };
 

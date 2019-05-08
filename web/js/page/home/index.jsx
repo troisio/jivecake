@@ -35,13 +35,13 @@ export function Home() {
         <Anchor box button styleName='anchor' to={routes.eventPersist()}>
           <img alt='calendar' src={svgUrl('731-calendar.svg')} />
           <span styleName='anchor-text'>
-            {T('Create an Event')}
+            {T('create event')}
           </span>
         </Anchor>
         <Anchor box button styleName='anchor' to={routes.account()}>
           <img alt='wrench' src={svgUrl('737-wrench.svg')} />
           <span styleName='anchor-text'>
-            {T('My account')}
+            {T('account')}
           </span>
         </Anchor>
       </div>

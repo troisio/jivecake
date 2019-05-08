@@ -26,7 +26,7 @@ export const CREATE_ORGANIZATION = 'CREATE_ORGANIZATION';
 export const UPDATE_ORGANIZATION_AVATAR = 'UPDATE_ORGANIZATION_AVATAR';
 export const UPDATE_ORGANIZATION = 'UPDATE_ORGANIZATION';
 
-const paramMatcher = new RegExp('/:[a-zA-Z]+', 'ig');
+const PARAM_MATCHER = new RegExp('/?:[a-zA-Z]+', 'ig');
 
 function reducer(state, action) {
   switch (action.type) {
@@ -55,11 +55,9 @@ export function useFetch(token) {
       type
     };
 
-    const isJson = !(data.options.body instanceof File) &&
-      typeof data.options.body === 'object' &&
-      data.options.body !== null;
-
-    if (isJson) {
+    if (data.options.body instanceof Blob) {
+      data.options.headers['Content-Type'] = data.options.body.type;
+    } else if (typeof data.options.body === 'object') {
       data.originalBody = options.body;
       data.options.body = JSON.stringify(data.options.body);
       data.options.headers['Content-Type'] = 'application/json';
@@ -91,8 +89,8 @@ export function useFetch(token) {
       const params = {};
       let index = 1;
 
-      for (const [ param ] of data.url[0].matchAll(paramMatcher)) {
-        const name = param.substring(2);
+      for (const param of data.url[0].match(PARAM_MATCHER)) {
+        const name = param.substring(param.startsWith('/') ? 2 : 1);
         params[name] = data.url[index];
         derivedURLArray[index] = data.url[index];
         index++;
@@ -127,12 +125,14 @@ export function useFetch(token) {
         return response.json().then(body => {
           dispatch({ type: 'UPDATE', data: { ...nextData, body } });
         }, (error) => {
+          console.warn(error);
           dispatch({ type: 'UPDATE', data: { ...nextData, error } });
         });
       } else {
         dispatch({ type: 'UPDATE', data: nextData });
       }
     }, (error) => {
+      console.warn(error);
       dispatch({ type: 'UPDATE', data: { ...data, error } });
     });
   };

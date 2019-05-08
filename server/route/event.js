@@ -178,12 +178,6 @@ export const UPDATE_EVENT_AVATAR = {
       .findOne({ _id: new mongodb.ObjectID(request.params.eventId) });
     const type = request.headers['content-type'];
 
-    if (event.avatar !== null) {
-      const parts = event.avatar.split('/');
-      const key = parts[parts.length - 1];
-      await deleteObject(key);
-    }
-
     let ext;
 
     if (type === 'image/jpeg') {
@@ -191,7 +185,13 @@ export const UPDATE_EVENT_AVATAR = {
     } else if (type === 'image/png') {
       ext = '.png';
     } else {
-      return response.sendStats(415);
+      return response.status(415).end();
+    }
+
+    if (event.avatar !== null) {
+      const parts = event.avatar.split('/');
+      const key = parts[parts.length - 1];
+      await deleteObject(key);
     }
 
     const name = new mongodb.ObjectId().toString() + ext;
@@ -203,5 +203,6 @@ export const UPDATE_EVENT_AVATAR = {
     };
 
     await db.collection(EventCollection).updateOne({ _id: event._id }, { $set });
+    response.status(200).end();
   }
 };

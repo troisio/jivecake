@@ -7,9 +7,10 @@
   }
 }
 
-.left {
+.title-link {
   display: flex;
   align-items: center;
+  text-decoration: none;
 
   > *:not(:first-child) {
     margin-left: 10px;
@@ -28,6 +29,10 @@
 
 .jivecake {
   color: $logo;
+
+  @include phone() {
+    display: none;
+  }
 }
 
 .root {

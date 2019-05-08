@@ -8,6 +8,7 @@
   font-size: 1rem;
   border-width: 2px 2px 4px;
   border-color: darken($main, 10%);
+  padding: 0;
 
   &:hover {
     background-color: lighten($main, 10%);

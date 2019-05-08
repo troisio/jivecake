@@ -34,7 +34,7 @@ export function Header(props) {
 
   return (
     <div styleName='root'>
-      <Link to={routes.landing()} styleName='left'>
+      <Link to={routes.landing()} styleName='title-link'>
         <img alt='logo' styleName='logo' src='https://jivecake.nyc3.cdn.digitaloceanspaces.com/image/image/logo-60@3x.png'/>
         <h1 styleName='jivecake'>
           {T('JiveCake')}

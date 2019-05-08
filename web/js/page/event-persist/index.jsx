@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import _ from 'lodash';
+import Compressor from 'compressorjs';
 
 import { T } from 'common/i18n';
 import { MAXIMUM_IMAGE_UPLOAD_BYTES } from 'common/schema';
@@ -55,8 +56,9 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   const [ organizationId, setOrganizationId ] = useState(organization ? organization._id : null);
   const [ organizationName, setOrganizationName ] = useState('');
   const [ organizationEmail, setOrganizationEmail ] = useState('');
-  const [ eventAvatar, setEventAvatar ] = useState(null);
-  const [ eventAvatarFile, setEventAvatarFile ] = useState(null);
+  const [ eventAvatar, setEventAvatar ] = useState(fetchedEvent ? fetchedEvent.avatar : null);
+  const [ eventAvatarBlob, setEventAvatarBlob ] = useState(null);
+  const [ unableToCompressFile, setUnableToCompressFile ] = useState(false);
 
   const isFetchingEvent = safe(() => getEventState.fetching) &&
     eventId === safe(() => getEventState.params.eventId);
@@ -73,12 +75,30 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
     setOrganizationId(e.target.value);
   };
   const onEventAvatar = (file) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      setEventAvatar(reader.result);
-      setEventAvatarFile(file);
-    };
-    reader.readAsDataURL(file);
+    if (file.size > MAXIMUM_IMAGE_UPLOAD_BYTES) {
+      new Compressor(file, {
+        convertSize: MAXIMUM_IMAGE_UPLOAD_BYTES,
+        success(result) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            setEventAvatar(reader.result);
+            setEventAvatarBlob(result);
+          };
+          reader.readAsDataURL(result);
+        },
+        error() {
+          setUnableToCompressFile(true);
+        },
+      });
+    } else if (file.type.startsWith('image')) {
+      setEventAvatarBlob(file);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setEventAvatar(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
   const onSubmit = e => {
     e.preventDefault();
@@ -99,11 +119,10 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
         }
       }, UPDATE_EVENT);
 
-      if (eventAvatarFile) {
+      if (eventAvatarBlob) {
         dispatchFetch(['event/:eventId/avatar', eventId], {
           method: 'POST',
-          body: eventAvatarFile,
-          headers: new Headers({'content-type': eventAvatarFile.type}),
+          body: eventAvatarBlob
         }, UPDATE_EVENT_AVATAR);
       }
     } else if (organizationId) {
@@ -123,24 +142,6 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
       }, CREATE_ORGANIZATION);
     }
   };
-
-  useEffect(() => {
-    if (safe(() => updateEventState.response.ok)) {
-      dispatchFetch(['event/:eventId', eventId], {}, GET_EVENT);
-    }
-  }, [ updateEventState ]);
-
-  useEffect(() => {
-    if (eventId) {
-      dispatchFetch(['event/:eventId', eventId], {}, GET_EVENT);
-    }
-  }, [ eventId ]);
-
-  useEffect(() => {
-    if (fetchedEvent) {
-      setName(fetchedEvent.name);
-    }
-  }, [ fetchedEvent ]);
 
   useEffect(() => {
     dispatchFetch(
@@ -168,14 +169,36 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   }, []);
 
   useEffect(() => {
-    if (safe(() => createEventState.response.ok)) {
-      if (eventAvatarFile) {
-        console.log('eventAvatarFile', eventAvatarFile);
+    if (safe(() => updateEventState.response.ok)) {
+      dispatchFetch(['event/:eventId', eventId], {}, GET_EVENT);
+    }
+  }, [ updateEventState ]);
 
+  useEffect(() => {
+    if (eventId) {
+      dispatchFetch(['event/:eventId', eventId], {}, GET_EVENT);
+    }
+  }, [ eventId ]);
+
+  useEffect(() => {
+    if (safe(() => updateEventAvatarState.response.ok)) {
+      dispatchFetch(['event/:eventId', eventId], {}, GET_EVENT);
+    }
+  }, [ updateEventAvatarState ]);
+
+  useEffect(() => {
+    if (fetchedEvent) {
+      setName(fetchedEvent.name);
+      setEventAvatar(fetchedEvent.avatar);
+    }
+  }, [ fetchedEvent ]);
+
+  useEffect(() => {
+    if (safe(() => createEventState.response.ok)) {
+      if (eventAvatarBlob) {
         dispatchFetch(['event/:eventId/avatar', eventId], {
           method: 'POST',
-          body: eventAvatarFile,
-          headers: new Headers({'content-type': eventAvatarFile.type}),
+          body: eventAvatarBlob
         }, UPDATE_EVENT_AVATAR);
       }
 
@@ -196,7 +219,6 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
       }, UPDATE_USER);
 
       dispatchFetch(['organization/:organizationId', organizationId], {}, GET_ORGANIZATION);
-
       dispatchFetch(['organization/:organizationId/event', organizationId], {
         method: 'POST',
         body: {
@@ -208,7 +230,6 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   }, [ createOrganizationState, name ]);
 
   let organizationFields;
-  let eventAvatarTooLargeMessage;
 
   if (organization) {
     organizationFields = (
@@ -269,10 +290,20 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
     organizationFields = null;
   }
 
-  if (eventAvatarFile && eventAvatarFile.size > MAXIMUM_IMAGE_UPLOAD_BYTES) {
-    eventAvatarTooLargeMessage = (
-      <MessageBlock>
-        {T('Event avatar too large')}
+  const messages = [];
+
+  if (eventAvatarBlob && !eventAvatarBlob.type.startsWith('image')) {
+    messages.push(
+      <MessageBlock key='invalid-file-type'>
+        {T('Please choose an image')}
+      </MessageBlock>
+    );
+  }
+
+  if (unableToCompressFile) {
+    messages.push(
+      <MessageBlock key='compress'>
+        {T('Unable to compress image file')}
       </MessageBlock>
     );
   }
@@ -299,8 +330,8 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
           onChange={e => setName(e.target.value)}
         />
       </div>
-      {eventAvatarTooLargeMessage}
       {organizationFields}
+      {messages}
       <Button loading={loading}>
         {submitText}
       </Button>
