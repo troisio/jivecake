@@ -1,5 +1,11 @@
 @import '~sass/color';
 @import '~sass/media';
+@import '~sass/size';
+
+@mixin breakText() {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
 
 @mixin button() {
   border-style: solid;
@@ -29,6 +35,12 @@
     margin-left: auto;
     margin-right: auto;
   }
+}
+
+@mixin ellipsisText() {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 @mixin verticalMargin() {

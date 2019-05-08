@@ -10,7 +10,8 @@ import {
   FetchStateContext,
   LocalStorageContext,
   UserContext,
-  LocalStorageDispatchContext
+  LocalStorageDispatchContext,
+  OrganizationContext
 } from 'js/context';
 
 import { routes } from 'js/routes';
@@ -28,31 +29,41 @@ import { EventDashboard } from 'page/event-dashboard';
 import { Events } from 'js/page/events';
 import { Home } from 'js/page/home';
 import { OrganizationPersist } from 'js/page/organization-persist';
-import { UpdateOrganization } from 'js/page/update-organization';
 
-import { TOKEN_FROM_PASSWORD, GET_USER } from 'js/reducer/useFetch';
+import {
+  TOKEN_FROM_PASSWORD,
+  GET_USER,
+  GET_ORGANIZATION,
+  CREATE_ORGANIZATION,
+  UPDATE_USER
+} from 'js/reducer/useFetch';
 import './style.scss';
 
 const DEFAULT_APPLICATION_STATE = { userId: null, organizationId: null };
 
 export function Application() {
-  const [ applicationState, setApplicationState ] = useState(DEFAULT_APPLICATION_STATE);
   const storage = useContext(LocalStorageContext);
-  const jwtPayload = jwt.decode(storage.token);
   const dispatchLocalStorage = useContext(LocalStorageDispatchContext);
   const [ dispatchFetch ] = useContext(FetchDispatchContext);
   const usersState = useContext(UserContext);
   const fetchState = useContext(FetchStateContext);
+  const organizationMap = useContext(OrganizationContext);
+
   const fetchTokenState = fetchState[TOKEN_FROM_PASSWORD];
   const getUserState = fetchState[GET_USER];
+  const createOrganizationState = fetchState[CREATE_ORGANIZATION];
+
+  const [ applicationState, setApplicationState ] = useState(DEFAULT_APPLICATION_STATE);
+  const jwtPayload = jwt.decode(storage.token);
   const user = usersState[applicationState.userId];
+
   const onLogoutClick = e => {
     e.preventDefault();
     dispatchLocalStorage({ type: 'RESET' });
   };
   const authenticatedRoutes = (
     <Switch>
-      <Route path={routes.organizationPersist(':organizationId')} component={UpdateOrganization} />
+      <Route path={routes.organizationPersist(':organizationId')} component={OrganizationPersist} />
       <Route path={routes.organizationPersist()} component={OrganizationPersist} />
       <Route path={routes.organization()} component={Organization} />
       <Route path={routes.eventPersist(':eventId')} component={EventPersist} />
@@ -82,6 +93,29 @@ export function Application() {
   }, [ storage ]);
 
   useEffect(() => {
+    if (safe(() => createOrganizationState.response.ok)) {
+      dispatchFetch(
+        ['user/:userId', applicationState.userId],
+        {
+          method: 'POST',
+          body: {
+            lastOrganizationId: createOrganizationState.body._id
+          }
+        },
+        UPDATE_USER
+      );
+      dispatchFetch(['organization/:organizationId', createOrganizationState.body._id], {}, GET_ORGANIZATION);
+
+      if (applicationState.organizationId !== createOrganizationState.body._id) {
+        setApplicationState({
+          ...applicationState,
+          organizationId: createOrganizationState.body._id
+        });
+      }
+    }
+  }, [ createOrganizationState, applicationState ]);
+
+  useEffect(() => {
     const lastOrganizationId = safe(() => user.lastOrganizationId);
 
     if (lastOrganizationId && lastOrganizationId !== applicationState.organizationId) {
@@ -90,7 +124,18 @@ export function Application() {
         organizationId: user.lastOrganizationId
       });
     }
-  }, [ user ]);
+  }, [ user, applicationState ]);
+
+  useEffect(() => {
+    const organizationNotInStore =
+      user &&
+      user.lastOrganizationId &&
+      !organizationMap.hasOwnProperty(user.lastOrganizationId);
+
+    if (organizationNotInStore) {
+      dispatchFetch(['organization/:organizationId', user.lastOrganizationId], {}, GET_ORGANIZATION);
+    }
+  }, [ user, organizationMap ]);
 
   useEffect(() => {
     const status = safe(() => getUserState.response.status);

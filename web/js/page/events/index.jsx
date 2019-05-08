@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
 
 import { Anchor } from 'component/anchor';
+import { Avatar } from 'component/avatar';
 import './style.scss';
 
 import {
@@ -24,7 +25,7 @@ export function Events() {
     .filter(event => event.organizationId === organizationId)
     .sort(
       (firstEvent, secondEvent) =>
-      new Date(firstEvent.lastUserActivity) - new Date(secondEvent.lastUserActivity)
+      new Date(secondEvent.lastUserActivity) - new Date(firstEvent.lastUserActivity)
     );
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export function Events() {
         events.map(event => {
           return (
             <div styleName='row' key={event._id}>
+              {(event.avatar && <Avatar styleName='event-avatar' src={event.avatar} />) || <div styleName='event-avatar'></div>}
               <span styleName='event-name'>
                 {event.name}
               </span>

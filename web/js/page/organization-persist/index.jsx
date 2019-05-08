@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
+import Compressor from 'compressorjs';
 
 import { T } from 'common/i18n';
 import {
@@ -8,12 +9,17 @@ import {
   ORGANIZATION_SCHEMA
 } from 'common/schema';
 
-import { FetchDispatchContext, FetchStateContext } from 'js/context';
+import { FetchDispatchContext, FetchStateContext, OrganizationContext } from 'js/context';
 import {
   CREATE_ORGANIZATION,
   UPDATE_ORGANIZATION,
-  UPDATE_ORGANIZATION_AVATAR
+  UPDATE_ORGANIZATION_AVATAR,
+  GET_ORGANIZATION
 } from 'js/reducer/useFetch';
+import {
+  getOrganization
+} from 'js/reducer/useOrganizations';
+
 import { routes } from 'js/routes';
 
 import { DefaultLayout } from 'component/default-layout';
@@ -24,53 +30,75 @@ import { Button } from 'component/button';
 import { AvatarImageUpload } from 'component/avatar-image-upload';
 import './style.scss';
 
-export function OrganizationPersistComponent({ organization, history }) {
-  const submitText = organization ? T('Update') : T('Create');
+export function OrganizationPersistComponent({ history, match: { params: { organizationId } } }) {
+  const organizationMap = useContext(OrganizationContext);
+  const fetchState = useContext(FetchStateContext);
+
+  const createOrganizationState = fetchState[CREATE_ORGANIZATION];
+  const updateOrganizationState = fetchState[UPDATE_ORGANIZATION];
+  const updateOrganizationAvatarState = fetchState[UPDATE_ORGANIZATION_AVATAR];
+
+  const organization = organizationMap[organizationId];
+
+  const [ avatarLoading, setAvatarLoading ] = useState(false);
+  const [ blob, setBlob ] = useState(null);
   const [ name, setName ] = useState(safe(() => organization.name, ''));
   const [ email, setEmail ] = useState(safe(() => organization.email, ''));
   const [ avatar, setAvatar ] = useState(safe(() => organization.avatar, null));
+  const [ unableToCompressFile , setUnableToCompressFile ] = useState(false);
+
   const avatarUploadProps = avatar === null ? {} : { src: avatar };
-  const [ file, setFile ] = useState(null);
-  const [ avatarTooLarge, setAvatarTooLarge ] = useState(false);
-  const fetchState = useContext(FetchStateContext);
-  const createOrganizationState = fetchState[CREATE_ORGANIZATION];
-  const updateOrganizationAvatarState = fetchState[UPDATE_ORGANIZATION_AVATAR];
-  const displayUnableToPersistAvatarError = safe(() => !updateOrganizationAvatarState.response.ok, false);
-  const displayUnableToPersistError = safe(() => !createOrganizationState.response.ok, false);
+  const submitText = organizationId ? T('Update') : T('Create');
+  const displayUnableToPersistError = safe(() => !createOrganizationState.response.ok, false) ||
+    safe(() => !updateOrganizationAvatarState.response.ok, false);
   const [ dispatchFetch, dispatchFetchDelete ] = useContext(FetchDispatchContext);
   const loading = safe(() => createOrganizationState.fetching) ||
-    safe(() => updateOrganizationAvatarState.fetching);
+    safe(() => updateOrganizationAvatarState.fetching) ||
+    safe(() => updateOrganizationState.fetching);
+  const onFile = file => {
+    setAvatarLoading(true);
 
-  useEffect(() => {
-    return () => {
-      dispatchFetchDelete([CREATE_ORGANIZATION, UPDATE_ORGANIZATION_AVATAR]);
-    };
-  }, []);
+    if (file.size > MAXIMUM_IMAGE_UPLOAD_BYTES) {
+      new Compressor(file, {
+        convertSize: MAXIMUM_IMAGE_UPLOAD_BYTES,
+        success(result) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            setAvatar(reader.result);
+            setBlob(result);
+            setAvatarLoading(false);
+          };
+          reader.readAsDataURL(result);
+        },
+        error() {
+          setAvatar(false);
+          setUnableToCompressFile(true);
+        },
+      });
+    } else if (file.type.startsWith('image')) {
+      setBlob(file);
 
-  useEffect(() => {
-    const newId = safe(() => createOrganizationState.body._id);
-
-    if (newId) {
-      if (file) {
-        dispatchFetch(['organization/:organizationId/avatar', newId], {
-          method: 'POST',
-          body: file,
-        }, UPDATE_ORGANIZATION_AVATAR);
-      }
-
-      history.push(routes.account());
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAvatar(reader.result);
+        setAvatarLoading(false);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setAvatarLoading(false);
     }
-  }, [ createOrganizationState, file ]);
-
-  function onSubmit(e) {
+  };
+  const onSubmit = e => {
     e.preventDefault();
 
     if (loading) {
       return;
     }
 
-    if (organization) {
-      dispatchFetch(['organization/:organizationId', organization.id], {
+    setUnableToCompressFile(false);
+
+    if (organizationId) {
+      dispatchFetch(['organization/:organizationId', organizationId], {
         method: 'POST',
         body: {
           name,
@@ -78,10 +106,10 @@ export function OrganizationPersistComponent({ organization, history }) {
         },
       }, UPDATE_ORGANIZATION);
 
-      if (file) {
+      if (blob) {
         dispatchFetch(['organization/:organizationId/avatar', organization._id], {
           method: 'POST',
-          body: file,
+          body: blob,
         }, UPDATE_ORGANIZATION_AVATAR);
       }
     } else {
@@ -93,53 +121,79 @@ export function OrganizationPersistComponent({ organization, history }) {
         },
       }, CREATE_ORGANIZATION);
     }
-  }
+  };
 
-  function onFile(file) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      setAvatar(reader.result);
-      setFile(file);
-      setAvatarTooLarge(file.size > MAXIMUM_IMAGE_UPLOAD_BYTES);
+  useEffect(() => {
+    return () => {
+      dispatchFetchDelete([CREATE_ORGANIZATION, UPDATE_ORGANIZATION, UPDATE_ORGANIZATION_AVATAR, GET_ORGANIZATION]);
     };
-    reader.readAsDataURL(file);
+  }, []);
+
+  useEffect(() => {
+    if (safe(() => updateOrganizationAvatarState.response.ok)) {
+      dispatchFetch(...getOrganization(updateOrganizationState.params.organizationId));
+    }
+  }, [ updateOrganizationAvatarState ]);
+
+  useEffect(() => {
+    if (safe(() => updateOrganizationState.response.ok)) {
+      dispatchFetch(...getOrganization(updateOrganizationState.params.organizationId));
+    }
+  }, [ updateOrganizationState ]);
+
+  useEffect(() => {
+    if (organizationId && !organization) {
+      dispatchFetch(['organization/:organizationId', organizationId], {}, GET_ORGANIZATION);
+    }
+  }, [ organizationId, organization ]);
+
+  useEffect(() => {
+    if (organization) {
+      setName(organization.name);
+      setEmail(organization.email);
+
+      if (organization.avatar) {
+        setAvatar(organization.avatar);
+      }
+    }
+  }, [ organization ]);
+
+  useEffect(() => {
+    const newId = safe(() => createOrganizationState.body._id);
+
+    if (newId) {
+      if (blob) {
+        dispatchFetch(['organization/:organizationId/avatar', newId], {
+          method: 'POST',
+          body: blob
+        }, UPDATE_ORGANIZATION_AVATAR);
+      }
+
+      history.push(routes.dashboard());
+    }
+  }, [ createOrganizationState, blob ]);
+
+  const messages = [];
+
+  if (unableToCompressFile) {
+    messages.push(('Sorry, we can not compress your image'));
   }
 
-  let unableToPersistError = null;
-  let unableToPersistAvatarError = null;
-  let avatarTooLargeError = null;
-
-  if (avatarTooLarge) {
-    avatarTooLargeError = (
-      <MessageBlock>
-        {T('Sorry, your image is too large, please try a smaller image')}
-      </MessageBlock>
-    );
-  }
-
-  if (displayUnableToPersistAvatarError) {
-    unableToPersistAvatarError = (
-      <MessageBlock>
-        {T('Sorry, we are not able to update your avatar, please try another image')}
-      </MessageBlock>
-    );
+  if (safe(() => !updateOrganizationAvatarState.response.ok, false)) {
+    messages.push(T('Sorry, we are not able to update your avatar, please try another image'));
   }
 
   if (displayUnableToPersistError) {
-    unableToPersistError = (
-      <MessageBlock>
-        {T('Sorry, we are not able save your data, please try again')}
-      </MessageBlock>
-    );
+    messages.push(T('Sorry, we are not able save your data, please try again'));
   }
 
   return (
     <DefaultLayout>
       <form onSubmit={onSubmit} styleName='root'>
-        {unableToPersistAvatarError}
-        {unableToPersistError}
-        {avatarTooLargeError}
-        <AvatarImageUpload disabled={loading} styleName='avatar-image-upload' onFile={onFile} { ...avatarUploadProps } />
+        {
+          messages.map(message => <MessageBlock key={message}>{message}</MessageBlock>)
+        }
+        <AvatarImageUpload loading={avatarLoading} disabled={loading} styleName='avatar-image-upload' onFile={onFile} { ...avatarUploadProps } />
         <Input
           placeholder={T('Organization Name')}
           onChange={e => setName(e.target.value)}
@@ -172,7 +226,7 @@ export function OrganizationPersistComponent({ organization, history }) {
 
 OrganizationPersistComponent.propTypes = {
   history: PropTypes.object,
-  organization: PropTypes.object
+  match: PropTypes.object
 };
 
 export const OrganizationPersist = withRouter(OrganizationPersistComponent);

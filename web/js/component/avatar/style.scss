@@ -1,5 +1,18 @@
+@import '~sass/media';
+@import '~sass/size';
+
 .root {
   border-radius: 50%;
+
+  @include phone() {
+    height: $avatar_height_phone;
+    width: $avatar_height_phone;
+  }
+
+  @include not_phone() {
+    height: $avatar_height;
+    width: $avatar_height;
+  }
 }
 
 .empty {

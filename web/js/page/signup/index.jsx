@@ -30,6 +30,7 @@ export function SignupComponent({ history }) {
   const [ commonPasswordError, setCommonPasswordError ] = useState(false);
   const [ passwordLengthError, setPasswordLengthError ] = useState(false);
   const [ passwordsDoNoMatch, setPasswordsDoNoMatch ] = useState(false);
+  const emailEqualsPassword = email !== '' && email.toLocaleLowerCase() === password.toLocaleLowerCase();
   const { userId } = useContext(ApplicationContext);
   const [ dispatchFetch, dispatchFetchDelete ] = useContext(FetchDispatchContext);
   const fetchState = useContext(FetchStateContext);
@@ -41,41 +42,10 @@ export function SignupComponent({ history }) {
   const didFailToCreateAccount = safe(() => !createAccountState.response.ok, false) ||
     safe(() => createAccountState.state.hasOwnProperty('error'), false);
   const errorMessages = [];
-
-  useEffect(() => {
-    return () => {
-      dispatchFetchDelete([TOKEN_FROM_PASSWORD, CREATE_ACCOUNT, SEARCH_EMAIL]);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (userId !== null) {
-      history.push(routes.home());
-    }
-  }, [ userId ]);
-
-  useEffect(() => {
-    if (safe(() => createAccountState.response.ok)) {
-      dispatchFetch('token/password', {
-        method: 'POST',
-        body: {
-          email: createAccountState.originalBody.email,
-          password: createAccountState.originalBody.password
-        }
-      }, TOKEN_FROM_PASSWORD);
-    }
-  }, [ createAccountState ]);
-
-  useEffect(() => {
-    if (isValidEmail(email)) {
-      dispatchFetch('user/email', { query: { email } }, SEARCH_EMAIL);
-    }
-  }, [email]);
-
-  function onSubmit(e) {
+  const onSubmit = e => {
     e.preventDefault();
 
-    if (safe(() => createAccountState.fetching) || !emailIsAvailable) {
+    if (safe(() => createAccountState.fetching) || !emailIsAvailable || emailEqualsPassword) {
       return;
     }
 
@@ -107,7 +77,38 @@ export function SignupComponent({ history }) {
       },
       CREATE_ACCOUNT
     );
-  }
+  };
+  let emailTakenMessage;
+
+  useEffect(() => {
+    return () => {
+      dispatchFetchDelete([TOKEN_FROM_PASSWORD, CREATE_ACCOUNT, SEARCH_EMAIL]);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (userId !== null) {
+      history.push(routes.home());
+    }
+  }, [ userId ]);
+
+  useEffect(() => {
+    if (safe(() => createAccountState.response.ok)) {
+      dispatchFetch('token/password', {
+        method: 'POST',
+        body: {
+          email: createAccountState.originalBody.email,
+          password: createAccountState.originalBody.password
+        }
+      }, TOKEN_FROM_PASSWORD);
+    }
+  }, [ createAccountState ]);
+
+  useEffect(() => {
+    if (isValidEmail(email)) {
+      dispatchFetch('user/email', { query: { email } }, SEARCH_EMAIL);
+    }
+  }, [email]);
 
   if (commonPasswordError) {
     errorMessages.push(T('Your password is too common, please choose another password'));
@@ -121,12 +122,14 @@ export function SignupComponent({ history }) {
     errorMessages.push(T('Unable to create your account. Please try again'));
   }
 
-  let emailTakenMessage;
+  if (emailEqualsPassword) {
+    errorMessages.push(T('Your email and password must be different'));
+  }
 
   if (emailIsTaken) {
     emailTakenMessage = (
-      <MessageBlock>
-        {T('Sorry, that email already is taken.')}
+      <MessageBlock key='email-taken'>
+        {T('Sorry, that email already is taken')}
       </MessageBlock>
     );
   }

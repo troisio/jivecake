@@ -15,6 +15,7 @@ import { safe } from 'js/helper';
 import { NotFound } from 'page/not-found';
 import { Error } from 'page/error';
 import { NaturalSpinner } from 'component/natural-spinner';
+import { Avatar } from 'component/avatar';
 import './style.scss';
 
 export function EventDashboardComponent({ match: { params: { eventId } } }) {
@@ -50,6 +51,7 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
   return (
     <div styleName='root'>
       <span styleName='page-title'>
+        {event.avatar && <Avatar src={event.avatar} /> }
         {event.name}
       </span>
     </div>

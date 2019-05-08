@@ -1,6 +1,15 @@
 @import '~sass/mixin';
 
+.event-avatar {
+  height: 50px;
+  width: 50px;
+  flex-shrink: 0;
+}
+
 .event-name {
+  @include breakText();
+  @include ellipsisText();
+  margin-left: 12px;
   flex-grow: 1;
 }
 
@@ -10,4 +19,9 @@
 
 .row {
   display: flex;
+  align-items: center;
+
+  &:not(:first-child) {
+    margin-top: 6px;
+  }
 }

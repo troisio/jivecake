@@ -1,6 +1,6 @@
 export default {
   api: {
-    url: 'http://127.0.0.1:9000'
+    url: 'http://10.100.0.132:9000'
   },
   sentry: {
     dsn: '',

@@ -15,23 +15,31 @@ import {
 export function Home() {
   const { organizationId } = useContext(ApplicationContext);
 
-  let myEvents;
+  let organizationAnchors;
 
   if (organizationId) {
-    myEvents = (
-      <Anchor box button styleName='anchor' to={routes.event()}>
-        <img alt='circus-tent' src={svgUrl('599-circus-tent.svg')} />
-        <span styleName='anchor-text'>
-          {T('My Events')}
-        </span>
-      </Anchor>
+    organizationAnchors = (
+      <>
+        <Anchor box button styleName='anchor' to={routes.event()}>
+          <img alt='circus-tent' src={svgUrl('599-circus-tent.svg')} />
+          <span styleName='anchor-text'>
+            {T('events')}
+          </span>
+        </Anchor>
+        <Anchor box button styleName='anchor' to={routes.organizationPersist(organizationId)}>
+          <img alt='calendar' src={svgUrl('623-ship.svg')} />
+          <span styleName='anchor-text'>
+            {T('my organization')}
+          </span>
+        </Anchor>
+      </>
     );
   }
 
   return (
     <DefaultLayout>
       <div styleName='navigation'>
-        {myEvents}
+        {organizationAnchors}
         <Anchor box button styleName='anchor' to={routes.eventPersist()}>
           <img alt='calendar' src={svgUrl('731-calendar.svg')} />
           <span styleName='anchor-text'>

@@ -5,7 +5,6 @@ import { T } from 'common/i18n';
 
 import { Input  } from 'component/input';
 import { Button  } from 'component/button';
-import { NaturalSpinner } from 'component/natural-spinner';
 import { MessageBlock } from 'component/message-block';
 import { EmailSearchIcon } from 'component/email-search-icon';
 
@@ -32,14 +31,17 @@ export function Account() {
   const [ dispatchFetch, dispatchFetchDelete ] = useContext(FetchDispatchContext);
   const organizationsMap = useContext(OrganizationContext);
   const usersMap = useContext(UserContext);
-  const getUserOrganizationsState = fetchState[GET_USER_ORGANIZATIONS];
+
   const emailFetchState = fetchState[SEARCH_EMAIL];
   const updateUserState = fetchState[UPDATE_USER];
+
   const emailIsTaken = safe(() => emailFetchState.response.status === 200, false);
-  const loadingUserOrganization = safe(() => getUserOrganizationsState.fetching);
-  const organizations = _.values(organizationsMap);
+  const organizations = _.values(organizationsMap).sort((first, second) => first.name.localeCompare(second.name));
   const user = usersMap[userId];
+
   const [ email, setEmail ] = useState(user.email);
+  const [ organizationId, setOrganizationId ] = useState(user.lastOrganizationId);
+
   const onSubmit = (e) => {
     e.preventDefault();
 
@@ -47,11 +49,17 @@ export function Account() {
       return;
     }
 
+    const body = { email };
+
+    if (organizationId) {
+      body.lastOrganizationId = organizationId;
+    }
+
     dispatchFetch(
       ['user/:userId', userId],
       {
         method: 'POST',
-        body: { email }
+        body,
       },
       UPDATE_USER
     );
@@ -100,15 +108,13 @@ export function Account() {
     }
   }, [email]);
 
-  if (loadingUserOrganization) {
-    organizationSelect = <NaturalSpinner />;
-  } else if (organizations.length > 0) {
+  if (organizations.length > 0) {
     organizationSelect = (
       <>
         <label styleName='label' htmlFor='account-change-organization'>
           {T('Current organization')}
         </label>
-        <select id='account-change-organization'>
+        <select defaultValue={user.lastOrganizationId} onBlur={e => setOrganizationId(e.target.value)} id='account-change-organization'>
           {
             organizations.map(organization => {
               return (
