@@ -24,9 +24,9 @@ import {
   GET_EVENT,
   UPDATE_USER
 } from 'js/reducer/useFetch';
-
 import { safe } from 'js/helper';
 import { Input } from 'component/input';
+import { OrganizationEmailNotice } from 'component/organization-email-notice';
 import { Button } from 'component/button';
 import { MessageBlock } from 'component/message-block';
 import { AvatarImageUpload } from 'component/avatar-image-upload';
@@ -67,11 +67,18 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   const onEventAvatar = (file) => {
     setEventAvatarLoading(true);
 
+    console.log('file.size > MAXIMUM_IMAGE_UPLOAD_BYTES', file.size > MAXIMUM_IMAGE_UPLOAD_BYTES);
+    console.log('file.size', file.size);
+    console.log('ask ratio', MAXIMUM_IMAGE_UPLOAD_BYTES / file.size);
+
     if (file.size > MAXIMUM_IMAGE_UPLOAD_BYTES) {
       new Compressor(file, {
-        convertSize: MAXIMUM_IMAGE_UPLOAD_BYTES,
+        quality: MAXIMUM_IMAGE_UPLOAD_BYTES / file.size,
         success(result) {
           const reader = new FileReader();
+
+          console.log('result.size', result.size);
+
           reader.onload = () => {
             setEventAvatar(reader.result);
             setEventAvatarBlob(result);
@@ -263,6 +270,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
             onChange={e => setOrganizationEmail(e.target.value)}
             maxLength={ORGANIZATION_SCHEMA.name.email}
           />
+          <OrganizationEmailNotice />
         </div>
       </>
     );

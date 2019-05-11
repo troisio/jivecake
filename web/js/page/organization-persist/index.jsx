@@ -25,6 +25,7 @@ import { routes } from 'js/routes';
 import { DefaultLayout } from 'component/default-layout';
 import { safe } from 'js/helper';
 import { MessageBlock } from 'component/message-block';
+import { OrganizationEmailNotice } from 'component/organization-email-notice';
 import { Input } from 'component/input';
 import { Button } from 'component/button';
 import { AvatarImageUpload } from 'component/avatar-image-upload';
@@ -210,11 +211,7 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
             onChange={e => setEmail(e.target.value)}
             maxLength={ORGANIZATION_SCHEMA.email.maxLength}
           />
-          <div styleName='email-note'>
-            {T('This email will be used so your customers can contact you.')}
-            &nbsp;
-            {T('We will also use this email to send you organization specific communication.')}
-          </div>
+        <OrganizationEmailNotice />
         </div>
         <Button loading={loading}>
           {submitText}
