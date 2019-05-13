@@ -17,6 +17,7 @@ RUN \
     chmod +x /init.sh && \
     cd $SOURCE_DIRECTORY && \
     yarn && \
-    npm run build
+    npm run build && \
+    nginx -c /root/nginx.conf
 
 CMD /init.sh
