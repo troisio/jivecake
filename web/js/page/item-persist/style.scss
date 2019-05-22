@@ -1,0 +1,25 @@
+@import '~sass/mixin';
+
+.label {
+  @include label();
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+
+  > *:not(:first-child) {
+    margin-top: 8px;
+  }
+}
+
+
+.root {
+  display: flex;
+  flex-direction: column;
+  @include defaultLayout();
+
+  > *:not(:first-child) {
+    margin-top: 8px;
+  }
+}

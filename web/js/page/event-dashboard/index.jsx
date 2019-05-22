@@ -51,8 +51,10 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
   return (
     <div styleName='root'>
       <span styleName='page-title'>
-        {event.avatar && <Avatar src={event.avatar} /> }
-        {event.name}
+        {event.avatar && <Avatar styleName='avatar' src={event.avatar} /> }
+        <span styleName='event-name'>
+          {event.name}
+        </span>
       </span>
     </div>
   );

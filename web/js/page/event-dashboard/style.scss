@@ -1,7 +1,23 @@
 @import '~sass/mixin';
 
+.avatar {
+  height: 50px;
+  width: 50px;
+}
+
+.event-name {
+  font-size: 1.5rem;
+  @include breakText();
+  @include ellipsisText();
+}
+
 .page-title {
-  @include defaultLayout();
+  display: flex;
+  align-items: center;
+
+  > *:not(:first-child) {
+    margin-left: 8px;
+  }
 }
 
 .root {

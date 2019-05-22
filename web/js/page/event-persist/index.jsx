@@ -67,17 +67,11 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   const onEventAvatar = (file) => {
     setEventAvatarLoading(true);
 
-    console.log('file.size > MAXIMUM_IMAGE_UPLOAD_BYTES', file.size > MAXIMUM_IMAGE_UPLOAD_BYTES);
-    console.log('file.size', file.size);
-    console.log('ask ratio', MAXIMUM_IMAGE_UPLOAD_BYTES / file.size);
-
     if (file.size > MAXIMUM_IMAGE_UPLOAD_BYTES) {
       new Compressor(file, {
         quality: MAXIMUM_IMAGE_UPLOAD_BYTES / file.size,
         success(result) {
           const reader = new FileReader();
-
-          console.log('result.size', result.size);
 
           reader.onload = () => {
             setEventAvatar(reader.result);
@@ -191,7 +185,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
       if (eventId) {
         dispatchFetch(['event/:eventId', eventId], {}, GET_EVENT);
       } else {
-        history.push(routes.eventDashboard(createEventState.body._id));
+        history.push(routes.event(createEventState.body._id));
       }
     }
   }, [ updateEventAvatarState, eventId, createEventState ]);
@@ -335,7 +329,6 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
 }
 
 EventPersistComponent.propTypes = {
-  event: PropTypes.object,
   history: PropTypes.object.isRequired,
   match: PropTypes.object.isRequired
 };

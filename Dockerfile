@@ -1,6 +1,7 @@
 FROM centos:7
 
 ENV SOURCE_DIRECTORY /root/jivecake
+ENV ENABLE_NGINX 1
 
 ADD docker/init.sh /init.sh
 ADD docker/nginx.conf /root/nginx.conf
@@ -17,7 +18,6 @@ RUN \
     chmod +x /init.sh && \
     cd $SOURCE_DIRECTORY && \
     yarn && \
-    npm run build && \
-    nginx -c /root/nginx.conf
+    npm run build
 
 CMD /init.sh

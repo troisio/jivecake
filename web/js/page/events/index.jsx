@@ -56,10 +56,12 @@ export function Events() {
         events.map(event => {
           return (
             <div styleName='row' key={event._id}>
-              {(event.avatar && <Avatar styleName='event-avatar' src={event.avatar} />) || <div styleName='event-avatar'></div>}
-              <span styleName='event-name'>
-                {event.name}
-              </span>
+              <Anchor styleName='event-link' to={routes.event(event._id)}>
+                {(event.avatar && <Avatar styleName='event-avatar' src={event.avatar} />) || <div styleName='event-avatar'></div>}
+                <span styleName='event-name'>
+                  {event.name}
+                </span>
+              </Anchor>
               <Anchor button to={routes.eventPersist(event._id)}>
                 <FontAwesomeIcon icon={faEdit} />
               </Anchor>

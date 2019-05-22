@@ -6,11 +6,17 @@
   flex-shrink: 0;
 }
 
+.event-link {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
 .event-name {
   @include breakText();
   @include ellipsisText();
   margin-left: 12px;
-  flex-grow: 1;
 }
 
 .root {
@@ -19,7 +25,6 @@
 
 .row {
   display: flex;
-  align-items: center;
 
   &:not(:first-child) {
     margin-top: 6px;

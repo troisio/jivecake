@@ -24,6 +24,7 @@ import { Account } from 'page/account';
 import { Login } from 'page/login';
 import { Organization } from 'page/organization';
 import { EventPersist } from 'page/event-persist';
+import { ItemPersist } from 'page/item-persist';
 import { ForgotPassword } from 'page/forgot-password';
 import { EventDashboard } from 'page/event-dashboard';
 import { Events } from 'js/page/events';
@@ -66,9 +67,11 @@ export function Application() {
       <Route path={routes.organizationPersist(':organizationId')} component={OrganizationPersist} />
       <Route path={routes.organizationPersist()} component={OrganizationPersist} />
       <Route path={routes.organization()} component={Organization} />
-      <Route path={routes.eventPersist(':eventId')} component={EventPersist} />
-      <Route path={routes.eventDashboard(':eventId')} component={EventDashboard} />
+      <Route path={routes.itemPersist(':eventId', ':itemId')} component={ItemPersist} />
+      <Route path={routes.itemPersist(':eventId')} component={ItemPersist} />
       <Route path={routes.eventPersist()} component={EventPersist} />
+      <Route path={routes.eventPersist(':eventId')} component={EventPersist} />
+      <Route path={routes.event(':eventId')} component={EventDashboard} />
       <Route path={routes.event()} component={Events} />
       <Route path={routes.home()} component={Home} />
       <Route path={routes.account()} component={Account} />

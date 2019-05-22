@@ -89,7 +89,7 @@ export const GET_EVENT = {
 };
 
 export const GET_EVENT_ITEMS = {
-  method: 'POST',
+  method: 'GET',
   path: '/event/:eventId/item',
   accessRules: [
     {

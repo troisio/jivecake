@@ -17,8 +17,14 @@ export class Routes {
     return url;
   }
 
-  eventDashboard(id) {
-    return `${this.prefix}/event/${id}/dashboard`;
+  itemPersist(eventId, itemId) {
+    let url = `${this.prefix}/event/${eventId}/item`;
+
+    if (typeof itemId !== 'undefined') {
+      url += '/' + itemId;
+    }
+
+    return url + '/persist';
   }
 
   eventPublic(hash) {
@@ -44,13 +50,13 @@ export class Routes {
   }
 
   eventPersist(id) {
-    let result = `${this.prefix}/event/persist`;
+    let result = `${this.prefix}/event`;
 
     if (typeof id !== 'undefined') {
       result += '/' + id;
     }
 
-    return result;
+    return result + '/persist';
   }
 
   organizationPersist(id = null) {

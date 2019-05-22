@@ -170,7 +170,7 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
         }, UPDATE_ORGANIZATION_AVATAR);
       }
 
-      history.push(routes.dashboard());
+      history.push(routes.event(newId));
     }
   }, [ createOrganizationState, blob ]);
 
