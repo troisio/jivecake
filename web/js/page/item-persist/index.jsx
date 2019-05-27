@@ -47,7 +47,11 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
     dispatchFetch(path, {
       method: 'POST',
       body: {
-        name
+        name,
+        maximumAvailable: null,
+        published: false,
+        currency: null,
+        amount: null
       }
     }, CREATE_ITEM);
   };
@@ -78,8 +82,8 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
           required
           value={name}
           onChange={e => setName(e.target.value)}
-          minLength={ITEM_SCHEMA.name.minLength}
-          maxLength={ITEM_SCHEMA.name.maxLength}
+          minLength={ITEM_SCHEMA.properties.name.minLength}
+          maxLength={ITEM_SCHEMA.properties.name.maxLength}
         />
       </div>
       <Button loading={loading}>

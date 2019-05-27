@@ -5,10 +5,28 @@
   width: 50px;
 }
 
+.create-item {
+  align-self: flex-end;
+}
+
 .event-name {
   font-size: 1.5rem;
   @include breakText();
   @include ellipsisText();
+}
+
+.item-name {
+
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+}
+
+.items-table {
+  display: grid;
 }
 
 .page-title {

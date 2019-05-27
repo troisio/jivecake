@@ -3,40 +3,7 @@ import mongodb from 'mongodb';
 import { Item, Currency } from 'common/models';
 import { Permission } from 'router';
 import { EventCollection, ItemCollection, TransactionCollection } from 'database';
-import { DEFAULT_MAX_LENGTH } from 'common/schema';
-
-const ITEM_SCHEMA = {
-  type: 'object',
-  required: ['name', 'maxiumumAvailable', 'published', 'amount', 'currency', 'paymentProfileId'],
-  additionalProperties: false,
-  properties: {
-    name: {
-      type: 'string',
-      minLength: 1,
-      maxLength: DEFAULT_MAX_LENGTH
-    },
-    amount: {
-      if: { type: 'integer' },
-      then: { minimum: 0 },
-      else: { type: 'null' }
-    },
-    currency: {
-      enum: [Currency.USD, Currency.EUR, Currency.CAD, Currency.JPY, Currency.KRW, null]
-    },
-    maxiumumAvailable: {
-      type: ['integer', 'null'],
-      minimum: 0
-    },
-    paymentProfileId: {
-      if: { type: 'string' },
-      then: { format: 'objectId' },
-      else: { type: 'null' }
-    },
-    published: {
-      type: 'boolean'
-    }
-  }
-};
+import { ITEM_SCHEMA } from 'common/schema';
 
 export const GET_ITEM = {
   method: 'GET',
@@ -96,13 +63,13 @@ export const CREATE_ITEM = {
   bodySchema: ITEM_SCHEMA,
   on: async (request, response, { db }) => {
     const item = new Item();
+    item.eventId = new mongodb.ObjectID(request.params.eventId);
     item.name = request.body.name;
     item.organizationId = new mongodb.ObjectID(request.params.id);
     item.created = new Date();
 
     await db.collection(ItemCollection).insertOne(item);
-    const entity = await db.collection(ItemCollection).findOne({ _id: item.id });
-    response.json(entity);
+    response.json({ _id: item._id });
   }
 };
 

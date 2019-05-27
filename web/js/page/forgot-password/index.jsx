@@ -1,10 +1,10 @@
 import React, { useContext, useState } from 'react';
 import { Link }from 'react-router-dom';
 
-import { ApplicationContext } from 'js/context';
-import { Routes } from 'common/routes';
 import { T } from 'common/i18n';
 
+import { routes } from 'js/routes';
+import { ApplicationContext } from 'js/context';
 import { Button } from 'component/button';
 import { Input } from 'component/input';
 import './style.scss';
@@ -12,7 +12,6 @@ import './style.scss';
 export function ForgotPassword() {
   const [ displayFailure ] = useState(false);
   const { userId } = useContext(ApplicationContext);
-  const routes = new Routes();
 
   let content;
 
