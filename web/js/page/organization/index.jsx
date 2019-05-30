@@ -21,7 +21,7 @@ import './style.scss';
 
 import { GET_USER_ORGANIZATIONS } from 'js/reducer/useFetch';
 
-export function OrganizationComponent(props) {
+export function OrganizationComponent() {
   const { userId } = useContext(ApplicationContext);
   const organizations = useContext(OrganizationContext);
   const userOrganizations = useContext(UserOrganizationContext);
@@ -33,26 +33,10 @@ export function OrganizationComponent(props) {
         query: {
           page: 0,
           lastUserActivity: -1
-        },
-        params: {
-          userId
         }
       }, GET_USER_ORGANIZATIONS);
     }
   }, []);
-
-  function onOrganizationClick(organizationId) {
-    const { history } = props;
-
-    dispatchFetch(['user/:userId', userId], {
-      method: 'POST',
-      body: {
-        lastOrganizationId: organizationId,
-      }
-    });
-
-    history.push(routes.organizationEvents(organizationId));
-  }
 
   let rows;
   let noneFound;
@@ -69,14 +53,14 @@ export function OrganizationComponent(props) {
 
       return (
         <div styleName='row' key={organization._id}>
-          <button onClick={() => onOrganizationClick(organization._id)} styleName='organization-identity'>
+          <Anchor to={routes.organizationEvents(organization._id)} button styleName='organization-identity'>
             <Avatar styleName='avatar' { ...avatarProps } />
             <span styleName='name'>
               {organization.name}
             </span>
-          </button>
+          </Anchor>
           <div styleName='spinner'>
-            <Anchor to={routes.organizationPersist(organization._id)} button={true} icon={true}>
+            <Anchor to={routes.organizationPersist(organization._id)} button icon={true}>
               <FontAwesomeIcon icon={faEdit} />
             </Anchor>
           </div>

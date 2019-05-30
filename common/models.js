@@ -61,9 +61,7 @@ export class User {
 	email = null;
 	avatar = null;
 	emailVerified = false;
-	selectedLanguage = null;
 	lastLanguage = null;
-	lastOrganizationId = null;
 	hashedPassword = null;
 	created = null;
 	lastUserActivity = null;

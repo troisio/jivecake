@@ -9,9 +9,11 @@ import { MAXIMUM_IMAGE_UPLOAD_BYTES, ORGANIZATION_SCHEMA } from 'common/schema';
 import { routes } from 'js/routes';
 import {
   ApplicationContext,
+  SetApplicationStateContext,
   EventContext,
   FetchStateContext,
-  FetchDispatchContext
+  FetchDispatchContext,
+  UserContext
 } from 'js/context';
 import {
   CREATE_ORGANIZATION,
@@ -21,8 +23,7 @@ import {
   UPDATE_EVENT_AVATAR,
   GET_ORGANIZATION,
   UPDATE_ORGANIZATION_AVATAR,
-  GET_EVENT,
-  UPDATE_USER
+  GET_EVENT
 } from 'js/reducer/useFetch';
 import { safe } from 'js/helper';
 import { Input } from 'component/input';
@@ -39,6 +40,8 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   const [ dispatchFetch, dispatchFetchDelete ] = useContext(FetchDispatchContext);
   const applicationState = useContext(ApplicationContext);
   const eventMap = useContext(EventContext);
+  const usersMap = useContext(UserContext);
+  const setApplicationState = useContext(SetApplicationStateContext);
 
   const createEventState = fetchState[CREATE_EVENT];
   const getEventState = fetchState[GET_EVENT];
@@ -46,11 +49,12 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   const createOrganizationState = fetchState[CREATE_ORGANIZATION];
   const updateEventAvatarState = fetchState[UPDATE_EVENT_AVATAR];
 
+  const user = usersMap[applicationState.userId];
   const fetchedEvent = eventMap[eventId];
   const [ name, setName ] = useState(fetchedEvent ? fetchedEvent.name : '');
   const [ eventAvatarLoading, setEventAvatarLoading ] = useState(false);
   const [ organizationName, setOrganizationName ] = useState('');
-  const [ organizationEmail, setOrganizationEmail ] = useState('');
+  const [ organizationEmail, setOrganizationEmail ] = useState(user.email);
   const [ eventAvatar, setEventAvatar ] = useState(fetchedEvent ? fetchedEvent.avatar : null);
   const [ eventAvatarBlob, setEventAvatarBlob ] = useState(null);
   const [ unableToCompressFile, setUnableToCompressFile ] = useState(false);
@@ -162,8 +166,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
         UPDATE_EVENT_AVATAR,
         GET_ORGANIZATION,
         UPDATE_ORGANIZATION_AVATAR,
-        GET_EVENT,
-        UPDATE_USER
+        GET_EVENT
       ]);
     };
   }, []);
@@ -198,41 +201,41 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   }, [ fetchedEvent ]);
 
   useEffect(() => {
-    if (safe(() => createEventState.response.ok)) {
-      dispatchFetch(['event/:eventId', createEventState.body._id], {}, GET_EVENT);
+    if (!safe(() => createEventState.response.ok)) {
+      return;
+    }
 
-      if (eventAvatarBlob) {
-        dispatchFetch(['event/:eventId/avatar', createEventState.body._id], {
-          method: 'POST',
-          body: eventAvatarBlob
-        }, UPDATE_EVENT_AVATAR);
-      } else {
-        history.push(routes.eventDashboard(createEventState.body._id));
-      }
+    dispatchFetch(['event/:eventId', createEventState.body._id], {}, GET_EVENT);
+
+    if (eventAvatarBlob) {
+      dispatchFetch(['event/:eventId/avatar', createEventState.body._id], {
+        method: 'POST',
+        body: eventAvatarBlob
+      }, UPDATE_EVENT_AVATAR);
+    } else {
+      history.push(routes.event(createEventState.body._id));
     }
   }, [ createEventState ]);
 
   useEffect(() => {
-    if (safe(() => createOrganizationState.response.ok)) {
-      const organizationId = createOrganizationState.body._id;
-
-      dispatchFetch(['user/:userId', applicationState.userId], {
-        method: 'POST',
-        body: {
-          lastOrganizationId: organizationId
-        }
-      }, UPDATE_USER);
-
-      dispatchFetch(['organization/:organizationId', organizationId], {}, GET_ORGANIZATION);
-      dispatchFetch(['organization/:organizationId/event', organizationId], {
-        method: 'POST',
-        body: {
-          name,
-          published: false
-        }
-      }, CREATE_EVENT);
+    if (!safe(() => createOrganizationState.response.ok)) {
+      return;
     }
-  }, [ createOrganizationState, name ]);
+
+    const organizationId = createOrganizationState.body._id;
+    dispatchFetch(['organization/:organizationId', organizationId], {}, GET_ORGANIZATION);
+    dispatchFetch(['organization/:organizationId/event', organizationId], {
+      method: 'POST',
+      body: {
+        name,
+        published: false
+      }
+    }, CREATE_EVENT);
+
+    if (applicationState.organizationId !== organizationId) {
+      setApplicationState({ ...applicationState, organizationId });
+    }
+  }, [ createOrganizationState, name, applicationState ]);
 
   let organizationFields;
 
@@ -248,7 +251,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
             autoComplete='organization'
             value={organizationName}
             onChange={e => setOrganizationName(e.target.value)}
-            maxLength={ORGANIZATION_SCHEMA.name.maxLength}
+            maxLength={ORGANIZATION_SCHEMA.properties.name.maxLength}
           />
         </div>
         <div styleName='form-row'>
@@ -262,7 +265,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
             autoComplete='email'
             value={organizationEmail}
             onChange={e => setOrganizationEmail(e.target.value)}
-            maxLength={ORGANIZATION_SCHEMA.name.email}
+            maxLength={ORGANIZATION_SCHEMA.properties.name.email}
           />
           <OrganizationEmailNotice />
         </div>

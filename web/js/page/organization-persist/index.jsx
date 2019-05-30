@@ -200,7 +200,7 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
           onChange={e => setName(e.target.value)}
           value={name}
           required
-          maxLength={ORGANIZATION_SCHEMA.name.maxLength}
+          maxLength={ORGANIZATION_SCHEMA.properties,name.maxLength}
         />
         <div styleName='email-section'>
           <Input
@@ -209,7 +209,7 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
             value={email}
             required
             onChange={e => setEmail(e.target.value)}
-            maxLength={ORGANIZATION_SCHEMA.email.maxLength}
+            maxLength={ORGANIZATION_SCHEMA.properties.email.maxLength}
           />
         <OrganizationEmailNotice />
         </div>

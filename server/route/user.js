@@ -14,11 +14,9 @@ import {
   UserCollection,
   SORT_DIRECTIONS_AS_STRING
 } from 'database';
-import { PasswordRecovery, User, SUPPORTED_LANGUAGE_IDS } from 'common/models';
+import { PasswordRecovery, User } from 'common/models';
 import { USER_SCHEMA } from 'common/schema';
 import { getUserLanguage } from 'common/helpers';
-
-const SELECTED_LANGUAGE_OPTIONS = [ ...SUPPORTED_LANGUAGE_IDS, null ];
 
 const getHashedPassword = (password) => {
   return new Promise((resolve, reject) => {
@@ -63,7 +61,7 @@ export const PASSWORD_RECOVERY = {
     required: ['email'],
     additionalProperties: false,
     properties: {
-      email: USER_SCHEMA.email
+      email: USER_SCHEMA.properties.email
     }
   },
   on: async (request, response, { db, SibApiV3Sdk, T }) => {
@@ -114,7 +112,7 @@ export const USER_BY_EMAIL = {
     type: 'object',
     required: ['email'],
     properties: {
-      email: USER_SCHEMA.email
+      email: USER_SCHEMA.properties.email
     }
   },
   on: async (request, response, { db }) => {
@@ -151,6 +149,9 @@ export const GET_USER_ORGANIZATIONS = {
       },
       lastSystemActivity: {
         enum: SORT_DIRECTIONS_AS_STRING
+      },
+      created: {
+        enum: SORT_DIRECTIONS_AS_STRING
       }
     }
   },
@@ -158,7 +159,7 @@ export const GET_USER_ORGANIZATIONS = {
   on: async (request, response, { db, pagination: { skip, limit } }) => {
     const userId = new mongodb.ObjectID(request.params.userId);
     const sort =_.mapValues(
-      _.pick(request.query, ['lastUserActivity', 'lastSystemActivity']),
+      _.pick(request.query, ['lastUserActivity', 'lastSystemActivity', 'created']),
       value => Number(value)
     );
 
@@ -194,24 +195,7 @@ export const UPDATE_USER = {
       param: 'userId'
     }
   ],
-  bodySchema: {
-    type: 'object',
-    additionalProperties: false,
-    properties: {
-      email: USER_SCHEMA.email,
-      password: USER_SCHEMA.password,
-      selectedLanguage: {
-        enum: SELECTED_LANGUAGE_OPTIONS
-      },
-      lastLanguage: {
-        enum: SUPPORTED_LANGUAGE_IDS
-      },
-      lastOrganizationId:  {
-        type: 'string',
-        format: 'objectid'
-      }
-    }
-  },
+  bodySchema: USER_SCHEMA,
   on: async (request, response, { db }) => {
     const user = await db.collection(UserCollection)
       .findOne({ _id: new mongodb.ObjectID(request.params.userId) });
@@ -226,27 +210,6 @@ export const UPDATE_USER = {
 
       if (userWithSameEmail > 0) {
         response.status(409).end();
-        return;
-      }
-    }
-
-    if ($set.hasOwnProperty('lastOrganizationId')) {
-      $set.lastOrganizationId = new mongodb.ObjectID($set.lastOrganizationId);
-
-      const organization = await db.collection(OrganizationCollection)
-        .findOne({
-          _id: $set.lastOrganizationId,
-          $or: [
-            { read: user._id },
-            { write: user._id },
-            { owner: user._id }
-          ]
-        });
-
-      if (organization === null) {
-        response.status(404).json({
-          error: 'lastOrganizationId'
-        });
         return;
       }
     }
@@ -269,13 +232,7 @@ export const CREATE_ACCOUNT = {
     type: 'object',
     required: ['email', 'password', 'lastLanguage'],
     additionalProperties: false,
-    properties: {
-      email: USER_SCHEMA.email,
-      password: USER_SCHEMA.password,
-      lastLanguage: {
-        enum: SUPPORTED_LANGUAGE_IDS
-      }
-    }
+    properties: _.pick(USER_SCHEMA.properties, ['email', 'password', 'lastLanguage'])
   },
   on: async (request, response, { db }) => {
     const { body: { email, password, lastLanguage } } = request;

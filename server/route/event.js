@@ -4,7 +4,7 @@ import { upload, deleteObject } from 'server/digitalocean';
 import { Require, Permission } from 'router';
 import { EventCollection, ItemCollection, OrganizationCollection, TransactionCollection } from 'database';
 import { Event } from 'common/models';
-import { DEFAULT_MAX_LENGTH, EVENT_SCHEMA } from 'common/schema';
+import { EVENT_SCHEMA } from 'common/schema';
 import { OBJECT_ID_REGEX_PORTION } from 'common/helpers';
 
 export const UPDATE_EVENT = {
@@ -17,13 +17,7 @@ export const UPDATE_EVENT = {
       param: 'eventId'
     }
   ],
-  bodySchema: {
-    type: 'object',
-    additionalProperties: false,
-    properties: {
-      ...EVENT_SCHEMA
-    }
-  },
+  bodySchema: EVENT_SCHEMA,
   on: async (request, response, { db }) => {
     const eventId = new mongodb.ObjectID(request.params.eventId);
     const $set = { ...request.body };
@@ -44,24 +38,9 @@ export const CREATE_EVENT = {
       param: 'id'
     }
   ],
-  bodySchema: {
-    type: 'object',
-    required: ['name', 'published'],
-    additionalProperties: false,
-    properties: {
-      name: {
-        type: 'string',
-        maxLength: DEFAULT_MAX_LENGTH
-      },
-      published: {
-        type: 'boolean'
-      }
-    }
-  },
+  bodySchema: EVENT_SCHEMA,
   on: async (request, response, { db }) => {
-    const event = new Event();
-    event.name = request.body.name;
-    event.published = request.body.published;
+    const event = Object.assign(new Event(), request.body);
     event.organizationId = new mongodb.ObjectID(request.params.id);
     event.created = new Date();
     event.lastUserActivity = event.created;

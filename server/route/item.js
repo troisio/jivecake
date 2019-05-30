@@ -1,6 +1,6 @@
 import mongodb from 'mongodb';
 
-import { Item, Currency } from 'common/models';
+import { Item } from 'common/models';
 import { Permission } from 'router';
 import { EventCollection, ItemCollection, TransactionCollection } from 'database';
 import { ITEM_SCHEMA } from 'common/schema';

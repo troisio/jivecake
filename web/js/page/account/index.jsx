@@ -13,6 +13,7 @@ import './style.scss';
 import { safe, isValidEmail } from 'js/helper';
 import {
   ApplicationContext,
+  SetApplicationStateContext,
   FetchDispatchContext,
   FetchStateContext,
   OrganizationContext,
@@ -26,7 +27,8 @@ import {
 } from 'js/reducer/useFetch';
 
 export function Account() {
-  const { userId } = useContext(ApplicationContext);
+  const applicationState = useContext(ApplicationContext);
+  const setApplicationState = useContext(SetApplicationStateContext);
   const fetchState = useContext(FetchStateContext);
   const [ dispatchFetch, dispatchFetchDelete ] = useContext(FetchDispatchContext);
   const organizationsMap = useContext(OrganizationContext);
@@ -37,10 +39,10 @@ export function Account() {
 
   const emailIsTaken = safe(() => emailFetchState.response.status === 200, false);
   const organizations = _.values(organizationsMap).sort((first, second) => first.name.localeCompare(second.name));
-  const user = usersMap[userId];
+  const user = usersMap[applicationState.userId];
 
   const [ email, setEmail ] = useState(user.email);
-  const [ organizationId, setOrganizationId ] = useState(user.lastOrganizationId);
+  const [ organizationId, setOrganizationId ] = useState();
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -51,12 +53,8 @@ export function Account() {
 
     const body = { email };
 
-    if (organizationId) {
-      body.lastOrganizationId = organizationId;
-    }
-
     dispatchFetch(
-      ['user/:userId', userId],
+      ['user/:userId', applicationState.userId],
       {
         method: 'POST',
         body,
@@ -78,7 +76,7 @@ export function Account() {
 
   useEffect(() => {
     dispatchFetch(
-      ['user/:userId/organization', userId],
+      ['user/:userId/organization', applicationState.userId],
       {
         query: {
           page: 0
@@ -93,14 +91,20 @@ export function Account() {
   }, []);
 
   useEffect(() => {
-    if (safe(() => updateUserState.response.ok)) {
-      dispatchFetch(
-        ['user/:userId', userId],
-        {},
-        GET_USER
-      );
+    if (!safe(() => updateUserState.response.ok)) {
+      return;
     }
-  }, [ updateUserState ]);
+
+    dispatchFetch(
+      ['user/:userId', applicationState.userId],
+      {},
+      GET_USER
+    );
+
+    if (applicationState.organizationId !== organizationId) {
+      setApplicationState({ ...applicationState, organizationId });
+    }
+  }, [ updateUserState, applicationState ]);
 
   useEffect(() => {
     if (isValidEmail(email) && email !== user.email) {
@@ -114,7 +118,7 @@ export function Account() {
         <label styleName='label' htmlFor='account-change-organization'>
           {T('Current organization')}
         </label>
-        <select defaultValue={user.lastOrganizationId} onBlur={e => setOrganizationId(e.target.value)} id='account-change-organization'>
+        <select onBlur={e => setOrganizationId(e.target.value)} id='account-change-organization'>
           {
             organizations.map(organization => {
               return (

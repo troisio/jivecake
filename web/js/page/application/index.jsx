@@ -1,17 +1,19 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import _ from 'lodash';
 import jwt from 'jsonwebtoken';
 
 import { safe } from 'js/helper';
 
 import {
   ApplicationContext,
+  SetApplicationStateContext,
+  OrganizationContext,
   FetchDispatchContext,
   FetchStateContext,
   LocalStorageContext,
   UserContext,
-  LocalStorageDispatchContext,
-  OrganizationContext
+  LocalStorageDispatchContext
 } from 'js/context';
 
 import { routes } from 'js/routes';
@@ -36,7 +38,7 @@ import {
   GET_USER,
   GET_ORGANIZATION,
   CREATE_ORGANIZATION,
-  UPDATE_USER
+  GET_USER_ORGANIZATIONS
 } from 'js/reducer/useFetch';
 import './style.scss';
 
@@ -56,7 +58,6 @@ export function Application() {
 
   const [ applicationState, setApplicationState ] = useState(DEFAULT_APPLICATION_STATE);
   const jwtPayload = jwt.decode(storage.token);
-  const user = usersState[applicationState.userId];
 
   const onLogoutClick = e => {
     e.preventDefault();
@@ -79,14 +80,45 @@ export function Application() {
   );
 
   useEffect(() => {
-    if (safe(() => fetchTokenState.response.ok)) {
-      dispatchLocalStorage({
-        type: 'UPDATE',
-        data: {
-          token: fetchTokenState.body.token
-        }
-      });
+    if (!applicationState.userId) {
+      return;
     }
+
+    dispatchFetch(
+      ['user/:userId/organization', applicationState.userId],
+      {
+        query: {
+          page: 0,
+          order: '-created'
+        }
+      },
+      GET_USER_ORGANIZATIONS
+    );
+  }, [ applicationState ]);
+
+  useEffect(() => {
+    if (applicationState.organizationId) {
+      return;
+    }
+
+    const organization = _.values(organizationMap)
+      .find(({ read }) => read.includes(applicationState.userId));
+
+    if (organization) {
+      setApplicationState({ ...applicationState, organizationId: organization._id });
+    }
+  }, [ organizationMap, applicationState ]);
+
+  useEffect(() => {
+    if (!safe(() => fetchTokenState.response.ok)) {
+      return;
+    }
+    dispatchLocalStorage({
+      type: 'UPDATE',
+      data: {
+        token: fetchTokenState.body.token
+      }
+    });
   }, [ fetchTokenState ]);
 
   useEffect(() => {
@@ -97,16 +129,6 @@ export function Application() {
 
   useEffect(() => {
     if (safe(() => createOrganizationState.response.ok)) {
-      dispatchFetch(
-        ['user/:userId', applicationState.userId],
-        {
-          method: 'POST',
-          body: {
-            lastOrganizationId: createOrganizationState.body._id
-          }
-        },
-        UPDATE_USER
-      );
       dispatchFetch(['organization/:organizationId', createOrganizationState.body._id], {}, GET_ORGANIZATION);
 
       if (applicationState.organizationId !== createOrganizationState.body._id) {
@@ -117,28 +139,6 @@ export function Application() {
       }
     }
   }, [ createOrganizationState, applicationState ]);
-
-  useEffect(() => {
-    const lastOrganizationId = safe(() => user.lastOrganizationId);
-
-    if (lastOrganizationId && lastOrganizationId !== applicationState.organizationId) {
-      setApplicationState({
-        ...applicationState,
-        organizationId: user.lastOrganizationId
-      });
-    }
-  }, [ user, applicationState ]);
-
-  useEffect(() => {
-    const organizationNotInStore =
-      user &&
-      user.lastOrganizationId &&
-      !organizationMap.hasOwnProperty(user.lastOrganizationId);
-
-    if (organizationNotInStore) {
-      dispatchFetch(['organization/:organizationId', user.lastOrganizationId], {}, GET_ORGANIZATION);
-    }
-  }, [ user, organizationMap ]);
 
   useEffect(() => {
     const status = safe(() => getUserState.response.status);
@@ -186,16 +186,18 @@ export function Application() {
           <Route component={NotFound} />
         </Switch>
       </>
-  );
+    );
   }
 
   return (
     <ApplicationContext.Provider value={applicationState}>
-      <BrowserRouter>
-        <div styleName='root'>
-          {content}
-        </div>
-      </BrowserRouter>
+      <SetApplicationStateContext.Provider value={setApplicationState}>
+        <BrowserRouter>
+          <div styleName='root'>
+            {content}
+          </div>
+        </BrowserRouter>
+      </SetApplicationStateContext.Provider>
     </ApplicationContext.Provider>
   );
 }

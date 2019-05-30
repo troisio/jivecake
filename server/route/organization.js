@@ -63,15 +63,7 @@ export const UPDATE_ORGANIZATION = {
       param: 'organizationId'
     }
   ],
-  bodySchema: {
-    type: 'object',
-    required: ['name', 'email'],
-    additionalProperties: false,
-    properties: {
-      name: ORGANIZATION_SCHEMA.name,
-      email: ORGANIZATION_SCHEMA.email
-    }
-  },
+  bodySchema: ORGANIZATION_SCHEMA,
   on: async (request, response, { db }) => {
     const _id = new mongodb.ObjectID(request.params.organizationId);
     const $set = {
@@ -90,15 +82,7 @@ export const CREATE_ORGANIZATION = {
   method: 'POST',
   path: '/organization',
   requires: [ Require.Authenticated ],
-  bodySchema: {
-    type: 'object',
-    required: ['name', 'email'],
-    additionalProperties: false,
-    properties: {
-      name: ORGANIZATION_SCHEMA.name,
-      email: ORGANIZATION_SCHEMA.email
-    }
-  },
+  bodySchema: ORGANIZATION_SCHEMA,
   on: async (request, response, { db, jwt: { sub } }) => {
     const organization = new Organization();
     const ownerId = new mongodb.ObjectId(sub);
