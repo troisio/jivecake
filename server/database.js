@@ -40,6 +40,7 @@ export const getDatabase = () => {
 
         const itemCollection = db.collection(ItemCollection);
         await itemCollection.createIndex({ eventId: 1 });
+        await itemCollection.createIndex({ order: 1 });
 
         const transactionCollection = db.collection(TransactionCollection);
         await transactionCollection.createIndex({ eventId: 1 });

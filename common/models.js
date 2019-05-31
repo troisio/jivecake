@@ -22,6 +22,7 @@ export class Item {
 	published = false;
 	name = null;
 	created = null;
+  order = 0;
 	maxiumumAvailable = null;
 	lastUserActivity = null;
 	lastSystemActivity = null;
@@ -116,12 +117,13 @@ export class Language {
 	static es = 'es';
 }
 
-export const SUPPORTED_LANGUAGE_IDS = [Language.en, Language.fr, Language.ko, Language.es];
+export const SUPPORTED_LANGUAGE_IDS = [Language.en, Language.fr, Language.ko];
 
 export class Currency {
 	static USD = 'USD';
-	static CAD = 'EUR';
-	static GBP = 'EUR';
+	static CAD = 'CAD';
+	static GBP = 'GBP';
+  static EUR = 'EUR';
 	static JPY = 'JPY';
 	static KRW = 'KRW';
 }

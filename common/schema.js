@@ -52,7 +52,7 @@ export const ITEM_SCHEMA = {
       else: { type: 'null' }
     },
     currency: {
-      enum: [Currency.USD, Currency.EUR, Currency.CAD, Currency.JPY, Currency.KRW, null]
+      enum: [Currency.USD, Currency.EUR, Currency.GBP, Currency.CAD, Currency.JPY, Currency.KRW, null]
     },
     maximumAvailable: {
       if: { type: 'integer' },

@@ -263,6 +263,7 @@ export const CREATE_ACCOUNT = {
 export const GET_TOKEN = {
   method: 'POST',
   path: '/token/password',
+  bodySchema: USER_SCHEMA,
   on: async (request, response, { db, sentry, ip }) => {
     const { body: { email, password } } = request;
     const user = await db.collection(UserCollection).findOne({ email });

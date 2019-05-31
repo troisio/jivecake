@@ -58,7 +58,8 @@ export function Application() {
 
   const [ applicationState, setApplicationState ] = useState(DEFAULT_APPLICATION_STATE);
   const jwtPayload = jwt.decode(storage.token);
-
+  const loading = safe(() => getUserState.fetching) ||
+    (applicationState.userId && !usersState.hasOwnProperty(applicationState.userId));
   const onLogoutClick = e => {
     e.preventDefault();
     dispatchLocalStorage({ type: 'RESET' });
@@ -168,8 +169,6 @@ export function Application() {
   }, [ usersState, storage, applicationState ]);
 
   let content;
-  const loading = safe(() => getUserState.fetching) ||
-    (applicationState.userId && !usersState.hasOwnProperty(applicationState.userId));
 
   if (loading) {
     content = <NaturalSpinner styleName='spinner' />;

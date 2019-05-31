@@ -4,11 +4,13 @@ import { withRouter } from 'react-router';
 
 import { T } from 'common/i18n';
 import { ITEM_SCHEMA } from 'common/schema';
+import { Currency } from 'common/models';
 
 import { routes } from 'js/routes';
 import { safe } from 'js/helper';
 import { Button } from 'js/component/button';
 import { Input } from 'js/component/input';
+import { CurrencySelector } from 'js/component/currency-selector';
 
 import {
   FetchDispatchContext,
@@ -29,6 +31,8 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
 
   const fetchItem = itemsMap[itemId];
   const [ name, setName ] = useState(fetchItem ? fetchItem.name : '');
+  const [ amount, setAmount ] = useState(fetchItem ? fetchItem.amount : '');
+  const [ currency, setCurrency ] = useState(fetchItem ? fetchItem.currency : '');
 
   const createItemState = fetchState[CREATE_ITEM];
   const loading = safe(() => createItemState.fetching);
@@ -38,6 +42,12 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
 
     if (loading) {
       return;
+    }
+
+    let derivedAmount = amount;
+
+    if (currency === Currency.USD || currency === Currency.EUR) {
+      derivedAmount = Math.floor(amount * 100);
     }
 
     const path = itemId ?
@@ -51,7 +61,7 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
         maximumAvailable: null,
         published: false,
         currency: null,
-        amount: null
+        amount: derivedAmount
       }
     }, CREATE_ITEM);
   };
@@ -85,6 +95,18 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
           minLength={ITEM_SCHEMA.properties.name.minLength}
           maxLength={ITEM_SCHEMA.properties.name.maxLength}
         />
+      </div>
+      <div styleName='form-row'>
+        <label styleName='label'>
+          {T('Currency')}
+        </label>
+        <CurrencySelector required autoComplete='transaction-currency' styleName='selector' value={currency} onChange={e => setCurrency(e.target.value)} />
+      </div>
+      <div styleName='form-row'>
+        <label styleName='label'>
+          {T('Amount')}
+        </label>
+        <Input required min={0} autoComplete='transaction-currency' type='number' value={amount} onChange={e => setAmount(Number(e.target.value))} />
       </div>
       <Button loading={loading}>
         {itemId ? T('Update') : T('Create')}
