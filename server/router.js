@@ -5,8 +5,8 @@ import jwtkeysecret from 'extra/jwt/jwt.key';
 
 import { OrganizationCollection, UserCollection } from './database';
 
-export const DEFAULT_LIMIT = 500;
-export const LIMIT_MAX = 1000;
+export const DEFAULT_LIMIT = 100;
+export const LIMIT_MAX = 100;
 
 export class Require {
   static Authenticated = 'authenticated';

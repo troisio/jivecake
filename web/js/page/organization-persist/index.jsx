@@ -22,7 +22,6 @@ import {
 
 import { routes } from 'js/routes';
 
-import { DefaultLayout } from 'component/default-layout';
 import { safe } from 'js/helper';
 import { MessageBlock } from 'component/message-block';
 import { OrganizationEmailNotice } from 'component/organization-email-notice';
@@ -189,41 +188,39 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
   }
 
   return (
-    <DefaultLayout>
-      <form onSubmit={onSubmit} styleName='root'>
-        {
-          messages.map(message => <MessageBlock key={message}>{message}</MessageBlock>)
-        }
-        <AvatarImageUpload loading={avatarLoading} disabled={loading} styleName='avatar-image-upload' onFile={onFile} { ...avatarUploadProps } />
+    <form onSubmit={onSubmit} styleName='root'>
+      {
+        messages.map(message => <MessageBlock key={message}>{message}</MessageBlock>)
+      }
+      <AvatarImageUpload loading={avatarLoading} disabled={loading} styleName='avatar-image-upload' onFile={onFile} { ...avatarUploadProps } />
+      <Input
+        placeholder={T('Organization Name')}
+        onChange={e => setName(e.target.value)}
+        value={name}
+        required
+        maxLength={ORGANIZATION_SCHEMA.properties,name.maxLength}
+      />
+      <div styleName='email-section'>
         <Input
-          placeholder={T('Organization Name')}
-          onChange={e => setName(e.target.value)}
-          value={name}
+          placeholder={T('Email')}
+          type='email'
+          value={email}
           required
-          maxLength={ORGANIZATION_SCHEMA.properties,name.maxLength}
+          onChange={e => setEmail(e.target.value)}
+          maxLength={ORGANIZATION_SCHEMA.properties.email.maxLength}
         />
-        <div styleName='email-section'>
-          <Input
-            placeholder={T('Email')}
-            type='email'
-            value={email}
-            required
-            onChange={e => setEmail(e.target.value)}
-            maxLength={ORGANIZATION_SCHEMA.properties.email.maxLength}
-          />
-        <OrganizationEmailNotice />
-        </div>
-        <Button loading={loading}>
-          {submitText}
-        </Button>
-      </form>
-    </DefaultLayout>
+      <OrganizationEmailNotice />
+      </div>
+      <Button loading={loading}>
+        {submitText}
+      </Button>
+    </form>
   );
 }
 
 OrganizationPersistComponent.propTypes = {
-  history: PropTypes.object,
-  match: PropTypes.object
+  history: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired
 };
 
 export const OrganizationPersist = withRouter(OrganizationPersistComponent);

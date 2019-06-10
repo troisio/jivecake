@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
-import _ from 'lodash';
 import jwt from 'jsonwebtoken';
 
 import { safe } from 'js/helper';
@@ -102,7 +101,7 @@ export function Application() {
       return;
     }
 
-    const organization = _.values(organizationMap)
+    const organization = Object.values(organizationMap)
       .find(({ read }) => read.includes(applicationState.userId));
 
     if (organization) {

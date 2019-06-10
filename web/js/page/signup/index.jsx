@@ -98,7 +98,8 @@ export function SignupComponent({ history }) {
         method: 'POST',
         body: {
           email: createAccountState.originalBody.email,
-          password: createAccountState.originalBody.password
+          password: createAccountState.originalBody.password,
+          lastLanguage: getNavigatorLanguage(window.navigator)
         }
       }, TOKEN_FROM_PASSWORD);
     }

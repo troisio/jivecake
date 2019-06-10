@@ -1,9 +1,7 @@
-import { useReducer, useEffect, useContext } from 'react';
 import _ from 'lodash';
 
-import { safe } from 'js/helper';
+import { getEntityStoreHook } from 'js/helper/reducer';
 
-import { FetchStateContext } from 'js/context';
 import {
   GET_EVENT,
   GET_ORGANIZATION_EVENTS
@@ -27,18 +25,7 @@ function reducer(state, action) {
   }
 }
 
-export function useEvents() {
-  const [ state, dispatch ] = useReducer(reducer, {});
-  const fetchState = useContext(FetchStateContext);
-  for (const type of [GET_EVENT, GET_ORGANIZATION_EVENTS]) {
-    const data = fetchState[type];
-
-    useEffect(() => {
-      if (safe(() => data.response.ok)) {
-        dispatch(data);
-      }
-    }, [ data ]);
-  }
-
-  return [ state, dispatch ];
-}
+export const useEvents = getEntityStoreHook(
+  [GET_EVENT, GET_ORGANIZATION_EVENTS],
+  reducer
+);

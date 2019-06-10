@@ -1,3 +1,9 @@
+@import '~sass/mixin';
+
+.root {
+  @include defaultLayout();
+}
+
 .vertical-content {
   display: flex;
   flex-direction: column;

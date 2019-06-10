@@ -1,5 +1,4 @@
 import React, { useEffect, useContext, useState } from 'react';
-import _ from 'lodash';
 
 import { T } from 'common/i18n';
 
@@ -38,7 +37,7 @@ export function Account() {
   const updateUserState = fetchState[UPDATE_USER];
 
   const emailIsTaken = safe(() => emailFetchState.response.status === 200, false);
-  const organizations = _.values(organizationsMap).sort((first, second) => first.name.localeCompare(second.name));
+  const organizations = Object.values(organizationsMap).sort((first, second) => first.name.localeCompare(second.name));
   const user = usersMap[applicationState.userId];
 
   const [ email, setEmail ] = useState(user.email);

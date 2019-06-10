@@ -113,12 +113,15 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
       return;
     }
 
+    const eventBody = {
+      name,
+      published: false,
+    };
+
     if (eventId) {
       dispatchFetch(['event/:eventId', eventId], {
         method: 'POST',
-        body: {
-          name
-        }
+        body: eventBody
       }, UPDATE_EVENT);
 
       if (eventAvatarBlob) {
@@ -130,10 +133,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
     } else if (applicationState.organizationId) {
       dispatchFetch(['organization/:organizationId/event', applicationState.organizationId], {
         method: 'POST',
-        body: {
-          name,
-          published: false
-        }
+        body: eventBody
       }, CREATE_EVENT);
     } else {
       dispatchFetch('organization', {

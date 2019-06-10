@@ -3,7 +3,6 @@ import React, { useContext } from 'react';
 import { T } from 'common/i18n';
 
 import { svgUrl } from 'js/helper';
-import { DefaultLayout } from 'component/default-layout';
 import { Anchor } from 'js/component/anchor';
 import { routes } from 'js/routes';
 import './style.scss';
@@ -37,7 +36,7 @@ export function Home() {
   }
 
   return (
-    <DefaultLayout>
+    <div styleName='root'>
       <div styleName='navigation'>
         {organizationAnchors}
         <Anchor box button styleName='anchor' to={routes.eventPersist()}>
@@ -53,6 +52,6 @@ export function Home() {
           </span>
         </Anchor>
       </div>
-    </DefaultLayout>
+    </div>
   );
 }

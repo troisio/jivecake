@@ -1,4 +1,5 @@
 @import '~sass/media';
+@import '~sass/mixin';
 
 .anchor {
   display: flex;
@@ -13,6 +14,7 @@
 
 .root {
   padding: 0;
+  @include defaultLayout();
 }
 
 .navigation {

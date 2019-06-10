@@ -1,5 +1,6 @@
 @import '~sass/color';
 @import '~sass/media';
+@import '~sass/mixin';
 
 .avatar {
   align-self: center;
@@ -28,6 +29,7 @@
   display: flex;
   margin: 0 auto;
   flex-direction: column;
+  @include defaultLayout();
 
   > *:not(:first-child) {
     margin-top: 1rem;

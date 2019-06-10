@@ -19,8 +19,13 @@
   margin-left: 12px;
 }
 
+.pagination {
+  padding: 0;
+}
+
 .root {
   @include defaultLayout();
+  margin-bottom: 12px;
 }
 
 .row {
@@ -29,4 +34,9 @@
   &:not(:first-child) {
     margin-top: 6px;
   }
+}
+
+.see-more {
+  margin-top: 12px;
+  width: 100%;
 }

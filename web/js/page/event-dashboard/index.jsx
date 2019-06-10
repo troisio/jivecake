@@ -1,7 +1,6 @@
 import React, { useContext, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
-import _ from 'lodash';
 
 import { T } from 'common/i18n';
 
@@ -36,7 +35,7 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
   const getEventFetchState = fetchState[GET_EVENT];
   const event = eventState[eventId];
 
-  const items = _.values(itemState)
+  const items = Object.values(itemState)
     .filter(item => item.eventId === eventId);
 
   useEffect(() => {

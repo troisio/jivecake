@@ -14,7 +14,6 @@ import { MessageBlock } from 'component/message-block';
 import { Anchor } from 'component/anchor';
 import { Button } from 'component/button';
 import { Input } from 'component/input';
-import { DefaultLayout } from 'component/default-layout';
 import './style.scss';
 
 import { TOKEN_FROM_PASSWORD } from 'js/reducer/useFetch';
@@ -26,8 +25,7 @@ export function Login() {
   const [ fetchDispatch ] = useContext(FetchDispatchContext);
   const fetchState = useContext(FetchStateContext);
   const tokenFromPasswordState = fetchState[TOKEN_FROM_PASSWORD];
-
-  function onSubmit(e) {
+  const onSubmit = (e) => {
     e.preventDefault();
 
     if (safe(() => tokenFromPasswordState.fetching)) {
@@ -41,7 +39,7 @@ export function Login() {
         password: password
       }
     }, TOKEN_FROM_PASSWORD);
-  }
+  };
 
   function onPasswordChange(e) {
     setPassword(e.target.value);
@@ -73,7 +71,7 @@ export function Login() {
     }
 
     content = (
-      <form onSubmit={onSubmit} styleName='vertical-content'>
+      <form onSubmit={onSubmit} styleName='vertical-content root'>
         {invalidCredentialsWarning}
         {unableToValidateMessage}
         <Input
@@ -105,7 +103,7 @@ export function Login() {
     );
   } else {
     content = (
-      <div styleName='vertical-content'>
+      <div styleName='vertical-content root'>
         <MessageBlock>
           {T('You are already logged in')}
         </MessageBlock>
@@ -113,9 +111,5 @@ export function Login() {
     );
   }
 
-  return (
-    <DefaultLayout>
-      {content}
-    </DefaultLayout>
-  );
+  return content;
 }
