@@ -6,12 +6,12 @@ export function Pagination({ value, render, more }) {
   const ids = _.flatMap(value.pages);
 
   return (
-    <React.Fragment>
+    <>
       {
         ids.map(id => <React.Fragment key={id}>{render(id)}</React.Fragment>)
       }
       {ids.length < value.count ? more : null}
-    </React.Fragment>
+    </>
   );
 }
 

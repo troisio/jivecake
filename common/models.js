@@ -51,8 +51,6 @@ export class Transaction {
 	amount = null;
 	createdBy = null;
 	externalTransationId = null;
-	externalTransationType = null;
-	status = null;
 	lastUserActivity = null;
 	lastSystemActivity = null;
 }
@@ -96,13 +94,6 @@ export class EntityType {
 	static Transaction = 'transaction';
 	static Event = 'event';
 	static User = 'user';
-}
-
-export class JiveCakeTransactionStatus {
-	SETTLED = 'settled';
-	REVOKED = 'revoked';
-	REFUNDED = 'refunded';
-	PENDING = 'pending';
 }
 
 export class PaymentProfileType {

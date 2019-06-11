@@ -223,6 +223,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
     }
 
     const organizationId = createOrganizationState.body._id;
+    dispatchFetchDelete([ CREATE_ORGANIZATION ]);
     dispatchFetch(['organization/:organizationId', organizationId], {}, GET_ORGANIZATION);
     dispatchFetch(['organization/:organizationId/event', organizationId], {
       method: 'POST',

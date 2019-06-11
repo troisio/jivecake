@@ -61,7 +61,8 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
         maximumAvailable: null,
         published: false,
         currency: null,
-        amount: derivedAmount
+        amount: derivedAmount,
+        sort: 0
       }
     }, CREATE_ITEM);
   };

@@ -42,7 +42,7 @@ export const USER_SCHEMA = {
 
 export const ITEM_SCHEMA = {
   type: 'object',
-  required: ['name', 'amount', 'currency', 'maximumAvailable', 'published'],
+  required: ['name', 'amount', 'sort', 'currency', 'maximumAvailable', 'published'],
   additionalProperties: false,
   properties: {
     name: DEFAULT_TEXT_FIELD,
@@ -53,6 +53,9 @@ export const ITEM_SCHEMA = {
     },
     currency: {
       enum: [Currency.USD, Currency.EUR, Currency.GBP, Currency.CAD, Currency.JPY, Currency.KRW, null]
+    },
+    sort: {
+      type: 'integer'
     },
     maximumAvailable: {
       if: { type: 'integer' },

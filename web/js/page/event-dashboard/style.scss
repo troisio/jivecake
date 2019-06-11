@@ -16,17 +16,13 @@
 }
 
 .item-name {
-
+  padding: 0;
 }
 
 .items {
   display: flex;
   flex-direction: column;
   margin-top: 16px;
-}
-
-.items-table {
-  display: grid;
 }
 
 .page-title {
@@ -38,6 +34,16 @@
   }
 }
 
+.pagination {
+  display: flex;
+  flex-direction: column;
+}
+
 .root {
   @include defaultLayout();
+}
+
+.see-more {
+  margin-top: 12px;
+  width: 100%;
 }
