@@ -2,8 +2,7 @@ import React, { useEffect, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
 
-import { T } from 'common/i18n';
-
+import { SEE_MORE  } from 'js/helper/text';
 import { OrganizationEventsContext } from 'js/context';
 import { Anchor } from 'component/anchor';
 import { Avatar } from 'component/avatar';
@@ -50,21 +49,11 @@ export function Events() {
       GET_ORGANIZATION_EVENTS
     );
   };
-
-  useEffect(() => {
-    return () => {
-      dispatchFetchDelete([
-        GET_ORGANIZATION_EVENTS
-      ]);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (organizationId) {
-      getNextPage(0);
-    }
-  }, [ organizationId ]);
-
+  const seeMoreButton = (
+    <Button loading={isFetchingMoreEvents} styleName='see-more' onClick={() => getNextPage()} type='button'>
+      {SEE_MORE}
+    </Button>
+  );
 
   const renderEvent = id => {
     const event = eventsMap[id];
@@ -84,6 +73,20 @@ export function Events() {
     );
   };
 
+  useEffect(() => {
+    return () => {
+      dispatchFetchDelete([
+        GET_ORGANIZATION_EVENTS
+      ]);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (organizationId) {
+      getNextPage(0);
+    }
+  }, [ organizationId ]);
+
   return (
     <div styleName='root'>
       {
@@ -92,7 +95,7 @@ export function Events() {
           <Pagination
             value={organizationEventsPagination}
             render={renderEvent}
-            more={<Button loading={isFetchingMoreEvents} styleName='see-more' onClick={() => getNextPage()} type='button'>{T('see more')}</Button>}
+            more={seeMoreButton}
           />
         </div>
       }
