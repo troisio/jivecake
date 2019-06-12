@@ -3,6 +3,10 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 
 import { T } from 'common/i18n';
+import {
+  EVENT_PATH,
+  EVENT_ITEMS_PATH
+} from 'common/routes';
 
 import {
   EventContext,
@@ -50,10 +54,11 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
     const nextPage = typeof page === 'undefined' ? eventItemsPagination.pages.length : page;
 
     dispatchFetch(
-      ['event/:eventId/item', eventId],
+      [EVENT_ITEMS_PATH, eventId],
       {
         query: {
-          page: nextPage
+          page: nextPage,
+          lastUserActivity: -1
         }
       },
       GET_EVENT_ITEMS
@@ -74,7 +79,7 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
   );
 
   useEffect(() => {
-    dispatchFetch(['event/:eventId', eventId], {}, GET_EVENT);
+    dispatchFetch([EVENT_PATH, eventId], {}, GET_EVENT);
     getNextPage(0);
 
     return () => {

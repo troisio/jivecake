@@ -1,6 +1,7 @@
 import packageJson from 'packageJson';
 
 export const settings = {
+  admins: [],
   port: 9000,
   http: {
     origins: ['http://127.0.0.1', 'https://jivecake.com']

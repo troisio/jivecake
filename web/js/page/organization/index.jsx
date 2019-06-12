@@ -3,6 +3,10 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 
 import { T } from 'common/i18n';
+import {
+  USER_ORGANIZATIONS_PATH
+} from 'common/routes';
+
 import { Avatar } from 'component/avatar';
 import { Spinner } from 'component/spinner';
 import { Anchor } from 'component/anchor';
@@ -29,7 +33,7 @@ export function OrganizationComponent() {
 
   useEffect(() => {
     if (!userOrganizations.hasOwnProperty(userId)) {
-      dispatchFetch(['user/:userId/organization', userId], {
+      dispatchFetch([USER_ORGANIZATIONS_PATH, userId], {
         query: {
           page: 0,
           lastUserActivity: -1

@@ -17,6 +17,12 @@ import { Input } from 'component/input';
 import './style.scss';
 
 import {
+  ACCOUNT_PATH,
+  TOKEN_PATH,
+  USER_EMAIL_PATH
+} from 'common/routes';
+
+import {
   SEARCH_EMAIL,
   CREATE_ACCOUNT,
   TOKEN_FROM_PASSWORD
@@ -64,15 +70,17 @@ export function SignupComponent({ history }) {
       return;
     }
 
+    const body = {
+      email,
+      password: password,
+      lastLanguage: getNavigatorLanguage(window.navigator)
+    };
+
     dispatchFetch(
-      'account',
+      ACCOUNT_PATH,
       {
         method: 'POST',
-        body: {
-          email,
-          password: password,
-          lastLanguage: getNavigatorLanguage(window.navigator)
-        },
+        body,
       },
       CREATE_ACCOUNT
     );
@@ -94,12 +102,11 @@ export function SignupComponent({ history }) {
 
   useEffect(() => {
     if (safe(() => createAccountState.response.ok)) {
-      dispatchFetch('token/password', {
+      dispatchFetch(TOKEN_PATH, {
         method: 'POST',
         body: {
           email: createAccountState.originalBody.email,
-          password: createAccountState.originalBody.password,
-          lastLanguage: getNavigatorLanguage(window.navigator)
+          password: createAccountState.originalBody.password
         }
       }, TOKEN_FROM_PASSWORD);
     }
@@ -107,7 +114,7 @@ export function SignupComponent({ history }) {
 
   useEffect(() => {
     if (isValidEmail(email)) {
-      dispatchFetch('user/email', { query: { email } }, SEARCH_EMAIL);
+      dispatchFetch(USER_EMAIL_PATH, { query: { email } }, SEARCH_EMAIL);
     }
   }, [email]);
 

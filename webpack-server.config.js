@@ -17,16 +17,9 @@ module.exports = function() {
     },
     resolve: {
       alias: {
-        api: path.resolve(__dirname, 'server/api'),
         common: path.resolve(__dirname, 'common'),
-        i18n: path.resolve(__dirname, 'i18n'),
-        database: path.resolve(__dirname, 'server/database'),
-        server: path.resolve(__dirname, 'server'),
-        route: path.resolve(__dirname, 'server/route'),
-        router: path.resolve(__dirname, 'server/router'),
-        extra: path.resolve(__dirname, 'extra'),
-        settings: path.resolve(__dirname, 'server/settings'),
         packageJson: path.resolve(__dirname, 'package.json'),
+        server: path.resolve(__dirname, 'server'),
       },
       extensions: ['.js']
     },

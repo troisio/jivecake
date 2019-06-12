@@ -17,6 +17,8 @@ export const TOKEN_FROM_PASSWORD = 'TOKEN_FROM_PASSWORD';
 export const GET_ITEM = 'GET_ITEM';
 export const CREATE_ITEM = 'CREATE_ITEM';
 
+export const GET_ITEM_TRANSACTIONS = 'GET_ITEM_TRANSACTIONS';
+
 export const GET_EVENT = 'GET_EVENT';
 export const CREATE_EVENT = 'CREATE_EVENT';
 export const UPDATE_EVENT = 'UPDATE_EVENT';
@@ -88,7 +90,7 @@ export function useFetch(token) {
     let derivedUrl;
 
     if (Array.isArray(data.url)) {
-      const derivedURLArray = data.url[0].split('/');
+      const derivedURLArray = data.url[0].slice(1).split('/');
       const params = {};
       let index = 1;
 
@@ -102,7 +104,7 @@ export function useFetch(token) {
       derivedUrl = '/' + derivedURLArray.join('/');
       data.params = params;
     } else {
-      derivedUrl = '/' + data.url;
+      derivedUrl = data.url;
     }
 
     if (searchParams.toString() !== '') {
@@ -121,7 +123,7 @@ export function useFetch(token) {
       const nextData = {
         ...data,
         response,
-        fetching: false,
+        fetching: false
       };
 
       if (contentType && contentType.includes('application/json')) {

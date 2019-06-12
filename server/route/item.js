@@ -1,13 +1,15 @@
 import mongodb from 'mongodb';
 
 import { Item } from 'common/models';
-import { Permission } from 'router';
-import { EventCollection, ItemCollection, TransactionCollection } from 'database';
+import { ITEM_PATH, EVENT_ITEMS_PATH } from 'common/routes';
+
+import { Permission } from 'server/router';
+import { EventCollection, ItemCollection, TransactionCollection } from 'server/database';
 import { ITEM_SCHEMA } from 'common/schema';
 
 export const GET_ITEM = {
   method: 'GET',
-  path: '/item/:itemId',
+  path: ITEM_PATH,
   accessRules: [
     {
       permission: Permission.READ,
@@ -24,7 +26,7 @@ export const GET_ITEM = {
 
 export const DELETE_ITEM = {
   method: 'DELETE',
-  path: '/item/:itemId',
+  path: ITEM_PATH,
   accessRules: [
     {
       permission: Permission.WRITE,
@@ -52,7 +54,7 @@ export const DELETE_ITEM = {
 
 export const CREATE_ITEM = {
   method: 'POST',
-  path: '/event/:eventId/item',
+  path: EVENT_ITEMS_PATH,
   accessRules: [
     {
       permission: Permission.WRITE,
@@ -62,10 +64,14 @@ export const CREATE_ITEM = {
   ],
   bodySchema: ITEM_SCHEMA,
   on: async (request, response, { db }) => {
-    const item = new Item();
-    item.eventId = new mongodb.ObjectID(request.params.eventId);
-    item.name = request.body.name;
-    item.organizationId = new mongodb.ObjectID(request.params.id);
+    const eventId = new mongodb.ObjectID(request.params.eventId);
+    const event = await db.collection(EventCollection)
+      .findOne({ _id: eventId });
+    const item = Object.assign(new Item(), request.body);
+
+    item.eventId = eventId;
+    item.organizationId = event.organizationId;
+    item.lastUserActivity = new Date();
     item.created = new Date();
 
     await db.collection(ItemCollection).insertOne(item);
@@ -75,7 +81,7 @@ export const CREATE_ITEM = {
 
 export const UPDATE_ITEM = {
   method: 'POST',
-  path: '/item/:itemId',
+  path: ITEM_PATH,
   accessRules: [
     {
       permission: Permission.WRITE,

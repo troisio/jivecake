@@ -5,6 +5,14 @@ import Compressor from 'compressorjs';
 
 import { T } from 'common/i18n';
 import { MAXIMUM_IMAGE_UPLOAD_BYTES, ORGANIZATION_SCHEMA } from 'common/schema';
+import {
+  ORGANIZATIONS_PATH,
+  ORGANIZATION_EVENTS_PATH,
+  EVENT_AVATAR_PATH,
+  EVENT_PATH,
+  USER_ORGANIZATIONS_PATH,
+  ORGANIZATION_PATH
+} from 'common/routes';
 
 import { routes } from 'js/routes';
 import {
@@ -119,24 +127,24 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
     };
 
     if (eventId) {
-      dispatchFetch(['event/:eventId', eventId], {
+      dispatchFetch([EVENT_PATH, eventId], {
         method: 'POST',
         body: eventBody
       }, UPDATE_EVENT);
 
       if (eventAvatarBlob) {
-        dispatchFetch(['event/:eventId/avatar', eventId], {
+        dispatchFetch([EVENT_AVATAR_PATH, eventId], {
           method: 'POST',
           body: eventAvatarBlob
         }, UPDATE_EVENT_AVATAR);
       }
     } else if (applicationState.organizationId) {
-      dispatchFetch(['organization/:organizationId/event', applicationState.organizationId], {
+      dispatchFetch([ORGANIZATION_EVENTS_PATH, applicationState.organizationId], {
         method: 'POST',
         body: eventBody
       }, CREATE_EVENT);
     } else {
-      dispatchFetch('organization', {
+      dispatchFetch(ORGANIZATIONS_PATH, {
         method: 'POST',
         body: {
           name: organizationName,
@@ -148,7 +156,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
 
   useEffect(() => {
     dispatchFetch(
-      ['user/:userId/organization', applicationState.userId],
+      [USER_ORGANIZATIONS_PATH, applicationState.userId],
       {
         query: {
           page: 0
@@ -173,25 +181,30 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
 
   useEffect(() => {
     if (safe(() => updateEventState.response.ok)) {
-      dispatchFetch(['event/:eventId', eventId], {}, GET_EVENT);
+      dispatchFetchDelete([ UPDATE_EVENT ]);
+      dispatchFetch([EVENT_PATH, eventId], {}, GET_EVENT);
     }
   }, [ updateEventState, eventId ]);
 
   useEffect(() => {
+    if (safe(() => updateEventAvatarState.response.ok)) {
+      dispatchFetchDelete([ UPDATE_EVENT_AVATAR ]);
+      dispatchFetch([EVENT_PATH, eventId], {}, GET_EVENT);
+    }
+  }, [ updateEventAvatarState, eventId ]);
+
+  useEffect(() => {
     if (eventId) {
-      dispatchFetch(['event/:eventId', eventId], {}, GET_EVENT);
+      dispatchFetch([EVENT_PATH, eventId], {}, GET_EVENT);
     }
   }, [ eventId ]);
 
   useEffect(() => {
-    if (safe(() => updateEventAvatarState.response.ok)) {
-      if (eventId) {
-        dispatchFetch(['event/:eventId', eventId], {}, GET_EVENT);
-      } else {
-        history.push(routes.event(createEventState.body._id));
-      }
+    if (safe(() => createEventState.response.ok)) {
+      dispatchFetchDelete([ CREATE_EVENT ]);
+      history.push(routes.event(createEventState.body._id));
     }
-  }, [ updateEventAvatarState, eventId, createEventState ]);
+  }, [ createEventState ]);
 
   useEffect(() => {
     if (fetchedEvent) {
@@ -205,10 +218,10 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
       return;
     }
 
-    dispatchFetch(['event/:eventId', createEventState.body._id], {}, GET_EVENT);
+    dispatchFetch([EVENT_PATH, createEventState.body._id], {}, GET_EVENT);
 
     if (eventAvatarBlob) {
-      dispatchFetch(['event/:eventId/avatar', createEventState.body._id], {
+      dispatchFetch([EVENT_AVATAR_PATH, createEventState.body._id], {
         method: 'POST',
         body: eventAvatarBlob
       }, UPDATE_EVENT_AVATAR);
@@ -224,8 +237,8 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
 
     const organizationId = createOrganizationState.body._id;
     dispatchFetchDelete([ CREATE_ORGANIZATION ]);
-    dispatchFetch(['organization/:organizationId', organizationId], {}, GET_ORGANIZATION);
-    dispatchFetch(['organization/:organizationId/event', organizationId], {
+    dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
+    dispatchFetch([ORGANIZATION_EVENTS_PATH, organizationId], {
       method: 'POST',
       body: {
         name,
@@ -240,7 +253,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
 
   let organizationFields;
 
-  if (!applicationState.organizationId) {
+  if (!applicationState.organizationId && !eventId) {
     organizationFields = (
       <>
         <div styleName='form-row'>
@@ -274,26 +287,14 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
     );
   }
 
-  if (eventId) {
-    organizationFields = null;
-  }
-
   const messages = [];
 
   if (eventAvatarBlob && !eventAvatarBlob.type.startsWith('image')) {
-    messages.push(
-      <MessageBlock key='invalid-file-type'>
-        {T('Please choose an image')}
-      </MessageBlock>
-    );
+    messages.push(T('Please choose an image'));
   }
 
   if (unableToCompressFile) {
-    messages.push(
-      <MessageBlock key='compress'>
-        {T('Unable to compress image file')}
-      </MessageBlock>
-    );
+    messages.push(T('Unable to compress image file'));
   }
 
   if (isFetchingEvent) {
@@ -324,7 +325,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
         />
       </div>
       {organizationFields}
-      {messages}
+      {messages.map(message =>   <MessageBlock key={message}>{message}</MessageBlock>)}
       <Button loading={loading}>
         {submitText}
       </Button>

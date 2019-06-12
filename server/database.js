@@ -1,5 +1,5 @@
 import mongodb from 'mongodb';
-import { settings } from 'settings';
+import { settings } from 'server/settings';
 
 export const UserCollection = 'user';
 export const EventCollection = 'event';

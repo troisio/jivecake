@@ -1,6 +1,7 @@
 import packageJson from 'packageJson';
 
 export const settings = {
+  admins: $JC_ADMINS_PRODUCTION,
   port: 443,
   http: {
     origins: ['https://jivecake.com', 'http://jivecake.com']

@@ -2,6 +2,8 @@ import React, { useEffect, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
 
+import { ORGANIZATION_EVENTS_PATH } from 'common/routes';
+
 import { SEE_MORE  } from 'js/helper/text';
 import { OrganizationEventsContext } from 'js/context';
 import { Anchor } from 'component/anchor';
@@ -40,7 +42,7 @@ export function Events() {
     const nextPage = typeof page === 'undefined' ? organizationEventsPagination.pages.length : page;
 
     dispatchFetch(
-      ['organization/:organizationId/event', organizationId],
+      [ORGANIZATION_EVENTS_PATH, organizationId],
       {
         query: {
           page: nextPage,

@@ -3,18 +3,26 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import mongodb from 'mongodb';
 
-import jwtkeysecret from 'extra/jwt/jwt.key';
-import { settings } from 'settings';
-import { EMAIL_COLLATION } from 'server/database';
+import jwtkeysecret from 'server/extra/jwt/jwt.key';
+import { settings } from 'server/settings';
 
-import { Require, Permission } from 'router';
+import { Require, Permission } from 'server/router';
 import {
   OrganizationCollection,
   PasswordRecoveryCollection,
   UserCollection,
-  SORT_DIRECTIONS_AS_STRING
-} from 'database';
+  SORT_DIRECTIONS_AS_STRING,
+  EMAIL_COLLATION
+} from 'server/database';
 import { PasswordRecovery, User } from 'common/models';
+import {
+  USER_PATH,
+  USER_PASSWORD_RECOVERY_PATH,
+  ACCOUNT_PATH,
+  USER_ORGANIZATIONS_PATH,
+  USER_EMAIL_PATH,
+  TOKEN_PATH
+} from 'common/routes';
 import { USER_SCHEMA } from 'common/schema';
 import { getUserLanguage } from 'common/helpers';
 
@@ -38,24 +46,24 @@ const getHashedPassword = (password) => {
 
 export const GET_USER = {
   method: 'GET',
-  path: '/user/:id',
+  path: USER_PATH,
   accessRules: [
     {
       permission: Permission.READ,
       collection: UserCollection,
-      param: 'id'
+      param: 'userId'
     }
   ],
   requires: [ Require.Authenticated ],
   on: async (request, response, { db }) => {
-    const user = await db.collection(UserCollection).findOne({ _id: new mongodb.ObjectID(request.params.id) });
+    const user = await db.collection(UserCollection).findOne({ _id: new mongodb.ObjectID(request.params.userId) });
     response.json(_.omit(user, ['hashedPassword']));
   }
 };
 
 export const PASSWORD_RECOVERY = {
   method: 'POST',
-  path: '/user/password_recovery',
+  path: USER_PASSWORD_RECOVERY_PATH,
   bodySchema: {
     type: 'object',
     required: ['email'],
@@ -107,7 +115,7 @@ export const PASSWORD_RECOVERY = {
 
 export const USER_BY_EMAIL = {
   method: 'GET',
-  path: '/user/email',
+  path: USER_EMAIL_PATH,
   querySchema: {
     type: 'object',
     required: ['email'],
@@ -133,7 +141,7 @@ export const USER_BY_EMAIL = {
 
 export const GET_USER_ORGANIZATIONS = {
   method: 'GET',
-  path: '/user/:userId/organization',
+  path: USER_ORGANIZATIONS_PATH,
   accessRules: [
     {
       permission: Permission.READ,
@@ -187,7 +195,7 @@ export const GET_USER_ORGANIZATIONS = {
 
 export const UPDATE_USER = {
   method: 'POST',
-  path: '/user/:userId',
+  path: USER_PATH,
   accessRules: [
     {
       permission: Permission.WRITE,
@@ -227,7 +235,7 @@ export const UPDATE_USER = {
 
 export const CREATE_ACCOUNT = {
   method: 'POST',
-  path: '/account',
+  path: ACCOUNT_PATH,
   bodySchema: {
     type: 'object',
     required: ['email', 'password', 'lastLanguage'],
@@ -236,34 +244,76 @@ export const CREATE_ACCOUNT = {
   },
   on: async (request, response, { db }) => {
     const { body: { email, password, lastLanguage } } = request;
-    const user = await db.collection(UserCollection).findOne({ email });
+    const searchedUsers = await db.collection(UserCollection)
+      .find({ email })
+      .collation(EMAIL_COLLATION)
+      .toArray();
+
+    if (searchedUsers.length > 0) {
+      response.status(409).end();
+      return;
+    }
+
+    if (password.toLocaleLowerCase() === email.toLocaleLowerCase()) {
+      response.status(400).json({ error: 'password email same' }).end();
+      return;
+    }
+
+    const hashedPassword = await getHashedPassword(password);
+    const user = new User();
+    user.email = email;
+    user.hashedPassword = hashedPassword;
+    user.lastLanguage = lastLanguage;
+    user.lastUserActivity = new Date();
+    user.created = new Date();
+
+    await db.collection(UserCollection).insertOne(user);
+    response.status(200).end();
+  }
+};
+
+export const GET_USER_TOKEN = {
+  method: 'POST',
+  path: USER_PATH,
+  requires: [ Require.Authenticated ],
+  on: async (request, response, { db, sentry, jwt: { sub } }) => {
+    const user = await db.collection(UserCollection)
+      .findOne({ _id: new mongodb.ObjectId(request.params.userId) });
+    const requester = await db.collection(UserCollection)
+      .findOne({ _id: new mongodb.ObjectId(sub) });
+
+    if (!settings.admins.includes(requester._id)) {
+      response.status(401).end();
+      return;
+    }
 
     if (user === null) {
-      if (password.toLocaleLowerCase() === email.toLocaleLowerCase()) {
-        response.status(400).json({ error: 'password email same' }).end();
-        return;
-      }
-
-      const hashedPassword = await getHashedPassword(password);
-      const user = new User();
-      user.email = email;
-      user.hashedPassword = hashedPassword;
-      user.lastLanguage = lastLanguage;
-      user.lastUserActivity = new Date();
-      user.created = new Date();
-
-      await db.collection(UserCollection).insertOne(user);
-      response.status(200).end();
+      response.status(404).end();
     } else {
-      response.status(409).end();
+      const sevenDaysAfter = new Date();
+      sevenDaysAfter.setDate(sevenDaysAfter.getDate() + 7);
+      const exp = Math.floor(sevenDaysAfter.getTime() / 1000);
+
+      jwt.sign({ exp, sub: user._id, impersonator: sub }, jwtkeysecret, { algorithm: 'HS256' }, (err, token) => {
+        if (err) {
+          sentry.captureException(err);
+          response.status(401).end();
+        } else {
+          response.json({ token });
+        }
+      });
     }
   }
 };
 
 export const GET_TOKEN = {
   method: 'POST',
-  path: '/token/password',
-  bodySchema: USER_SCHEMA,
+  path: TOKEN_PATH,
+  bodySchema: {
+    ...USER_SCHEMA,
+    required: ['email', 'password'],
+    properties: _.pick(USER_SCHEMA.properties, 'email', 'password'),
+  },
   on: async (request, response, { db, sentry, ip }) => {
     const { body: { email, password } } = request;
     const user = await db.collection(UserCollection).findOne({ email });

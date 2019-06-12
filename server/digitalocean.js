@@ -1,5 +1,5 @@
 import AWS from 'aws-sdk';
-import { settings } from 'settings';
+import { settings } from 'server/settings';
 
 const { bucket, endpoint, region, key, secret } = settings.digitalocean.spaces;
 const s3 = new AWS.S3({

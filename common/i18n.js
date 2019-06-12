@@ -1,7 +1,7 @@
 import i18n from 'i18next';
-import fr from 'i18n/fr/translation.json';
-import ko from 'i18n/ko/translation.json';
-import es from 'i18n/es/translation.json';
+import fr from 'common/i18n/fr/translation.json';
+import ko from 'common/i18n/ko/translation.json';
+import es from 'common/i18n/es/translation.json';
 import { SUPPORTED_LANGUAGE_IDS } from 'common/models';
 
 i18n.init({

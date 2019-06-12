@@ -28,7 +28,7 @@ docker-compose up
 ### generate public private keys for jwt signing
 
 ```sh
-cd extra/jwt
+cd server/extra/jwt
 ssh-keygen -N '' -t rsa -b 4096 -f jwt.key
 ```
 

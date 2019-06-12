@@ -8,6 +8,11 @@ import {
   MAXIMUM_IMAGE_UPLOAD_BYTES,
   ORGANIZATION_SCHEMA
 } from 'common/schema';
+import {
+  ORGANIZATIONS_PATH,
+  ORGANIZATION_AVATAR_PATH,
+  ORGANIZATION_PATH
+} from 'common/routes';
 
 import { FetchDispatchContext, FetchStateContext, OrganizationContext } from 'js/context';
 import {
@@ -98,7 +103,7 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
     setUnableToCompressFile(false);
 
     if (organizationId) {
-      dispatchFetch(['organization/:organizationId', organizationId], {
+      dispatchFetch([ORGANIZATION_PATH, organizationId], {
         method: 'POST',
         body: {
           name,
@@ -107,13 +112,13 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
       }, UPDATE_ORGANIZATION);
 
       if (blob) {
-        dispatchFetch(['organization/:organizationId/avatar', organization._id], {
+        dispatchFetch([ORGANIZATION_AVATAR_PATH, organization._id], {
           method: 'POST',
           body: blob,
         }, UPDATE_ORGANIZATION_AVATAR);
       }
     } else {
-      dispatchFetch('organization', {
+      dispatchFetch(ORGANIZATIONS_PATH, {
         method: 'POST',
         body: {
           name,
@@ -143,7 +148,7 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
 
   useEffect(() => {
     if (organizationId && !organization) {
-      dispatchFetch(['organization/:organizationId', organizationId], {}, GET_ORGANIZATION);
+      dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
     }
   }, [ organizationId, organization ]);
 
@@ -163,7 +168,7 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
 
     if (newId) {
       if (blob) {
-        dispatchFetch(['organization/:organizationId/avatar', newId], {
+        dispatchFetch([ORGANIZATION_AVATAR_PATH, newId], {
           method: 'POST',
           body: blob
         }, UPDATE_ORGANIZATION_AVATAR);

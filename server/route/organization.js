@@ -1,14 +1,21 @@
 import mongodb from 'mongodb';
 
 import { upload, deleteObject } from 'server/digitalocean';
-import { Require, Permission } from 'router';
-import { EventCollection, OrganizationCollection, OrganizationInvitationCollection } from 'database';
+import { Require, Permission } from 'server/router';
+import {
+  ORGANIZATION_AVATAR_PATH,
+  ORGANIZATION_PATH,
+  INVITE_USER_TO_ORGANIZATION,
+  ORGANIZATION_EVENTS_PATH,
+  ORGANIZATIONS_PATH
+} from 'common/routes';
+import { EventCollection, OrganizationCollection, OrganizationInvitationCollection } from 'server/database';
 import { Organization, OrganizationInvitation } from 'common/models';
 import { ORGANIZATION_SCHEMA } from 'common/schema';
 
 export const UPDATE_ORGANIZATION_AVATAR = {
   method: 'POST',
-  path: '/organization/:organizationId/avatar',
+  path: ORGANIZATION_AVATAR_PATH,
   requires: [ Require.Authenticated ],
   accessRules: [
     {
@@ -54,7 +61,7 @@ export const UPDATE_ORGANIZATION_AVATAR = {
 
 export const UPDATE_ORGANIZATION = {
   method: 'POST',
-  path: '/organization/:organizationId',
+  path: ORGANIZATION_PATH,
   requires: [ Require.Authenticated ],
   accessRules: [
     {
@@ -80,7 +87,7 @@ export const UPDATE_ORGANIZATION = {
 
 export const CREATE_ORGANIZATION = {
   method: 'POST',
-  path: '/organization',
+  path: ORGANIZATIONS_PATH,
   requires: [ Require.Authenticated ],
   bodySchema: ORGANIZATION_SCHEMA,
   on: async (request, response, { db, jwt: { sub } }) => {
@@ -102,30 +109,30 @@ export const CREATE_ORGANIZATION = {
 
 export const GET_ORGANIZATION = {
   method: 'GET',
-  path: '/organization/:id',
+  path: ORGANIZATION_PATH,
   accessRules: [
     {
       permission: Permission.READ,
       collection: OrganizationCollection,
-      param: 'id'
+      param: 'organizationId'
     }
   ],
   requires: [ Require.Authenticated ],
   on: async (request, response, { db }) => {
     const organization = await db.collection(OrganizationCollection)
-      .findOne({ _id: new mongodb.ObjectID(request.params.id) });
+      .findOne({ _id: new mongodb.ObjectID(request.params.organizationId) });
     response.json(organization);
   }
 };
 
 export const INVITE_USER = {
   method: 'POST',
-  path: '/organization/:organizationId/user/:userId',
+  path: INVITE_USER_TO_ORGANIZATION,
   accessRules: [
     {
       permission: Permission.WRITE,
       collection: OrganizationCollection,
-      param: 'id'
+      param: 'organizationId'
     }
   ],
   pathSchema: {
@@ -171,12 +178,12 @@ export const INVITE_USER = {
 
 export const DELETE_USER = {
   method: 'DELETE',
-  path: '/organization/:organizationId/user/:userId',
+  path: INVITE_USER_TO_ORGANIZATION,
   accessRules: [
     {
       permission: Permission.WRITE,
       collection: OrganizationCollection,
-      param: 'id'
+      param: 'organizationId'
     }
   ],
   pathSchema: {
@@ -240,12 +247,12 @@ export const DELETE_USER = {
 
 export const GET_ORGANIZATION_EVENTS = {
   method: 'GET',
-  path: '/organization/:id/event',
+  path: ORGANIZATION_EVENTS_PATH,
   accessRules: [
     {
       permission: Permission.READ,
       collection: OrganizationCollection,
-      param: 'id'
+      param: 'organizationId'
     }
   ],
   requires: [
@@ -254,7 +261,7 @@ export const GET_ORGANIZATION_EVENTS = {
   ],
   on: async (request, response, { db, pagination: { skip, limit } }) => {
     const cursor = await db.collection(EventCollection)
-      .find({ organizationId: new mongodb.ObjectID(request.params.id) })
+      .find({ organizationId: new mongodb.ObjectID(request.params.organizationId) })
       .skip(skip)
       .limit(limit);
 

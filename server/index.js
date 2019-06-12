@@ -6,9 +6,9 @@ import bodyParser from 'body-parser';
 
 import { MAXIMUM_IMAGE_UPLOAD_BYTES } from 'common/schema';
 
-import { getDatabase } from './database';
-import { settings } from 'settings';
-import { Router } from 'router';
+import { getDatabase } from 'server/database';
+import { settings } from 'server/settings';
+import { Router } from 'server/router';
 import { T } from 'common/i18n';
 
 import {
@@ -19,7 +19,7 @@ import {
   UPDATE_USER,
   PASSWORD_RECOVERY,
   GET_USER_ORGANIZATIONS
-} from 'route/user';
+} from 'server/route/user';
 
 import {
   GET_ORGANIZATION_EVENTS,
@@ -29,23 +29,22 @@ import {
   INVITE_USER,
   UPDATE_ORGANIZATION,
   UPDATE_ORGANIZATION_AVATAR
-} from 'route/organization';
+} from 'server/route/organization';
 
 import {
     CREATE_EVENT,
     GET_EVENT,
     GET_EVENT_ITEMS,
-    GET_TRANSACTIONS,
     UPDATE_EVENT,
     UPDATE_EVENT_AVATAR
-} from 'route/event';
+} from 'server/route/event';
 
 import {
     GET_ITEM,
     CREATE_ITEM,
     UPDATE_ITEM,
     DELETE_ITEM
-} from 'route/item';
+} from 'server/route/item';
 
 Sentry.init(settings.sentry);
 
@@ -109,7 +108,6 @@ export const run = () => {
       CREATE_EVENT,
       GET_EVENT,
       GET_EVENT_ITEMS,
-      GET_TRANSACTIONS,
 
       GET_ITEM,
       CREATE_ITEM,

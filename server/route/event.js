@@ -1,15 +1,20 @@
 import mongodb from 'mongodb';
 
 import { upload, deleteObject } from 'server/digitalocean';
-import { Require, Permission } from 'router';
-import { EventCollection, ItemCollection, OrganizationCollection, TransactionCollection } from 'database';
+import {
+  EVENT_PATH,
+  EVENT_ITEMS_PATH,
+  EVENT_AVATAR_PATH,
+  ORGANIZATION_EVENTS_PATH
+} from 'common/routes';
+import { Require, Permission } from 'server/router';
+import { EventCollection, ItemCollection, OrganizationCollection } from 'server/database';
 import { Event } from 'common/models';
 import { EVENT_SCHEMA } from 'common/schema';
-import { OBJECT_ID_REGEX_PORTION } from 'common/helpers';
 
 export const UPDATE_EVENT = {
   method: 'POST',
-  path: `/event/:eventId(${OBJECT_ID_REGEX_PORTION})`,
+  path: EVENT_PATH,
   accessRules: [
     {
       permission: Permission.WRITE,
@@ -30,18 +35,18 @@ export const UPDATE_EVENT = {
 
 export const CREATE_EVENT = {
   method: 'POST',
-  path: '/organization/:id/event',
+  path: ORGANIZATION_EVENTS_PATH,
   accessRules: [
     {
       permission: Permission.WRITE,
       collection: OrganizationCollection,
-      param: 'id'
+      param: 'organizationId'
     }
   ],
   bodySchema: EVENT_SCHEMA,
   on: async (request, response, { db }) => {
     const event = Object.assign(new Event(), request.body);
-    event.organizationId = new mongodb.ObjectID(request.params.id);
+    event.organizationId = new mongodb.ObjectID(request.params.organizationId);
     event.created = new Date();
     event.lastUserActivity = event.created;
 
@@ -52,7 +57,7 @@ export const CREATE_EVENT = {
 
 export const GET_EVENT = {
   method: 'GET',
-  path: `/event/:eventId(${OBJECT_ID_REGEX_PORTION})`,
+  path: EVENT_PATH,
   accessRules: [
     {
       permission: Permission.READ,
@@ -69,7 +74,7 @@ export const GET_EVENT = {
 
 export const GET_EVENT_ITEMS = {
   method: 'GET',
-  path: '/event/:eventId/item',
+  path: EVENT_ITEMS_PATH,
   accessRules: [
     {
       permission: Permission.READ,
@@ -97,53 +102,9 @@ export const GET_EVENT_ITEMS = {
   }
 };
 
-export const GET_TRANSACTIONS = {
-  method: 'POST',
-  path: '/event/:eventId/transaction',
-  accessRules: [
-    {
-      permission: Permission.READ,
-      collection: EventCollection,
-      param: 'eventId'
-    }
-  ],
-  querySchema: {
-    type: 'object',
-    properties: {
-      itemId: {
-        type: 'string',
-        format: 'objectid'
-      }
-    }
-  },
-  requires: [ Require.Authenticated, Require.Page ],
-  on: async (request, response, { db, pagination: { skip, limit } }) => {
-    const query = {
-      eventId: new mongodb.ObjectID(request.params.eventId)
-    };
-
-    if (request.query.hasOwnProperty('itemId')) {
-      query.itemId = new mongodb.ObjectID(request.query.itemId);
-    }
-
-    const cursor = await db.collection(TransactionCollection)
-      .find(query)
-      .skip(skip)
-      .limit(limit);
-
-    const countFuture = cursor.count();
-    const entityFuture = cursor.toArray();
-
-    response.json({
-      count: await countFuture,
-      entity: await entityFuture
-    });
-  }
-};
-
 export const UPDATE_EVENT_AVATAR = {
   method: 'POST',
-  path: '/event/:eventId/avatar',
+  path: EVENT_AVATAR_PATH,
   requires: [ Require.Authenticated ],
   accessRules: [
     {

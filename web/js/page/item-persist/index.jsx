@@ -5,6 +5,10 @@ import { withRouter } from 'react-router';
 import { T } from 'common/i18n';
 import { ITEM_SCHEMA } from 'common/schema';
 import { Currency } from 'common/models';
+import {
+  ITEM_PATH,
+  EVENT_ITEMS_PATH
+} from 'common/routes';
 
 import { routes } from 'js/routes';
 import { safe } from 'js/helper';
@@ -51,8 +55,8 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
     }
 
     const path = itemId ?
-      ['event/:eventId/item/:itemId', eventId, itemId] :
-      ['event/:eventId/item', eventId];
+      [ITEM_PATH, itemId] :
+      [EVENT_ITEMS_PATH, eventId];
 
     dispatchFetch(path, {
       method: 'POST',
@@ -69,7 +73,7 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
 
   useEffect(() => {
     if (itemId && !itemsMap.hasOwnProperty(itemId)) {
-      dispatchFetch(['item/:itemId', itemId], {}, GET_ITEM);
+      dispatchFetch([ITEM_PATH, itemId], {}, GET_ITEM);
     }
 
     return () => {

@@ -1,3 +1,22 @@
+export const TOKEN_PATH = '/token/password';
+export const USER_PASSWORD_RECOVERY_PATH = '/user/password_recovery';
+export const USER_PATH = '/user/:userId';
+export const USER_EMAIL_PATH = '/user/email';
+export const USER_ORGANIZATIONS_PATH = '/user/:userId/organization';
+export const ACCOUNT_PATH = '/account';
+
+export const ORGANIZATION_AVATAR_PATH = '/organization/:organizationId/avatar';
+export const ORGANIZATION_PATH = '/organization/:organizationId';
+export const ORGANIZATIONS_PATH = '/organization';
+export const INVITE_USER_TO_ORGANIZATION = '/organization/:organizationId/user/:userId';
+export const ORGANIZATION_EVENTS_PATH = '/organization/:organizationId/event';
+
+export const EVENT_PATH = '/event/:eventId';
+export const EVENT_ITEMS_PATH = '/event/:eventId/item';
+export const EVENT_AVATAR_PATH = '/event/:eventId/avatar';
+
+export const ITEM_PATH = '/item/:itemId';
+
 export class Routes {
   constructor(prefix = '') {
     this.prefix = prefix;

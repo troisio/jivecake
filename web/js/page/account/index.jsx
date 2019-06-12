@@ -1,6 +1,11 @@
 import React, { useEffect, useContext, useState } from 'react';
 
 import { T } from 'common/i18n';
+import {
+  USER_EMAIL_PATH,
+  USER_PATH,
+  USER_ORGANIZATIONS_PATH
+} from 'common/routes';
 
 import { Input  } from 'component/input';
 import { Button  } from 'component/button';
@@ -53,7 +58,7 @@ export function Account() {
     const body = { email };
 
     dispatchFetch(
-      ['user/:userId', applicationState.userId],
+      [GET_USER, applicationState.userId],
       {
         method: 'POST',
         body,
@@ -75,7 +80,7 @@ export function Account() {
 
   useEffect(() => {
     dispatchFetch(
-      ['user/:userId/organization', applicationState.userId],
+      [USER_ORGANIZATIONS_PATH, applicationState.userId],
       {
         query: {
           page: 0
@@ -94,8 +99,9 @@ export function Account() {
       return;
     }
 
+      dispatchFetchDelete([ UPDATE_USER ]);
     dispatchFetch(
-      ['user/:userId', applicationState.userId],
+      [USER_PATH, applicationState.userId],
       {},
       GET_USER
     );
@@ -107,7 +113,7 @@ export function Account() {
 
   useEffect(() => {
     if (isValidEmail(email) && email !== user.email) {
-      dispatchFetch('user/email', { query: { email } }, SEARCH_EMAIL);
+      dispatchFetch(USER_EMAIL_PATH, { query: { email } }, SEARCH_EMAIL);
     }
   }, [email]);
 

@@ -1,7 +1,7 @@
 import Ajv from 'ajv';
 import jwt from 'jsonwebtoken';
 import mongodb from 'mongodb';
-import jwtkeysecret from 'extra/jwt/jwt.key';
+import jwtkeysecret from 'server/extra/jwt/jwt.key';
 
 import { OrganizationCollection, UserCollection } from './database';
 

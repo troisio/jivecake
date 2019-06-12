@@ -2,6 +2,12 @@ import React, { useEffect, useState, useContext } from 'react';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import jwt from 'jsonwebtoken';
 
+import {
+  USER_ORGANIZATIONS_PATH,
+  ORGANIZATION_PATH,
+  USER_PATH
+} from 'common/routes';
+
 import { safe } from 'js/helper';
 
 import {
@@ -85,7 +91,7 @@ export function Application() {
     }
 
     dispatchFetch(
-      ['user/:userId/organization', applicationState.userId],
+      [USER_ORGANIZATIONS_PATH, applicationState.userId],
       {
         query: {
           page: 0,
@@ -123,13 +129,13 @@ export function Application() {
 
   useEffect(() => {
     if (jwtPayload) {
-      dispatchFetch(['user/:userId', jwtPayload.sub], {}, GET_USER);
+      dispatchFetch([USER_PATH, jwtPayload.sub], {}, GET_USER);
     }
   }, [ storage ]);
 
   useEffect(() => {
     if (safe(() => createOrganizationState.response.ok)) {
-      dispatchFetch(['organization/:organizationId', createOrganizationState.body._id], {}, GET_ORGANIZATION);
+      dispatchFetch([ORGANIZATION_PATH, createOrganizationState.body._id], {}, GET_ORGANIZATION);
 
       if (applicationState.organizationId !== createOrganizationState.body._id) {
         setApplicationState({
