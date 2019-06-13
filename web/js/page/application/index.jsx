@@ -28,8 +28,10 @@ import { Signup } from 'page/signup';
 import { NotFound } from 'page/not-found';
 import { Landing } from 'page/landing';
 import { Account } from 'page/account';
+import { UserTransactions } from 'page/user-transactions';
 import { Login } from 'page/login';
 import { Organization } from 'page/organization';
+import { OAuthRedirectPage } from 'page/oauth-redirect';
 import { EventPersist } from 'page/event-persist';
 import { ItemPersist } from 'page/item-persist';
 import { ForgotPassword } from 'page/forgot-password';
@@ -82,6 +84,8 @@ export function Application() {
       <Route path={routes.event()} component={Events} />
       <Route path={routes.home()} component={Home} />
       <Route path={routes.account()} component={Account} />
+      <Route path={routes.userTransactions()} component={UserTransactions} />
+      <Route path={routes.oauthRedirect()} component={OAuthRedirectPage} />
     </Switch>
   );
 

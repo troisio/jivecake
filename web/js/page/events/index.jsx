@@ -32,6 +32,7 @@ export function Events() {
   const fetchState = useContext(FetchStateContext);
 
   const getOrganizationEventsState = fetchState[GET_ORGANIZATION_EVENTS];
+
   const organizationEventsPagination = organizationEventsMap[organizationId];
   const isFetchingMoreEvents = safe(() => getOrganizationEventsState.fetching);
   const getNextPage = (page) => {

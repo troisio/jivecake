@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import mongodb from 'mongodb';
 
+import { TransactionCollection } from 'server/database';
 import jwtkeysecret from 'server/extra/jwt/jwt.key';
 import { settings } from 'server/settings';
 
@@ -21,7 +22,8 @@ import {
   ACCOUNT_PATH,
   USER_ORGANIZATIONS_PATH,
   USER_EMAIL_PATH,
-  TOKEN_PATH
+  TOKEN_PATH,
+  USER_TRANSACTIONS_PATH
 } from 'common/routes';
 import { USER_SCHEMA } from 'common/schema';
 import { getUserLanguage } from 'common/helpers';
@@ -269,6 +271,36 @@ export const CREATE_ACCOUNT = {
 
     await db.collection(UserCollection).insertOne(user);
     response.status(200).end();
+  }
+};
+
+export const GET_USER_TRANSACTIONS = {
+  method: 'GET',
+  path: USER_TRANSACTIONS_PATH,
+  accessRules: [
+    {
+      permission: Permission.READ,
+      collection: UserCollection,
+      param: 'userId'
+    }
+  ],
+  requires: [
+    Require.Authenticated,
+    Require.Page
+  ],
+  on: async (request, response, { db, pagination: { skip, limit } }) => {
+    const cursor = await db.collection(TransactionCollection)
+      .find({ userId: new mongodb.ObjectID(request.params.userId) })
+      .skip(skip)
+      .limit(limit);
+
+    const countFuture = cursor.count();
+    const entityFuture = cursor.toArray();
+
+    response.json({
+      count: await countFuture,
+      entity: await entityFuture
+    });
   }
 };
 

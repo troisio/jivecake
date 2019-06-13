@@ -37,6 +37,12 @@
   }
 }
 
+@mixin note() {
+  font-size: 0.8rem;
+  color: $information;
+}
+
+
 @mixin ellipsisText() {
   white-space: nowrap;
   text-overflow: ellipsis;

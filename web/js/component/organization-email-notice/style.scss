@@ -1,7 +1,7 @@
 @import '~sass/color';
+@import '~sass/mixin';
 
 .email-note {
-  font-size: 0.8rem;
+  @include note();
   margin: 5px 0 0 10px;
-  color: $information;
 }

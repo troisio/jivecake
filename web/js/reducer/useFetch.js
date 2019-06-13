@@ -9,6 +9,7 @@ import { safe } from 'js/helper';
 export const UPDATE_USER = 'UPDATE_USER';
 export const GET_USER = 'GET_USER';
 export const GET_USER_ORGANIZATIONS = 'GET_USER_ORGANIZATIONS';
+export const GET_USER_TRANSACTIONS = 'GET_USER_TRANSACTIONS';
 
 export const SEARCH_EMAIL = 'SEARCH_USER_EMAIL';
 export const CREATE_ACCOUNT = 'CREATE_ACCOUNT';

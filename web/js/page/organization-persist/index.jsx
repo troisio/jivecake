@@ -28,6 +28,7 @@ import {
 import { routes } from 'js/routes';
 
 import { safe } from 'js/helper';
+import { ConnectWithStripeAnchor } from 'component/connect-with-stripe-anchor';
 import { MessageBlock } from 'component/message-block';
 import { OrganizationEmailNotice } from 'component/organization-email-notice';
 import { Input } from 'component/input';
@@ -205,7 +206,7 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
         required
         maxLength={ORGANIZATION_SCHEMA.properties,name.maxLength}
       />
-      <div styleName='email-section'>
+      <div styleName='row'>
         <Input
           placeholder={T('Email')}
           type='email'
@@ -214,7 +215,13 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
           onChange={e => setEmail(e.target.value)}
           maxLength={ORGANIZATION_SCHEMA.properties.email.maxLength}
         />
-      <OrganizationEmailNotice />
+        <OrganizationEmailNotice />
+      </div>
+      <div styleName='row'>
+        <ConnectWithStripeAnchor />
+        <span styleName='note'>
+          {T('Connect your organization to a Stripe account to start receiving payments.')}
+        </span>
       </div>
       <Button loading={loading}>
         {submitText}

@@ -6,13 +6,18 @@
   align-self: center;
 }
 
-.email-section {
+.row {
   display: flex;
   flex-direction: column;
 
   > * {
     flex-grow: 1;
   }
+}
+
+.note {
+  @include note();
+    margin: 5px 0 0 10px;
 }
 
 .vertical-content {

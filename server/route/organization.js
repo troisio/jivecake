@@ -7,7 +7,8 @@ import {
   ORGANIZATION_PATH,
   INVITE_USER_TO_ORGANIZATION,
   ORGANIZATION_EVENTS_PATH,
-  ORGANIZATIONS_PATH
+  ORGANIZATIONS_PATH,
+  ORGANIZATION_STRIPE_CONNECT_PATH
 } from 'common/routes';
 import { EventCollection, OrganizationCollection, OrganizationInvitationCollection } from 'server/database';
 import { Organization, OrganizationInvitation } from 'common/models';
@@ -272,5 +273,13 @@ export const GET_ORGANIZATION_EVENTS = {
       count: await countFuture,
       entity: await eventsFuture
     });
+  }
+};
+
+export const ORGANIZATION_CONNECT_STRIPE = {
+  method: 'POST',
+  path: ORGANIZATION_STRIPE_CONNECT_PATH,
+  on: (_, response) => {
+    response.json({});
   }
 };

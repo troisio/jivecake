@@ -1,0 +1,21 @@
+@import '~sass/mixin';
+
+.email {
+  padding: 0;
+}
+
+.pagination {
+  padding: 0;
+}
+
+.root {
+  @include defaultLayout();
+}
+
+.row {
+  padding: 0;
+}
+
+.see-more {
+  margin-top: 12px;
+}

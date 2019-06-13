@@ -18,7 +18,8 @@ import {
   USER_BY_EMAIL,
   UPDATE_USER,
   PASSWORD_RECOVERY,
-  GET_USER_ORGANIZATIONS
+  GET_USER_ORGANIZATIONS,
+  GET_USER_TRANSACTIONS
 } from 'server/route/user';
 
 import {
@@ -28,7 +29,8 @@ import {
   DELETE_USER,
   INVITE_USER,
   UPDATE_ORGANIZATION,
-  UPDATE_ORGANIZATION_AVATAR
+  UPDATE_ORGANIZATION_AVATAR,
+  ORGANIZATION_CONNECT_STRIPE
 } from 'server/route/organization';
 
 import {
@@ -68,6 +70,8 @@ application.use((req, res, next) => {
 
 application.use(bodyParser.json());
 
+// change to express.raw
+
 application.use(bodyParser.raw({
   type: ['image/jpeg', 'image/png'],
   limit: MAXIMUM_IMAGE_UPLOAD_BYTES
@@ -94,6 +98,7 @@ export const run = () => {
       GET_TOKEN,
       UPDATE_USER,
       UPDATE_USER,
+      GET_USER_TRANSACTIONS,
 
       CREATE_ORGANIZATION,
       GET_ORGANIZATION,
@@ -102,6 +107,7 @@ export const run = () => {
       INVITE_USER,
       UPDATE_ORGANIZATION,
       UPDATE_ORGANIZATION_AVATAR,
+      ORGANIZATION_CONNECT_STRIPE,
 
       UPDATE_EVENT,
       UPDATE_EVENT_AVATAR,

@@ -1,6 +1,6 @@
 export default {
   api: {
-    url: 'http://10.100.0.132:9000'
+    url: 'http://127.0.0.1:9000'
   },
   sentry: {
     dsn: '',
@@ -13,6 +13,6 @@ export default {
     }
   },
   stripe: {
-    key: ''
+    clientId: 'ca_AsNEgpmAGg4bKXtHG56Zw520oXObjDyE'
   }
 };
