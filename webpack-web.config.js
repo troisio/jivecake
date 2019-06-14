@@ -6,6 +6,10 @@ const packageJson = require(path.resolve(__dirname, 'package.json'));
 module.exports = function() {
   return {
     entry: [
+      /*
+        deprecated
+        https://babeljs.io/docs/en/babel-polyfill
+      */
       '@babel/polyfill',
       path.resolve(__dirname, 'web/js/index.jsx'),
       path.resolve(__dirname, 'web/sass/index.scss'),
@@ -38,14 +42,16 @@ module.exports = function() {
     module: {
       rules: [
         {
-          test: /\.scss/,
+          test: /(\.scss)$/,
           use: [{
             loader: MiniCssExtractPlugin.loader,
           }, {
             loader: 'css-loader',
             options: {
-              modules: true,
-              localIdentName: "[path]___[name]__[local]___[hash:base64:5]"
+              importLoaders: 2,
+              modules: {
+                localIdentName: '[name]__[local]--[hash:base64:5]'
+              }
             }
           },
           {

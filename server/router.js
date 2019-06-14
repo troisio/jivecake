@@ -1,9 +1,11 @@
 import Ajv from 'ajv';
 import jwt from 'jsonwebtoken';
 import mongodb from 'mongodb';
+import stripe from 'stripe';
 import jwtkeysecret from 'server/extra/jwt/jwt.key';
 
-import { OrganizationCollection, UserCollection } from './database';
+import { OrganizationCollection, UserCollection } from 'server/database';
+import { settings } from 'server/settings';
 
 export const DEFAULT_LIMIT = 100;
 export const LIMIT_MAX = 100;
@@ -63,22 +65,22 @@ export class Router {
     });
   }
 
-  register(settings) {
+  register(endpoint) {
     let method = () => {};
 
-    if (settings.method === 'POST') {
+    if (endpoint.method === 'POST') {
       method = this.application.post.bind(this.application);
-    } else if (settings.method === 'DELETE') {
+    } else if (endpoint.method === 'DELETE') {
       method = this.application.delete.bind(this.application);
-    } else if (settings.method === 'GET') {
+    } else if (endpoint.method === 'GET') {
       method = this.application.get.bind(this.application);
     } else {
-      this.sentry.captureMessage('registered invalid route method with ' + settings);
+      this.sentry.captureMessage('registered invalid route method with ' + endpoint);
     }
 
-    method(settings.path, async (req, res, next) => {
-      const requires = settings.hasOwnProperty('requires') ? settings.requires : [];
-      const accessRules = settings.hasOwnProperty('accessRules') ? settings.accessRules : [];
+    method(endpoint.path, async (req, res, next) => {
+      const requires = endpoint.hasOwnProperty('requires') ? endpoint.requires : [];
+      const accessRules = endpoint.hasOwnProperty('accessRules') ? endpoint.accessRules : [];
       let passesAuthentication = true;
       let passesAccessRules = false;
       let notFound = false;
@@ -100,7 +102,7 @@ export class Router {
         res.status(404).end();
       } else if (!passesAuthentication || !passesAccessRules) {
         res.status(401).end();
-      } else if (settings.hasOwnProperty('on')) {
+      } else if (endpoint.hasOwnProperty('on')) {
         let decodedJwt = null;
 
         if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
@@ -117,6 +119,7 @@ export class Router {
           jwt: decodedJwt,
           sentry: this.sentry,
           SibApiV3Sdk: this.SibApiV3Sdk,
+          stripe: stripe(settings.stripe.secret),
           T: this.T
         };
 
@@ -161,9 +164,9 @@ export class Router {
           }
         }
 
-        const passesSchemaValidation = this.passesBodySchema(req, settings);
-        const passesQuerySchemaValidation = this.passesQuerySchema(req, settings);
-        const passesPathSchema = this.passesPathSchema(req, settings);
+        const passesSchemaValidation = this.passesBodySchema(req, endpoint);
+        const passesQuerySchemaValidation = this.passesQuerySchema(req, endpoint);
+        const passesPathSchema = this.passesPathSchema(req, endpoint);
 
         for (const { passes, validate } of [passesSchemaValidation, passesQuerySchemaValidation, passesPathSchema]) {
           if (!passes) {
@@ -171,7 +174,7 @@ export class Router {
           }
         }
 
-        const promise = settings.on(req, res, extra);
+        const promise = endpoint.on(req, res, extra);
 
         if (typeof promise !== 'undefined' && 'then' in promise) {
           promise.then(() => {}, (e) => {
@@ -184,12 +187,12 @@ export class Router {
     });
   }
 
-  passesBodySchema(request, settings) {
+  passesBodySchema(request, endpoint) {
     let passes = true;
     let validate = null;
 
-    if (settings.hasOwnProperty('bodySchema')) {
-      validate = this.ajv.compile(settings.bodySchema);
+    if (endpoint.hasOwnProperty('bodySchema')) {
+      validate = this.ajv.compile(endpoint.bodySchema);
       const doValidate = typeof request.body === 'object' && request.body !== null;
       passes = doValidate ? validate(request.body) : false;
     }
@@ -197,24 +200,24 @@ export class Router {
     return { passes, validate };
   }
 
-  passesPathSchema(request, settings) {
+  passesPathSchema(request, endpoint) {
     let passes = true;
     let validate = null;
 
-    if (settings.hasOwnProperty('pathSchema')) {
-      validate = this.ajv.compile(settings.pathSchema);
+    if (endpoint.hasOwnProperty('pathSchema')) {
+      validate = this.ajv.compile(endpoint.pathSchema);
       passes = typeof request.body === 'object' ? validate(request.params) : false;
     }
 
     return { passes, validate };
   }
 
-  passesQuerySchema(request, settings) {
+  passesQuerySchema(request, endpoint) {
     let passes = true;
     let validate = null;
 
-    if (settings.hasOwnProperty('querySchema')) {
-      validate = this.ajv.compile(settings.querySchema);
+    if (endpoint.hasOwnProperty('querySchema')) {
+      validate = this.ajv.compile(endpoint.querySchema);
       passes = typeof request.query === 'object' ? validate(request.query) : false;
     }
 

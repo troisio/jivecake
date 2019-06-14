@@ -8,7 +8,8 @@ import {
   INVITE_USER_TO_ORGANIZATION,
   ORGANIZATION_EVENTS_PATH,
   ORGANIZATIONS_PATH,
-  ORGANIZATION_STRIPE_CONNECT_PATH
+  ORGANIZATION_STRIPE_CONNECT_PATH,
+  ORGANIZATION_STRIPE_DISCONNECT_PATH
 } from 'common/routes';
 import { EventCollection, OrganizationCollection, OrganizationInvitationCollection } from 'server/database';
 import { Organization, OrganizationInvitation } from 'common/models';
@@ -122,6 +123,11 @@ export const GET_ORGANIZATION = {
   on: async (request, response, { db }) => {
     const organization = await db.collection(OrganizationCollection)
       .findOne({ _id: new mongodb.ObjectID(request.params.organizationId) });
+
+    if (organization.stripe) {
+      organization.stripe = {};
+    }
+
     response.json(organization);
   }
 };
@@ -277,9 +283,56 @@ export const GET_ORGANIZATION_EVENTS = {
 };
 
 export const ORGANIZATION_CONNECT_STRIPE = {
-  method: 'POST',
+  method: 'GET',
   path: ORGANIZATION_STRIPE_CONNECT_PATH,
-  on: (_, response) => {
-    response.json({});
+  accessRules: [
+    {
+      permission: Permission.WRITE,
+      collection: OrganizationCollection,
+      param: 'organizationId'
+    }
+  ],
+  on: async (request, response, { db, stripe }) => {
+    const organization = await db.collection(OrganizationCollection)
+      .findOne({ _id: new mongodb.ObjectID(request.params.organizationId) });
+
+    if (organization.stripe) {
+      response.status(409).end();
+      return;
+    }
+
+    const stripeResponse = await stripe.oauth.token({
+       code: request.params.code,
+       grant_type: 'authorization_code',
+     });
+
+    await db.collection(OrganizationCollection).updateOne({ _id: new mongodb.ObjectId(request.params.organizationId) }, {
+      $set: {
+        stripe: stripeResponse
+      }
+    });
+
+    response.status(200).end();
+  }
+};
+
+export const ORGANIZATION_DISCONNECT_STRIPE = {
+  method: 'DELETE',
+  path: ORGANIZATION_STRIPE_DISCONNECT_PATH,
+  accessRules: [
+    {
+      permission: Permission.WRITE,
+      collection: OrganizationCollection,
+      param: 'organizationId'
+    }
+  ],
+  on: async (request, response, { db }) => {
+    await db.collection(OrganizationCollection).updateOne({ _id: new mongodb.ObjectId(request.params.organizationId) }, {
+      $unset: {
+        stripe: ''
+      }
+    });
+
+    response.status(200).end();
   }
 };

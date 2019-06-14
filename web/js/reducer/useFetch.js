@@ -31,8 +31,10 @@ export const GET_ORGANIZATION = 'GET_ORGANIZATION';
 export const CREATE_ORGANIZATION = 'CREATE_ORGANIZATION';
 export const UPDATE_ORGANIZATION_AVATAR = 'UPDATE_ORGANIZATION_AVATAR';
 export const UPDATE_ORGANIZATION = 'UPDATE_ORGANIZATION';
+export const ORGANIZATION_STRIPE_CONNECT = 'ORGANIZATION_STRIPE_CONNECT';
+export const ORGANIZATION_STRIPE_DISCONNECT = 'ORGANIZATION_STRIPE_DISCONNECT';
 
-const PARAM_MATCHER = new RegExp('/?:[a-zA-Z]+', 'ig');
+const PARAM_MATCHER = new RegExp(':[a-zA-Z]+', 'ig');
 
 function reducer(state, action) {
   switch (action.type) {
@@ -98,7 +100,7 @@ export function useFetch(token) {
       for (const param of data.url[0].match(PARAM_MATCHER)) {
         const name = param.substring(param.startsWith('/') ? 2 : 1);
         params[name] = data.url[index];
-        derivedURLArray[index] = data.url[index];
+        derivedURLArray[derivedURLArray.indexOf(param)] = data.url[index];
         index++;
       }
 

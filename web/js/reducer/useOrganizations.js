@@ -12,10 +12,6 @@ import {
   FetchStateContext,
 } from 'js/context';
 
-export const getOrganization = (id) => {
-  return [['organization/:organizationId', id], {}, GET_ORGANIZATION];
-};
-
 function reducer(state, action) {
   switch (action.type) {
     case GET_USER_ORGANIZATIONS: {
@@ -24,7 +20,10 @@ function reducer(state, action) {
     }
 
     case GET_ORGANIZATION: {
-      return _.merge({}, state, { [action.body._id]: action.body });
+      return {
+        ...state,
+        [action.body._id]: action.body
+      };
     }
 
     default:

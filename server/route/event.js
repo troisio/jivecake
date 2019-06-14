@@ -1,14 +1,16 @@
 import mongodb from 'mongodb';
+import stripe from 'stripe';
 
 import { upload, deleteObject } from 'server/digitalocean';
 import {
   EVENT_PATH,
   EVENT_ITEMS_PATH,
   EVENT_AVATAR_PATH,
-  ORGANIZATION_EVENTS_PATH
+  ORGANIZATION_EVENTS_PATH,
+  EVENT_PURCHASE_PATH
 } from 'common/routes';
 import { Require, Permission } from 'server/router';
-import { EventCollection, ItemCollection, OrganizationCollection } from 'server/database';
+import { EventCollection, ItemCollection, OrganizationCollection, TransactionCollection } from 'server/database';
 import { Event } from 'common/models';
 import { EVENT_SCHEMA } from 'common/schema';
 
@@ -144,5 +146,34 @@ export const UPDATE_EVENT_AVATAR = {
 
     await db.collection(EventCollection).updateOne({ _id: event._id }, { $set });
     response.status(200).end();
+  }
+};
+
+export const PURCHASE = {
+  method: 'POST',
+  path: EVENT_PURCHASE_PATH,
+  requires: [ Require.Authenticated ],
+  on: async (response, request, { db, jwt: { sub } }) => {
+    const event = await db.collection(EventCollection)
+      .findOne({ _id: new mongodb.ObjectID(request.params.eventId) });
+    const organization = await db.collection(OrganizationCollection)
+      .findOne({ _id: event.organizationId });
+
+    stripe.charges.create({
+      amount: 1000,
+      currency: "usd",
+      source: "tok_visa",
+      transfer_data: {
+        destination: organization.stripe.stripe_user_id,
+      },
+    }).then(async () => {
+        await db.collection(TransactionCollection).insertMany([
+          { userId: new mongodb.ObjectId(sub) }
+        ]);
+
+      response.json({});
+    }, () => {
+      response.status();
+    });
   }
 };

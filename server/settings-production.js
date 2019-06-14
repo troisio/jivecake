@@ -4,12 +4,11 @@ export const settings = {
   admins: $JC_ADMINS_PRODUCTION,
   port: 443,
   http: {
-    origins: ['https://jivecake.com', 'http://jivecake.com']
+    origins: ['https://jivecake.com']
   },
   sentry: {
     dsn: '$JC_SENTRY_DSN',
     environment: 'production',
-    debug: true,
     release: packageJson.version
   },
   digitalocean: {
@@ -25,7 +24,7 @@ export const settings = {
     key: '$JC_SENDINBLUE_KEY_PRODUCTION'
   },
   stripe: {
-    secret: '$JC_STRIPE_SECRET_PRODUCTION'
+    secret: '$JC_STRIPE_LIVE_SECRET'
   },
   mongo: {
     url: '$JC_MONGO_URL_PRODUCTION'

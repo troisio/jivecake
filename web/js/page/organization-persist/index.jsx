@@ -11,7 +11,8 @@ import {
 import {
   ORGANIZATIONS_PATH,
   ORGANIZATION_AVATAR_PATH,
-  ORGANIZATION_PATH
+  ORGANIZATION_PATH,
+  ORGANIZATION_STRIPE_DISCONNECT_PATH
 } from 'common/routes';
 
 import { FetchDispatchContext, FetchStateContext, OrganizationContext } from 'js/context';
@@ -19,11 +20,9 @@ import {
   CREATE_ORGANIZATION,
   UPDATE_ORGANIZATION,
   UPDATE_ORGANIZATION_AVATAR,
-  GET_ORGANIZATION
+  GET_ORGANIZATION,
+  ORGANIZATION_STRIPE_DISCONNECT
 } from 'js/reducer/useFetch';
-import {
-  getOrganization
-} from 'js/reducer/useOrganizations';
 
 import { routes } from 'js/routes';
 
@@ -43,6 +42,7 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
   const createOrganizationState = fetchState[CREATE_ORGANIZATION];
   const updateOrganizationState = fetchState[UPDATE_ORGANIZATION];
   const updateOrganizationAvatarState = fetchState[UPDATE_ORGANIZATION_AVATAR];
+  const disconnectStripeState = fetchState[ORGANIZATION_STRIPE_DISCONNECT];
 
   const organization = organizationMap[organizationId];
 
@@ -128,30 +128,50 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
       }, CREATE_ORGANIZATION);
     }
   };
+  const disconnectStripe = () => {
+    if (window.confirm(T('Are you are you sure you want to disconnect?'))) {
+      dispatchFetch([ORGANIZATION_STRIPE_DISCONNECT_PATH, organizationId], {
+        method: 'DELETE',
+      }, ORGANIZATION_STRIPE_DISCONNECT);
+    }
+  };
 
   useEffect(() => {
     return () => {
-      dispatchFetchDelete([CREATE_ORGANIZATION, UPDATE_ORGANIZATION, UPDATE_ORGANIZATION_AVATAR, GET_ORGANIZATION]);
+      dispatchFetchDelete([
+        CREATE_ORGANIZATION,
+        UPDATE_ORGANIZATION,
+        UPDATE_ORGANIZATION_AVATAR,
+        GET_ORGANIZATION,
+        ORGANIZATION_STRIPE_DISCONNECT
+      ]);
     };
   }, []);
 
   useEffect(() => {
     if (safe(() => updateOrganizationAvatarState.response.ok)) {
-      dispatchFetch(...getOrganization(updateOrganizationState.params.organizationId));
+      dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
     }
-  }, [ updateOrganizationAvatarState ]);
+  }, [ updateOrganizationAvatarState, organizationId ]);
 
   useEffect(() => {
     if (safe(() => updateOrganizationState.response.ok)) {
-      dispatchFetch(...getOrganization(updateOrganizationState.params.organizationId));
+      dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
     }
-  }, [ updateOrganizationState ]);
+  }, [ updateOrganizationState, organizationId ]);
 
   useEffect(() => {
     if (organizationId && !organization) {
       dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
     }
   }, [ organizationId, organization ]);
+
+  useEffect(() => {
+    if (safe(() => disconnectStripeState.response.ok)) {
+      dispatchFetchDelete([ ORGANIZATION_STRIPE_DISCONNECT ]);
+      dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
+    }
+  }, [ disconnectStripeState ]);
 
   useEffect(() => {
     if (organization) {
@@ -218,10 +238,26 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
         <OrganizationEmailNotice />
       </div>
       <div styleName='row'>
-        <ConnectWithStripeAnchor />
-        <span styleName='note'>
-          {T('Connect your organization to a Stripe account to start receiving payments.')}
-        </span>
+        { organization && !organization.stripe &&
+          <>
+            <ConnectWithStripeAnchor />
+            <span styleName='note'>
+              {T('Connect your organization to a Stripe account to start receiving payments.')}
+            </span>
+          </>
+        }
+      </div>
+      <div styleName='row'>
+        { organization && organization.stripe &&
+          <>
+            <Button onClick={disconnectStripe} type='button'>
+              {T('Disconnect your Stripe account')}
+            </Button>
+            <span styleName='note'>
+              {T('Once your Stripe account is disconnected, you will not be able to receive payments through Stripe. This will affect any events you currently have published')}
+            </span>
+          </>
+        }
       </div>
       <Button loading={loading}>
         {submitText}

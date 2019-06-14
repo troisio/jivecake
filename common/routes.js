@@ -12,11 +12,13 @@ export const ORGANIZATION_PATH = '/organization/:organizationId';
 export const ORGANIZATIONS_PATH = '/organization';
 export const INVITE_USER_TO_ORGANIZATION = '/organization/:organizationId/user/:userId';
 export const ORGANIZATION_EVENTS_PATH = '/organization/:organizationId/event';
-export const ORGANIZATION_STRIPE_CONNECT_PATH= '/organization/:organizationId/stripe/connect';
+export const ORGANIZATION_STRIPE_CONNECT_PATH = '/organization/:organizationId/stripe/connect/:code';
+export const ORGANIZATION_STRIPE_DISCONNECT_PATH = '/organization/:organizationId/stripe/connect';
 
 export const EVENT_PATH = '/event/:eventId';
 export const EVENT_ITEMS_PATH = '/event/:eventId/item';
 export const EVENT_AVATAR_PATH = '/event/:eventId/avatar';
+export const EVENT_PURCHASE_PATH = '/event/:eventId/purchase';
 
 export const ITEM_PATH = '/item/:itemId';
 

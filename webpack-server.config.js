@@ -6,6 +6,10 @@ module.exports = function() {
     target: 'node',
     externals: [nodeExternals()],
     entry: [
+      /*
+      deprecated
+      https://babeljs.io/docs/en/babel-polyfill
+      */
       '@babel/polyfill',
       path.resolve(__dirname, 'server/index.js')
     ],

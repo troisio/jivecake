@@ -6,6 +6,7 @@
   align-items: center;
   padding: 5px;
   font-size: 1rem;
+  border-radius: 3px;
 
   &.main {
     color: $main;
@@ -17,8 +18,8 @@
   }
 
   &.error {
-    background-color: $error;
-    color: $white;
+    background-color: #FFBABA;
+    color: white;
   }
 
   &.warn {

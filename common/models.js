@@ -35,6 +35,7 @@ export class Organization {
 	avatar = null;
 	emailVerified = null;
 	owner = null;
+  stripe = null; // https://stripe.com/docs/connect/standard-accounts example shape
 	read = [];
 	write = [];
 	created = null;

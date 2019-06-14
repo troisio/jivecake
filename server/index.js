@@ -30,7 +30,8 @@ import {
   INVITE_USER,
   UPDATE_ORGANIZATION,
   UPDATE_ORGANIZATION_AVATAR,
-  ORGANIZATION_CONNECT_STRIPE
+  ORGANIZATION_CONNECT_STRIPE,
+  ORGANIZATION_DISCONNECT_STRIPE
 } from 'server/route/organization';
 
 import {
@@ -55,6 +56,7 @@ const application = express();
 application.use((req, res, next) => {
   const origin = req.headers['origin'];
   const requestHeaders = req.headers['access-control-request-headers'];
+  const requestMethod = req.headers['access-control-request-method'];
   const hasValidOrigin = settings.http.origins.includes(origin);
 
   if (hasValidOrigin) {
@@ -63,6 +65,10 @@ application.use((req, res, next) => {
 
   if (requestHeaders) {
     res.header('Access-Control-Allow-Headers', requestHeaders);
+  }
+
+  if (requestMethod) {
+    res.header('Access-Control-Allow-Methods', 'GET, DELETE, POST');
   }
 
   next();
@@ -108,6 +114,7 @@ export const run = () => {
       UPDATE_ORGANIZATION,
       UPDATE_ORGANIZATION_AVATAR,
       ORGANIZATION_CONNECT_STRIPE,
+      ORGANIZATION_DISCONNECT_STRIPE,
 
       UPDATE_EVENT,
       UPDATE_EVENT_AVATAR,
