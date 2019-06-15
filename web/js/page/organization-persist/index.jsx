@@ -237,6 +237,9 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
         />
         <OrganizationEmailNotice />
       </div>
+      <Button loading={loading}>
+        {submitText}
+      </Button>
       <div styleName='row'>
         { organization && !organization.stripe &&
           <>
@@ -250,7 +253,7 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
       <div styleName='row'>
         { organization && organization.stripe &&
           <>
-            <Button onClick={disconnectStripe} type='button'>
+            <Button error onClick={disconnectStripe} type='button'>
               {T('Disconnect your Stripe account')}
             </Button>
             <span styleName='note'>
@@ -259,9 +262,6 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
           </>
         }
       </div>
-      <Button loading={loading}>
-        {submitText}
-      </Button>
     </form>
   );
 }

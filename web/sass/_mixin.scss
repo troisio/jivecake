@@ -13,15 +13,18 @@
   border-radius: 6px;
   font-size: 1rem;
   border-width: 2px 2px 4px;
-  border-color: darken($main, 10%);
   padding: 0;
+}
+
+@mixin buttonColors($color) {
+  border-color: darken($color, 10%);
 
   &:hover {
-    background-color: lighten($main, 10%);
+    background-color: lighten($color, 10%);
   }
 
   &:not(:hover) {
-    background-color: $main;
+    background-color: $color;
   }
 }
 

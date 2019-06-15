@@ -21,6 +21,7 @@
 
   &.button {
     @include button();
+    @include buttonColors($main);
     text-align: center;
 
     &:not(.icon) {

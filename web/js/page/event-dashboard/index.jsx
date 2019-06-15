@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { withRouter } from 'react-router';
+import { Link, withRouter } from 'react-router-dom';
 
 import { T } from 'common/i18n';
 import {
@@ -69,7 +69,7 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
     const item = itemsMap[id];
 
     return (
-      <span key={id} styleName='item-name'>{item.name}</span>
+      <Link to={routes.itemPersist(eventId, id)} key={id} styleName='item-name'>{item.name}</Link>
     );
   };
   const seeMoreButton = (

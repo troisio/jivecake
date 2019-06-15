@@ -1,5 +1,8 @@
 import React, { useState, useContext } from 'react';
 
+import { T } from 'common/i18n';
+import { TOKEN_PATH } from 'common/routes'; 
+
 import { safe } from 'js/helper';
 
 import {
@@ -8,7 +11,6 @@ import {
   FetchStateContext
 } from 'js/context';
 
-import { T } from 'common/i18n';
 import { routes } from 'js/routes';
 import { MessageBlock } from 'component/message-block';
 import { Anchor } from 'component/anchor';
@@ -32,7 +34,7 @@ export function Login() {
       return;
     }
 
-    fetchDispatch('token/password', {
+    fetchDispatch(TOKEN_PATH, {
       method: 'POST',
       body: {
         email: email,

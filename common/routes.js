@@ -16,6 +16,7 @@ export const ORGANIZATION_STRIPE_CONNECT_PATH = '/organization/:organizationId/s
 export const ORGANIZATION_STRIPE_DISCONNECT_PATH = '/organization/:organizationId/stripe/connect';
 
 export const EVENT_PATH = '/event/:eventId';
+export const EVENT_INFORMATION_PATH = '/event/:hash/information';
 export const EVENT_ITEMS_PATH = '/event/:eventId/item';
 export const EVENT_AVATAR_PATH = '/event/:eventId/avatar';
 export const EVENT_PURCHASE_PATH = '/event/:eventId/purchase';
@@ -52,7 +53,7 @@ export class Routes {
   }
 
   eventPublic(hash) {
-    return `${this.prefix}/event/${hash}`;
+    return `${this.prefix}/e/${hash}`;
   }
 
   home() {

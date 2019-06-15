@@ -31,6 +31,7 @@ import { Account } from 'page/account';
 import { UserTransactions } from 'page/user-transactions';
 import { Login } from 'page/login';
 import { Organization } from 'page/organization';
+import { Event } from 'page/event';
 import { OAuthRedirectPage } from 'page/oauth-redirect';
 import { EventPersist } from 'page/event-persist';
 import { ItemPersist } from 'page/item-persist';
@@ -190,6 +191,7 @@ export function Application() {
           <Route path={routes.login()} component={Login} />
           <Route path={routes.signup()} component={Signup} />
           <Route path={routes.forgotPassword()} component={ForgotPassword} />
+          <Route path={routes.eventPublic(':hash')} component={Event} />
           {applicationState.userId === null ? null : authenticatedRoutes}
           <Route component={NotFound} />
         </Switch>

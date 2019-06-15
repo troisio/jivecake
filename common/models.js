@@ -6,6 +6,7 @@ export class Event {
   facebookUrl = null;
   instagramUrl = null;
   twitterUrl = null;
+  hash = null;
   url = null;
   name = null;
   shortName = null;
@@ -68,13 +69,6 @@ export class User {
 	lastSystemActivity = null;
 }
 
-export class PaymentProfileId {
-	_id = null;
-	organizationId = null;
-	type = PaymentProfileType.Stripe;
-	created = null;
-}
-
 export class PasswordRecovery {
 	_id = null;
 	userId = null;
@@ -95,11 +89,6 @@ export class EntityType {
 	static Transaction = 'transaction';
 	static Event = 'event';
 	static User = 'user';
-}
-
-export class PaymentProfileType {
-	static Stripe = 'stripe';
-	static Paypal = 'paypal';
 }
 
 export class Language {

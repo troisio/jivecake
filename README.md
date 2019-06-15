@@ -38,5 +38,6 @@ ssh-keygen -N '' -t rsa -b 4096 -f jwt.key
 The default database in development is not mounted to your file system so you may want to occasionally
 
 ```sh
+docker volume prune
 docker system prune
 ```

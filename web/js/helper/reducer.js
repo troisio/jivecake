@@ -15,7 +15,7 @@ export const getEntityStoreHook = (keys, reducer) => {
         if (safe(() => data.response.ok)) {
           dispatch(data);
         }
-      }, [ data, fetchState ]);
+      }, [ data ]);
     }
 
     return [ state, dispatch ];

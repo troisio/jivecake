@@ -4,20 +4,34 @@ import { getEntityStoreHook } from 'js/helper/reducer';
 
 import {
   GET_EVENT,
-  GET_ORGANIZATION_EVENTS
+  GET_ORGANIZATION_EVENTS,
+  GET_EVENT_INFORMATION,
+  LOGOUT
 } from 'js/reducer/useFetch';
 
 function reducer(state, action) {
   switch (action.type) {
     case GET_EVENT: {
-      return _.merge({}, state, {
+      return {
+        ...state,
         [action.body._id]: action.body
-      });
+      };
+    }
+
+    case GET_EVENT_INFORMATION: {
+      return {
+        ...state,
+        [action.body.event._id]: action.body.event
+      };
     }
 
     case GET_ORGANIZATION_EVENTS: {
       const events = _.keyBy(action.body.entity, '_id');
-      return _.merge({}, state, events);
+      return { ...state, ...events };
+    }
+
+    case LOGOUT: {
+      return {};
     }
 
     default:
@@ -26,6 +40,6 @@ function reducer(state, action) {
 }
 
 export const useEvents = getEntityStoreHook(
-  [GET_EVENT, GET_ORGANIZATION_EVENTS],
+  [GET_EVENT, GET_ORGANIZATION_EVENTS, GET_EVENT_INFORMATION, LOGOUT],
   reducer
 );

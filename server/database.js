@@ -5,7 +5,6 @@ export const UserCollection = 'user';
 export const EventCollection = 'event';
 export const ItemCollection = 'item';
 export const OrganizationCollection = 'organization';
-export const PaymentProfileCollection = 'paymentProfile';
 export const TransactionCollection = 'transaction';
 export const PasswordRecoveryCollection = 'passwordRecovery';
 export const OrganizationInvitationCollection = 'organizationInvitation';
@@ -34,16 +33,13 @@ export const getDatabase = () => {
 
         const eventCollection = db.collection(EventCollection);
         await eventCollection.createIndex({ organization: 1 });
-
-        const paymentProfileCollection = db.collection(PaymentProfileCollection);
-        await paymentProfileCollection.createIndex({ organization: 1 });
+        await eventCollection.createIndex({ hash: 1 }, { unique:true });
 
         const itemCollection = db.collection(ItemCollection);
         await itemCollection.createIndex({ eventId: 1 });
         await itemCollection.createIndex({ order: 1 });
 
         const transactionCollection = db.collection(TransactionCollection);
-        await transactionCollection.createIndex({ eventId: 1 });
         await transactionCollection.createIndex({ userId: 1 });
 
         const passwordRecoveryCollcetion = db.collection(PasswordRecoveryCollection);

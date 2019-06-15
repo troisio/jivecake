@@ -91,11 +91,11 @@ export const UPDATE_ITEM = {
   ],
   bodySchema: ITEM_SCHEMA,
   on: async (request, response, { db }) => {
-    const updateObject = { ...request.body };
-    updateObject.lastUserActivity = new Date();
+    const $set = { ...request.body };
+    $set.lastUserActivity = new Date();
 
     const entity = await db.collection(ItemCollection)
-      .updateOne({ _id: new mongodb.ObjectId(request.params.itemId) }, updateObject);
+      .updateOne({ _id: new mongodb.ObjectId(request.params.itemId) }, { $set });
     response.json(entity);
   }
 };

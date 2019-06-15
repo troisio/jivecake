@@ -39,7 +39,8 @@ import {
     GET_EVENT,
     GET_EVENT_ITEMS,
     UPDATE_EVENT,
-    UPDATE_EVENT_AVATAR
+    UPDATE_EVENT_AVATAR,
+    EVENT_INFORMATION
 } from 'server/route/event';
 
 import {
@@ -121,6 +122,7 @@ export const run = () => {
       CREATE_EVENT,
       GET_EVENT,
       GET_EVENT_ITEMS,
+      EVENT_INFORMATION,
 
       GET_ITEM,
       CREATE_ITEM,

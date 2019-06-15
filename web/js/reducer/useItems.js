@@ -1,11 +1,10 @@
-import { useReducer, useEffect, useContext } from 'react';
 import _ from 'lodash';
-import { safe } from 'js/helper';
 
-import { FetchStateContext } from 'js/context';
+import { getEntityStoreHook } from 'js/helper/reducer';
 import {
   GET_ITEM,
-  GET_EVENT_ITEMS
+  GET_EVENT_ITEMS,
+  LOGOUT
 } from 'js/reducer/useFetch';
 
 function reducer(state, action) {
@@ -21,24 +20,16 @@ function reducer(state, action) {
       return _.merge({}, state, entities);
     }
 
+    case LOGOUT: {
+      return {};
+    }
+
     default:
       return state;
   }
 }
 
-export function useItems() {
-  const [ state, dispatch ] = useReducer(reducer, {});
-  const fetchState = useContext(FetchStateContext);
-
-  for (const type of [GET_ITEM, GET_EVENT_ITEMS]) {
-    const data = fetchState[type];
-
-    useEffect(() => {
-      if (safe(() => data.response.ok)) {
-        dispatch(data);
-      }
-    }, [ data ]);
-  }
-
-  return [ state, dispatch ];
-}
+export const useItems = getEntityStoreHook(
+  [GET_ITEM, GET_EVENT_ITEMS, LOGOUT],
+  reducer
+);

@@ -10,6 +10,12 @@ export function Button(props) {
   let content;
   let styleName = 'root';
 
+  if (props.error) {
+    styleName += ' error';
+  } else {
+    styleName += ' main';
+  }
+
   if (props.loading) {
     content = (
       <>
@@ -24,7 +30,7 @@ export function Button(props) {
     content = props.children;
   }
 
-  const propsCopy = _.omit(props, ['loading']);
+  const propsCopy = _.omit(props, ['children', 'error', 'loading']);
 
   return (
     <button styleName={styleName} { ...propsCopy }>
@@ -35,5 +41,6 @@ export function Button(props) {
 
 Button.propTypes = {
   children: PropTypes.node.isRequired,
-  loading: PropTypes.bool
+  loading: PropTypes.bool,
+  error: PropTypes.bool
 };

@@ -55,9 +55,9 @@ export const UPDATE_ORGANIZATION_AVATAR = {
       avatar: url
     };
 
-    const { value } = await db.collection(OrganizationCollection)
+    await db.collection(OrganizationCollection)
       .updateOne({ _id: organization._id }, { $set });
-    response.json(value);
+    response.status(200).end();
   }
 };
 

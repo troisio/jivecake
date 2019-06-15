@@ -1,12 +1,11 @@
-import { useReducer, useEffect, useContext } from 'react';
 import _ from 'lodash';
 
-import { safe } from 'js/helper';
+import { getEntityStoreHook } from 'js/helper/reducer';
 
-import { FetchStateContext } from 'js/context';
 import {
   GET_USER,
-  UPDATE_USER
+  UPDATE_USER,
+  LOGOUT
 } from 'js/reducer/useFetch';
 
 function reducer(state, action) {
@@ -23,24 +22,16 @@ function reducer(state, action) {
       });
     }
 
+    case LOGOUT: {
+      return {};
+    }
+
     default:
       return state;
   }
 }
 
-export function useUsers() {
-  const [ state, dispatch ] = useReducer(reducer, {});
-  const fetchState = useContext(FetchStateContext);
-
-  for (const type of [GET_USER, UPDATE_USER]) {
-    const state = fetchState[type];
-
-    useEffect(() => {
-      if (safe(() => state.response.ok)) {
-        dispatch(state);
-      }
-    }, [state]);
-  }
-
-  return [ state, dispatch ];
-}
+export const useUsers = getEntityStoreHook(
+  [GET_USER, UPDATE_USER, LOGOUT],
+  reducer
+);

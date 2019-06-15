@@ -13,6 +13,6 @@ export default {
     }
   },
   stripe: {
-    clientId: 'ca_AsNEgpmAGg4bKXtHG56Zw520oXObjDyE'
+    clientId: ''
   }
 };

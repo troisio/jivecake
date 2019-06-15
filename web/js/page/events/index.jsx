@@ -2,7 +2,11 @@ import React, { useEffect, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
 
-import { ORGANIZATION_EVENTS_PATH } from 'common/routes';
+import { T } from 'common/i18n';
+import {
+  ORGANIZATION_EVENTS_PATH,
+  EVENT_PATH
+} from 'common/routes';
 
 import { SEE_MORE  } from 'js/helper/text';
 import { OrganizationEventsContext } from 'js/context';
@@ -20,7 +24,9 @@ import {
   EventContext
 } from 'js/context';
 import {
-  GET_ORGANIZATION_EVENTS
+  GET_ORGANIZATION_EVENTS,
+  UPDATE_EVENT,
+  GET_EVENT
 } from 'js/reducer/useFetch';
 import { routes } from 'js/routes';
 
@@ -32,6 +38,7 @@ export function Events() {
   const fetchState = useContext(FetchStateContext);
 
   const getOrganizationEventsState = fetchState[GET_ORGANIZATION_EVENTS];
+  const updateEventState = fetchState[UPDATE_EVENT];
 
   const organizationEventsPagination = organizationEventsMap[organizationId];
   const isFetchingMoreEvents = safe(() => getOrganizationEventsState.fetching);
@@ -57,6 +64,14 @@ export function Events() {
       {SEE_MORE}
     </Button>
   );
+  const togglePublished = (id) => {
+    const event = eventsMap[id];
+    dispatchFetch(
+      [EVENT_PATH, id],
+      { body: { published: !event.published }, method: 'POST' },
+      UPDATE_EVENT
+    );
+  };
 
   const renderEvent = id => {
     const event = eventsMap[id];
@@ -69,6 +84,10 @@ export function Events() {
             {event.name}
           </span>
         </Anchor>
+        <input onChange={() => togglePublished(id)} checked={event.published} type='checkbox' />
+        <Anchor to={routes.eventPublic(event.hash)}>
+          {T('public page')}
+        </Anchor>
         <Anchor button to={routes.eventPersist(event._id)}>
           <FontAwesomeIcon icon={faEdit} />
         </Anchor>
@@ -79,10 +98,19 @@ export function Events() {
   useEffect(() => {
     return () => {
       dispatchFetchDelete([
-        GET_ORGANIZATION_EVENTS
+        GET_ORGANIZATION_EVENTS,
+        UPDATE_EVENT,
+        GET_EVENT
       ]);
     };
   }, []);
+
+  useEffect(() => {
+    if (safe(() => updateEventState.response.ok)) {
+      dispatchFetchDelete([UPDATE_EVENT]);
+      dispatchFetch([EVENT_PATH, updateEventState.params.eventId], {}, GET_EVENT);
+    }
+  }, [ updateEventState ]);
 
   useEffect(() => {
     if (organizationId) {

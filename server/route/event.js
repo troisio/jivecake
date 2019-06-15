@@ -7,12 +7,16 @@ import {
   EVENT_ITEMS_PATH,
   EVENT_AVATAR_PATH,
   ORGANIZATION_EVENTS_PATH,
-  EVENT_PURCHASE_PATH
+  EVENT_PURCHASE_PATH,
+  EVENT_INFORMATION_PATH
 } from 'common/routes';
 import { Require, Permission } from 'server/router';
 import { EventCollection, ItemCollection, OrganizationCollection, TransactionCollection } from 'server/database';
 import { Event } from 'common/models';
 import { EVENT_SCHEMA } from 'common/schema';
+import { getHashSelections, getRandomString } from 'common/helpers';
+
+const HASH_SELECTIONS = getHashSelections();
 
 export const UPDATE_EVENT = {
   method: 'POST',
@@ -24,7 +28,10 @@ export const UPDATE_EVENT = {
       param: 'eventId'
     }
   ],
-  bodySchema: EVENT_SCHEMA,
+  bodySchema: {
+    ...EVENT_SCHEMA,
+    required: []
+  },
   on: async (request, response, { db }) => {
     const eventId = new mongodb.ObjectID(request.params.eventId);
     const $set = { ...request.body };
@@ -50,6 +57,7 @@ export const CREATE_EVENT = {
     const event = Object.assign(new Event(), request.body);
     event.organizationId = new mongodb.ObjectID(request.params.organizationId);
     event.created = new Date();
+    event.hash = getRandomString(HASH_SELECTIONS, 6);
     event.lastUserActivity = event.created;
 
     await db.collection(EventCollection).insertOne(event);
@@ -71,6 +79,28 @@ export const GET_EVENT = {
     const searchedEvent = await db.collection(EventCollection)
       .findOne({ _id: new mongodb.ObjectId(request.params.eventId) });
     response.json(searchedEvent);
+  }
+};
+
+export const EVENT_INFORMATION = {
+  method: 'GET',
+  path: EVENT_INFORMATION_PATH,
+  on: async (request, response, { db }) => {
+    const event = await db.collection(EventCollection)
+      .findOne({ hash: request.params.hash, published: true });
+
+    if (!event || !event.published) {
+      return response.status(404).end();
+    }
+
+    const items = await db.collection(ItemCollection)
+      .find({ eventId: event._id, published: true })
+      .toArray();
+
+    response.json({
+      event,
+      items
+    });
   }
 };
 
