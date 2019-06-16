@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import Compressor from 'compressorjs';
+import { toast } from 'react-toastify';
 
 import { T } from 'common/i18n';
 import { MAXIMUM_IMAGE_UPLOAD_BYTES, ORGANIZATION_SCHEMA } from 'common/schema';
@@ -34,6 +35,7 @@ import {
   GET_EVENT
 } from 'web/js/reducer/useFetch';
 import { safe } from 'web/js/helper';
+import { UPDATE_SUCCESS } from 'web/js/helper/text';
 import { Input } from 'web/js/component/input';
 import { OrganizationEmailNotice } from 'web/js/component/organization-email-notice';
 import { Button } from 'web/js/component/button';
@@ -182,6 +184,10 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   useEffect(() => {
     if (safe(() => updateEventState.response.ok)) {
       dispatchFetchDelete([ UPDATE_EVENT ]);
+
+      if (!loading) {
+        toast(UPDATE_SUCCESS);
+      }
     }
   }, [ updateEventState, eventId ]);
 
@@ -189,6 +195,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
     if (safe(() => updateEventAvatarState.response.ok)) {
       dispatchFetchDelete([ UPDATE_EVENT_AVATAR ]);
       setEventAvatarBlob(null);
+      toast(UPDATE_SUCCESS);
     }
   }, [ updateEventAvatarState, eventId ]);
 
