@@ -8,7 +8,7 @@ import {
   USER_PATH
 } from 'common/routes';
 
-import { safe } from 'js/helper';
+import { safe } from 'web/js/helper';
 
 import {
   ApplicationContext,
@@ -19,27 +19,27 @@ import {
   LocalStorageContext,
   UserContext,
   LocalStorageDispatchContext
-} from 'js/context';
+} from 'web/js/context';
 
-import { routes } from 'js/routes';
-import { Header } from 'component/header';
-import { NaturalSpinner } from 'component/natural-spinner';
-import { Signup } from 'page/signup';
-import { NotFound } from 'page/not-found';
-import { Landing } from 'page/landing';
-import { Account } from 'page/account';
-import { UserTransactions } from 'page/user-transactions';
-import { Login } from 'page/login';
-import { Organization } from 'page/organization';
-import { Event } from 'page/event';
-import { OAuthRedirectPage } from 'page/oauth-redirect';
-import { EventPersist } from 'page/event-persist';
-import { ItemPersist } from 'page/item-persist';
-import { ForgotPassword } from 'page/forgot-password';
-import { EventDashboard } from 'page/event-dashboard';
-import { Events } from 'js/page/events';
-import { Home } from 'js/page/home';
-import { OrganizationPersist } from 'js/page/organization-persist';
+import { routes } from 'web/js/routes';
+import { Header } from 'web/js/component/header';
+import { NaturalSpinner } from 'web/js/component/natural-spinner';
+import { Signup } from 'web/js/page/signup';
+import { NotFound } from 'web/js/page/not-found';
+import { Landing } from 'web/js/page/landing';
+import { Account } from 'web/js/page/account';
+import { UserTransactions } from 'web/js/page/user-transactions';
+import { Login } from 'web/js/page/login';
+import { Organization } from 'web/js/page/organization';
+import { Event } from 'web/js/page/event';
+import { OAuthRedirectPage } from 'web/js/page/oauth-redirect';
+import { EventPersist } from 'web/js/page/event-persist';
+import { ItemPersist } from 'web/js/page/item-persist';
+import { ForgotPassword } from 'web/js/page/forgot-password';
+import { EventDashboard } from 'web/js/page/event-dashboard';
+import { Events } from 'web/js/page/events';
+import { Home } from 'web/js/page/home';
+import { OrganizationPersist } from 'web/js/page/organization-persist';
 
 import {
   TOKEN_FROM_PASSWORD,
@@ -47,7 +47,7 @@ import {
   GET_ORGANIZATION,
   CREATE_ORGANIZATION,
   GET_USER_ORGANIZATIONS
-} from 'js/reducer/useFetch';
+} from 'web/js/reducer/useFetch';
 import './style.scss';
 
 const DEFAULT_APPLICATION_STATE = { userId: null, organizationId: null };

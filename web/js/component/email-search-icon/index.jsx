@@ -7,13 +7,13 @@ import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 
 import './style.scss';
 
-import { isValidEmail, safe } from 'js/helper';
+import { isValidEmail, safe } from 'web/js/helper';
 import {
   FetchStateContext,
-} from 'js/context';
+} from 'web/js/context';
 import {
   SEARCH_EMAIL
-} from 'js/reducer/useFetch';
+} from 'web/js/reducer/useFetch';
 
 export function EmailSearchIcon({ className }) {
   const fetchState = useContext(FetchStateContext);

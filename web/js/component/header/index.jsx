@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import { Link }from 'react-router-dom';
 
 import { T } from 'common/i18n';
-import { ApplicationContext } from 'js/context';
-import { routes } from 'js/routes';
+import { ApplicationContext } from 'web/js/context';
+import { routes } from 'web/js/routes';
 
-import { Anchor } from 'component/anchor';
+import { Anchor } from 'web/js/component/anchor';
 import './style.scss';
 
 export function Header(props) {

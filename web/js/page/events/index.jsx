@@ -8,27 +8,27 @@ import {
   EVENT_PATH
 } from 'common/routes';
 
-import { SEE_MORE  } from 'js/helper/text';
-import { OrganizationEventsContext } from 'js/context';
-import { Anchor } from 'component/anchor';
-import { Avatar } from 'component/avatar';
-import { Button } from 'component/button';
-import { Pagination } from 'component/pagination';
+import { SEE_MORE  } from 'web/js/helper/text';
+import { OrganizationEventsContext } from 'web/js/context';
+import { Anchor } from 'web/js/component/anchor';
+import { Avatar } from 'web/js/component/avatar';
+import { Button } from 'web/js/component/button';
+import { Pagination } from 'web/js/component/pagination';
 import './style.scss';
 
-import { safe } from 'js/helper';
+import { safe } from 'web/js/helper';
 import {
   ApplicationContext,
   FetchDispatchContext,
   FetchStateContext,
   EventContext
-} from 'js/context';
+} from 'web/js/context';
 import {
   GET_ORGANIZATION_EVENTS,
   UPDATE_EVENT,
   GET_EVENT
-} from 'js/reducer/useFetch';
-import { routes } from 'js/routes';
+} from 'web/js/reducer/useFetch';
+import { routes } from 'web/js/routes';
 
 export function Events() {
   const eventsMap = useContext(EventContext);

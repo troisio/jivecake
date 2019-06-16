@@ -1,6 +1,6 @@
-@import '~sass/color';
-@import '~sass/media';
-@import '~sass/size';
+@import '~web/sass/color';
+@import '~web/sass/media';
+@import '~web/sass/size';
 
 @mixin breakText() {
   word-break: break-word;

@@ -1,4 +1,4 @@
 import * as Sentry from '@sentry/browser';
-import settings from 'settings';
+import settings from 'web/settings';
 
 Sentry.init({ dsn: settings.dsn });

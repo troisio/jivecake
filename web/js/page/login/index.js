@@ -3,22 +3,22 @@ import React, { useState, useContext } from 'react';
 import { T } from 'common/i18n';
 import { TOKEN_PATH } from 'common/routes'; 
 
-import { safe } from 'js/helper';
+import { safe } from 'web/js/helper';
 
 import {
   ApplicationContext,
   FetchDispatchContext,
   FetchStateContext
-} from 'js/context';
+} from 'web/js/context';
 
-import { routes } from 'js/routes';
-import { MessageBlock } from 'component/message-block';
-import { Anchor } from 'component/anchor';
-import { Button } from 'component/button';
-import { Input } from 'component/input';
+import { routes } from 'web/js/routes';
+import { MessageBlock } from 'web/js/component/message-block';
+import { Anchor } from 'web/js/component/anchor';
+import { Button } from 'web/js/component/button';
+import { Input } from 'web/js/component/input';
 import './style.scss';
 
-import { TOKEN_FROM_PASSWORD } from 'js/reducer/useFetch';
+import { TOKEN_FROM_PASSWORD } from 'web/js/reducer/useFetch';
 
 export function Login() {
   const [ email, setEmail ] = useState('');

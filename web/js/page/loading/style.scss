@@ -1,5 +1,5 @@
-@import '~sass/mixin';
-@import '~sass/media';
+@import '~web/sass/mixin';
+@import '~web/sass/media';
 
 .root {
   @include defaultLayout();

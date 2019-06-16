@@ -4,20 +4,20 @@ import { withRouter } from 'react-router';
 
 import { USER_TRANSACTIONS_PATH } from 'common/routes';
 
-import { SEE_MORE  } from 'js/helper/text';
-import { Button } from 'component/button';
-import { Pagination } from 'component/pagination';
+import { SEE_MORE  } from 'web/js/helper/text';
+import { Button } from 'web/js/component/button';
+import { Pagination } from 'web/js/component/pagination';
 import './style.scss';
 
-import { safe } from 'js/helper';
+import { safe } from 'web/js/helper';
 import {
   FetchDispatchContext,
   FetchStateContext,
   TransactionContext
-} from 'js/context';
+} from 'web/js/context';
 import {
   GET_USER_TRANSACTIONS
-} from 'js/reducer/useFetch';
+} from 'web/js/reducer/useFetch';
 
 export function UserTransactionsComponent({ match: { params: { userId } } }) {
   const transactionsMap = useContext(TransactionContext);

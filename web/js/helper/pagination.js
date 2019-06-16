@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { getEntityStoreHook } from 'js/helper/reducer';
+import { getEntityStoreHook } from 'web/js/helper/reducer';
 
 export function getPaginationReducer(type, paramId) {
   return function reducer(state, action) {

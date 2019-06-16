@@ -205,7 +205,10 @@ export const UPDATE_USER = {
       param: 'userId'
     }
   ],
-  bodySchema: USER_SCHEMA,
+  bodySchema: {
+    ...USER_SCHEMA,
+    required: [],
+  },
   on: async (request, response, { db }) => {
     const user = await db.collection(UserCollection)
       .findOne({ _id: new mongodb.ObjectID(request.params.userId) });

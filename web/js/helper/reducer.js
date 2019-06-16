@@ -1,7 +1,7 @@
 import { useContext, useReducer, useEffect } from 'react';
 
-import { FetchStateContext } from 'js/context';
-import { safe } from 'js/helper';
+import { FetchStateContext } from 'web/js/context';
+import { safe } from 'web/js/helper';
 
 export const getEntityStoreHook = (keys, reducer) => {
   return function() {

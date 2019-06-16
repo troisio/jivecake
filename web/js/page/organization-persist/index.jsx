@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import Compressor from 'compressorjs';
+import { toast } from 'react-toastify';
 
 import { T } from 'common/i18n';
 import {
@@ -15,24 +16,25 @@ import {
   ORGANIZATION_STRIPE_DISCONNECT_PATH
 } from 'common/routes';
 
-import { FetchDispatchContext, FetchStateContext, OrganizationContext } from 'js/context';
+import { FetchDispatchContext, FetchStateContext, OrganizationContext } from 'web/js/context';
 import {
   CREATE_ORGANIZATION,
   UPDATE_ORGANIZATION,
   UPDATE_ORGANIZATION_AVATAR,
   GET_ORGANIZATION,
   ORGANIZATION_STRIPE_DISCONNECT
-} from 'js/reducer/useFetch';
+} from 'web/js/reducer/useFetch';
 
-import { routes } from 'js/routes';
+import { routes } from 'web/js/routes';
 
-import { safe } from 'js/helper';
-import { ConnectWithStripeAnchor } from 'component/connect-with-stripe-anchor';
-import { MessageBlock } from 'component/message-block';
-import { OrganizationEmailNotice } from 'component/organization-email-notice';
-import { Input } from 'component/input';
-import { Button } from 'component/button';
-import { AvatarImageUpload } from 'component/avatar-image-upload';
+import { safe } from 'web/js/helper';
+import { UPDATE_SUCCESS } from 'web/js/helper/text';
+import { ConnectWithStripeAnchor } from 'web/js/component/connect-with-stripe-anchor';
+import { MessageBlock } from 'web/js/component/message-block';
+import { OrganizationEmailNotice } from 'web/js/component/organization-email-notice';
+import { Input } from 'web/js/component/input';
+import { Button } from 'web/js/component/button';
+import { AvatarImageUpload } from 'web/js/component/avatar-image-upload';
 import './style.scss';
 
 export function OrganizationPersistComponent({ history, match: { params: { organizationId } } }) {
@@ -157,6 +159,7 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
   useEffect(() => {
     if (safe(() => updateOrganizationState.response.ok)) {
       dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
+      toast(UPDATE_SUCCESS);
     }
   }, [ updateOrganizationState, organizationId ]);
 

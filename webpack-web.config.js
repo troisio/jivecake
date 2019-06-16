@@ -30,19 +30,21 @@ module.exports = function() {
     ],
     resolve: {
       alias: {
-        settings: path.resolve(__dirname, 'web/settings'),
-        component: path.resolve(__dirname, 'web/js/component'),
-        page: path.resolve(__dirname, 'web/js/page'),
-        js: path.resolve(__dirname, 'web/js'),
         common: path.resolve(__dirname, 'common'),
-        sass: path.resolve(__dirname, 'web/sass')
+        web: path.resolve(__dirname, 'web'),
       },
       extensions: ['.js', '.jsx']
     },
     module: {
       rules: [
         {
-          test: /(\.scss)$/,
+          test: path => path.endsWith('.css'),
+          include: /node_modules/,
+          loaders:  [MiniCssExtractPlugin.loader, 'css-loader']
+        },
+        {
+          test: path => path.endsWith('.scss'),
+          exclude: /node_modules/,
           use: [{
             loader: MiniCssExtractPlugin.loader,
           }, {

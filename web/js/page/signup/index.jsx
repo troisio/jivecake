@@ -2,18 +2,18 @@ import React, { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 
-import { isValidEmail, safe } from 'js/helper';
+import { isValidEmail, safe } from 'web/js/helper';
 
 import { USER_SCHEMA } from 'common/schema';
 import { T } from 'common/i18n';
 import { getNavigatorLanguage } from 'common/helpers';
-import { routes } from 'js/routes';
-import { MessageBlock } from 'component/message-block';
-import { EmailSearchIcon } from 'component/email-search-icon';
-import { ApplicationContext, FetchDispatchContext, FetchStateContext } from 'js/context';
-import { Button } from 'component/button';
-import { Anchor } from 'component/anchor';
-import { Input } from 'component/input';
+import { routes } from 'web/js/routes';
+import { MessageBlock } from 'web/js/component/message-block';
+import { EmailSearchIcon } from 'web/js/component/email-search-icon';
+import { ApplicationContext, FetchDispatchContext, FetchStateContext } from 'web/js/context';
+import { Button } from 'web/js/component/button';
+import { Anchor } from 'web/js/component/anchor';
+import { Input } from 'web/js/component/input';
 import './style.scss';
 
 import {
@@ -26,7 +26,7 @@ import {
   SEARCH_EMAIL,
   CREATE_ACCOUNT,
   TOKEN_FROM_PASSWORD
-} from 'js/reducer/useFetch';
+} from 'web/js/reducer/useFetch';
 
 export function SignupComponent({ history }) {
   const [ email, setEmail ] = useState('');

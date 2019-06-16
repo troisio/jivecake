@@ -14,7 +14,7 @@ import {
   ORGANIZATION_PATH
 } from 'common/routes';
 
-import { routes } from 'js/routes';
+import { routes } from 'web/js/routes';
 import {
   ApplicationContext,
   SetApplicationStateContext,
@@ -22,7 +22,7 @@ import {
   FetchStateContext,
   FetchDispatchContext,
   UserContext
-} from 'js/context';
+} from 'web/js/context';
 import {
   CREATE_ORGANIZATION,
   CREATE_EVENT,
@@ -32,14 +32,14 @@ import {
   GET_ORGANIZATION,
   UPDATE_ORGANIZATION_AVATAR,
   GET_EVENT
-} from 'js/reducer/useFetch';
-import { safe } from 'js/helper';
-import { Input } from 'component/input';
-import { OrganizationEmailNotice } from 'component/organization-email-notice';
-import { Button } from 'component/button';
-import { MessageBlock } from 'component/message-block';
-import { AvatarImageUpload } from 'component/avatar-image-upload';
-import { Loading } from 'page/loading';
+} from 'web/js/reducer/useFetch';
+import { safe } from 'web/js/helper';
+import { Input } from 'web/js/component/input';
+import { OrganizationEmailNotice } from 'web/js/component/organization-email-notice';
+import { Button } from 'web/js/component/button';
+import { MessageBlock } from 'web/js/component/message-block';
+import { AvatarImageUpload } from 'web/js/component/avatar-image-upload';
+import { Loading } from 'web/js/page/loading';
 
 import './style.scss';
 
@@ -182,14 +182,13 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   useEffect(() => {
     if (safe(() => updateEventState.response.ok)) {
       dispatchFetchDelete([ UPDATE_EVENT ]);
-      dispatchFetch([EVENT_PATH, eventId], {}, GET_EVENT);
     }
   }, [ updateEventState, eventId ]);
 
   useEffect(() => {
     if (safe(() => updateEventAvatarState.response.ok)) {
       dispatchFetchDelete([ UPDATE_EVENT_AVATAR ]);
-      dispatchFetch([EVENT_PATH, eventId], {}, GET_EVENT);
+      setEventAvatarBlob(null);
     }
   }, [ updateEventAvatarState, eventId ]);
 
@@ -217,8 +216,6 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
     if (!safe(() => createEventState.response.ok)) {
       return;
     }
-
-    dispatchFetch([EVENT_PATH, createEventState.body._id], {}, GET_EVENT);
 
     if (eventAvatarBlob) {
       dispatchFetch([EVENT_AVATAR_PATH, createEventState.body._id], {

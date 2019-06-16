@@ -7,23 +7,23 @@ import {
   USER_ORGANIZATIONS_PATH
 } from 'common/routes';
 
-import { Avatar } from 'component/avatar';
-import { Spinner } from 'component/spinner';
-import { Anchor } from 'component/anchor';
-import { MessageBlock } from 'component/message-block';
+import { Avatar } from 'web/js/component/avatar';
+import { Spinner } from 'web/js/component/spinner';
+import { Anchor } from 'web/js/component/anchor';
+import { MessageBlock } from 'web/js/component/message-block';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faEdit } from '@fortawesome/free-solid-svg-icons';
-import { routes } from 'js/routes';
+import { routes } from 'web/js/routes';
 import {
   ApplicationContext,
   OrganizationContext,
   UserOrganizationContext,
   FetchDispatchContext
-} from 'js/context';
+} from 'web/js/context';
 
 import './style.scss';
 
-import { GET_USER_ORGANIZATIONS } from 'js/reducer/useFetch';
+import { GET_USER_ORGANIZATIONS } from 'web/js/reducer/useFetch';
 
 export function OrganizationComponent() {
   const { userId } = useContext(ApplicationContext);

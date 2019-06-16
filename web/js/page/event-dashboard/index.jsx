@@ -14,23 +14,23 @@ import {
   FetchStateContext,
   FetchDispatchContext,
   EventItemsContext
-} from 'js/context';
+} from 'web/js/context';
 
 import {
   GET_EVENT,
   GET_EVENT_ITEMS
-} from 'js/reducer/useFetch';
-import { safe } from 'js/helper';
-import { routes } from 'js/routes';
-import { SEE_MORE } from 'js/helper/text';
+} from 'web/js/reducer/useFetch';
+import { safe } from 'web/js/helper';
+import { routes } from 'web/js/routes';
+import { SEE_MORE } from 'web/js/helper/text';
 
-import { NotFound } from 'page/not-found';
-import { Error } from 'page/error';
-import { Button } from 'component/button';
-import { Pagination } from 'component/pagination';
-import { NaturalSpinner } from 'component/natural-spinner';
-import { Anchor } from 'component/anchor';
-import { Avatar } from 'component/avatar';
+import { NotFound } from 'web/js/page/not-found';
+import { Error } from 'web/js/page/error';
+import { Button } from 'web/js/component/button';
+import { Pagination } from 'web/js/component/pagination';
+import { NaturalSpinner } from 'web/js/component/natural-spinner';
+import { Anchor } from 'web/js/component/anchor';
+import { Avatar } from 'web/js/component/avatar';
 
 import './style.scss';
 

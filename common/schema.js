@@ -3,7 +3,7 @@ https://ajv.js.org/keywords.html
 */
 
 import passwords from 'common/passwords.json';
-import { Currency, SUPPORTED_LANGUAGE_IDS } from 'common/models';
+import { Currency } from 'common/models';
 
 export const DEFAULT_MAX_LENGTH = 250;
 export const MAXIMUM_IMAGE_UPLOAD_BYTES = 500000;
@@ -35,7 +35,9 @@ export const USER_SCHEMA = {
       }
     },
     lastLanguage: {
-      enum: [ ...SUPPORTED_LANGUAGE_IDS, null ]
+      if: { type: 'string' },
+      then: { maxLength: DEFAULT_MAX_LENGTH, },
+      else: { type: 'null' }
     }
   }
 };

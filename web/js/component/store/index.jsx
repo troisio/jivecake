@@ -10,16 +10,16 @@ import {
   UserOrganizationContext,
   OrganizationEventsContext,
   ItemTransactionsContext
-} from 'js/context';
+} from 'web/js/context';
 
-import { useUsers } from 'js/reducer/useUsers';
-import { useOrganizations } from 'js/reducer/useOrganizations';
-import { useOrganizationEvents } from 'js/reducer/useOrganizationEvents';
-import { useUserOrganizations } from 'js/reducer/useUserOrganizations';
-import { useItemTransactions } from 'js/reducer/useItemTransactions';
-import { useEventItems } from 'js/reducer/useEventItems';
-import { useEvents } from 'js/reducer/useEvents';
-import { useItems } from 'js/reducer/useItems';
+import { useUsers } from 'web/js/reducer/useUsers';
+import { useOrganizations } from 'web/js/reducer/useOrganizations';
+import { useOrganizationEvents } from 'web/js/reducer/useOrganizationEvents';
+import { useUserOrganizations } from 'web/js/reducer/useUserOrganizations';
+import { useItemTransactions } from 'web/js/reducer/useItemTransactions';
+import { useEventItems } from 'web/js/reducer/useEventItems';
+import { useEvents } from 'web/js/reducer/useEvents';
+import { useItems } from 'web/js/reducer/useItems';
 
 export function Store({ children }) {
   const [ usersState ] = useUsers();

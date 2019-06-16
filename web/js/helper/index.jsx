@@ -1,5 +1,5 @@
 import Ajv from 'ajv';
-import settings from 'settings';
+import settings from 'web/settings';
 
 const validateEmailSchema = new Ajv().compile({
   type: 'string',

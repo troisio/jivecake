@@ -10,8 +10,7 @@ export const getHashSelections = () => {
 	}
 
 	for (let index = '0'.charCodeAt(0); index <= '9'.charCodeAt(0); index++) {
-		const letter = String.fromCharCode(index);
-		result.push(letter, letter.toLocaleUpperCase());
+		result.push(String.fromCharCode(index));
 	}
 
 	return result;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
+import { toast } from 'react-toastify';
 
 import { T } from 'common/i18n';
 import { ITEM_SCHEMA } from 'common/schema';
@@ -9,22 +10,23 @@ import {
   EVENT_ITEMS_PATH
 } from 'common/routes';
 
-import { hasMinorUnits } from 'js/helper/currency';
-import { routes } from 'js/routes';
-import { safe } from 'js/helper';
-import { Button } from 'js/component/button';
-import { Input } from 'js/component/input';
-import { CurrencySelector } from 'js/component/currency-selector';
+import { hasMinorUnits } from 'web/js/helper/currency';
+import { UPDATE_SUCCESS } from 'web/js/helper/text';
+import { routes } from 'web/js/routes';
+import { safe } from 'web/js/helper';
+import { Button } from 'web/js/component//button';
+import { Input } from 'web/js/component//input';
+import { CurrencySelector } from 'web/js/component//currency-selector';
 
 import {
   FetchDispatchContext,
   FetchStateContext,
   ItemContext
-} from 'js/context';
+} from 'web/js/context';
 import {
   GET_ITEM,
-  CREATE_ITEM
-} from 'js/reducer/useFetch';
+  PERSIST_ITEM
+} from 'web/js/reducer/useFetch';
 
 import './style.scss';
 
@@ -38,8 +40,8 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
   const [ currency, setCurrency ] = useState(fetchedItem ? fetchedItem.currency : '');
   const [ amountText, setAmountText ] = useState(fetchedItem ? fetchedItem.amount.toString() : '');
 
-  const createItemState = fetchState[CREATE_ITEM];
-  const loading = safe(() => createItemState.fetching);
+  const persistItemState = fetchState[PERSIST_ITEM];
+  const loading = safe(() => persistItemState.fetching);
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -82,7 +84,7 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
         amount: derivedAmount,
         sort: 0
       }
-    }, CREATE_ITEM);
+    }, PERSIST_ITEM);
   };
 
   useEffect(() => {
@@ -91,7 +93,7 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
     }
 
     return () => {
-      dispatchFetchDelete([GET_ITEM, CREATE_ITEM]);
+      dispatchFetchDelete([GET_ITEM, PERSIST_ITEM]);
     };
   }, []);
 
@@ -110,10 +112,11 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
   }, [ fetchedItem ]);
 
   useEffect(() => {
-    if (safe(() => createItemState.response.ok)) {
+    if (safe(() => persistItemState.response.ok)) {
+      toast(UPDATE_SUCCESS);
       history.push(routes.event(eventId));
     }
-  }, [ createItemState ]);
+  }, [ persistItemState ]);
 
   return (
     <form onSubmit={onSubmit} styleName='root'>

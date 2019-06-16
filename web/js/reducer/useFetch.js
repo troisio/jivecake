@@ -1,10 +1,14 @@
+import { useReducer, useEffect } from 'react';
 import { fetch as whatWGFetch } from 'whatwg-fetch';
 import _ from 'lodash';
 
-import settings from 'settings';
+import {
+  EVENT_PATH
+} from 'common/routes';
 
-import { useReducer } from 'react';
-import { safe } from 'js/helper';
+import settings from 'web/settings';
+
+import { safe } from 'web/js/helper';
 
 export const UPDATE_USER = 'UPDATE_USER';
 export const GET_USER = 'GET_USER';
@@ -16,7 +20,7 @@ export const CREATE_ACCOUNT = 'CREATE_ACCOUNT';
 export const TOKEN_FROM_PASSWORD = 'TOKEN_FROM_PASSWORD';
 
 export const GET_ITEM = 'GET_ITEM';
-export const CREATE_ITEM = 'CREATE_ITEM';
+export const PERSIST_ITEM = 'PERSIST_ITEM';
 
 export const GET_ITEM_TRANSACTIONS = 'GET_ITEM_TRANSACTIONS';
 
@@ -59,6 +63,11 @@ function reducer(state, action) {
 
 export function useFetch(token) {
   const [ state, dispatch ] = useReducer(reducer, {});
+
+  const createEventState = state[CREATE_EVENT];
+  const updateEventState = state[UPDATE_EVENT];
+  const updateEventAvatarState = state[UPDATE_EVENT_AVATAR];
+
   const resultDispatch = (url, options = {}, type = url) => {
     const data = {
       url,
@@ -154,6 +163,24 @@ export function useFetch(token) {
       data: { ids }
     });
   };
+
+  useEffect(() => {
+    if (safe(() => createEventState.response.ok)) {
+      resultDispatch([EVENT_PATH, createEventState.body._id], {}, GET_EVENT);
+    }
+  }, [ createEventState ]);
+
+  useEffect(() => {
+    if (safe(() => updateEventState.response.ok)) {
+      resultDispatch([EVENT_PATH, updateEventState.params.eventId], {}, GET_EVENT);
+    }
+  }, [ updateEventState ]);
+
+  useEffect(() => {
+    if (safe(() => updateEventAvatarState.response.ok)) {
+      resultDispatch([EVENT_PATH, updateEventAvatarState.params.eventId], {}, GET_EVENT);
+    }
+  }, [ updateEventAvatarState ]);
 
   return [ state, resultDispatch, deleteDispatch ];
 }

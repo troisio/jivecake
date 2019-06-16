@@ -2,7 +2,7 @@ import React from 'react';
 import { T } from 'common/i18n';
 import './style.scss';
 
-import { svgUrl } from 'js/helper';
+import { svgUrl } from 'web/js/helper';
 
 export function Landing() {
   return (

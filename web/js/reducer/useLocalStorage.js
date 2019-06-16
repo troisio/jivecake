@@ -1,6 +1,6 @@
 import { useReducer } from 'react';
 
-import { getLocalStorage, writeLocalStorage } from 'js/storage';
+import { getLocalStorage, writeLocalStorage } from 'web/js/storage';
 
 function reducer(state, action) {
   switch (action.type) {

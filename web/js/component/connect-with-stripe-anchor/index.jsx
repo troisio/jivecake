@@ -2,15 +2,15 @@ import React, { useContext } from 'react';
 
 import { T } from 'common/i18n';
 
-import { safe } from 'js/helper';
+import { safe } from 'web/js/helper';
 
 import {
   ApplicationContext,
   UserContext
-} from 'js/context';
-import settings from 'settings';
+} from 'web/js/context';
+import settings from 'web/settings';
 
-import { Anchor } from 'component/anchor';
+import { Anchor } from 'web/js/component/anchor';
 
 import './style.scss';
 

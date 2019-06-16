@@ -2,14 +2,14 @@ import React, { useContext } from 'react';
 
 import { T } from 'common/i18n';
 
-import { svgUrl } from 'js/helper';
-import { Anchor } from 'js/component/anchor';
-import { routes } from 'js/routes';
+import { svgUrl } from 'web/js/helper';
+import { Anchor } from 'web/js/component//anchor';
+import { routes } from 'web/js/routes';
 import './style.scss';
 
 import {
   ApplicationContext
-} from 'js/context';
+} from 'web/js/context';
 
 export function Home() {
   const { organizationId } = useContext(ApplicationContext);

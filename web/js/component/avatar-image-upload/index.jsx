@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
 
-import { Spinner } from 'component/spinner';
-import { Avatar } from 'component/avatar';
+import { Spinner } from 'web/js/component/spinner';
+import { Avatar } from 'web/js/component/avatar';
 import './style.scss';
-import { EMPTY_IMAGE } from 'component/avatar';
+import { EMPTY_IMAGE } from 'web/js/component/avatar';
 
 export function AvatarImageUpload(props) {
   const input = React.createRef();

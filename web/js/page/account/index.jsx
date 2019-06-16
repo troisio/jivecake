@@ -1,4 +1,5 @@
 import React, { useEffect, useContext, useState } from 'react';
+import { toast } from 'react-toastify';
 
 import { T } from 'common/i18n';
 import {
@@ -6,15 +7,16 @@ import {
   USER_PATH,
   USER_ORGANIZATIONS_PATH
 } from 'common/routes';
+import { UPDATE_SUCCESS } from 'web/js/helper/text';
 
-import { Input  } from 'component/input';
-import { Button  } from 'component/button';
-import { MessageBlock } from 'component/message-block';
-import { EmailSearchIcon } from 'component/email-search-icon';
+import { Input  } from 'web/js/component/input';
+import { Button  } from 'web/js/component/button';
+import { MessageBlock } from 'web/js/component/message-block';
+import { EmailSearchIcon } from 'web/js/component/email-search-icon';
 
 import './style.scss';
 
-import { safe, isValidEmail } from 'js/helper';
+import { safe, isValidEmail } from 'web/js/helper';
 import {
   ApplicationContext,
   SetApplicationStateContext,
@@ -22,13 +24,13 @@ import {
   FetchStateContext,
   OrganizationContext,
   UserContext
-} from 'js/context';
+} from 'web/js/context';
 import {
   GET_USER_ORGANIZATIONS,
   UPDATE_USER,
   SEARCH_EMAIL,
   GET_USER
-} from 'js/reducer/useFetch';
+} from 'web/js/reducer/useFetch';
 
 export function Account() {
   const applicationState = useContext(ApplicationContext);
@@ -58,7 +60,7 @@ export function Account() {
     const body = { email };
 
     dispatchFetch(
-      [GET_USER, applicationState.userId],
+      [USER_PATH, applicationState.userId],
       {
         method: 'POST',
         body,
@@ -99,7 +101,9 @@ export function Account() {
       return;
     }
 
-      dispatchFetchDelete([ UPDATE_USER ]);
+    toast(UPDATE_SUCCESS);
+
+    dispatchFetchDelete([ UPDATE_USER ]);
     dispatchFetch(
       [USER_PATH, applicationState.userId],
       {},

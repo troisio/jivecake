@@ -1,11 +1,11 @@
 import React, { useContext, useEffect } from 'react';
-import { NaturalSpinner } from 'component/natural-spinner';
+import { NaturalSpinner } from 'web/js/component/natural-spinner';
 
 import { T } from 'common/i18n';
 import {
   ORGANIZATION_STRIPE_CONNECT,
   GET_ORGANIZATION
-} from 'js/reducer/useFetch';
+} from 'web/js/reducer/useFetch';
 
 import {
   ORGANIZATION_STRIPE_CONNECT_PATH,
@@ -16,11 +16,11 @@ import {
   FetchDispatchContext,
   FetchStateContext,
   ApplicationContext
-} from 'js/context';
-import { safe } from 'js/helper';
-import { routes } from 'js/routes';
-import { MessageBlock, MessageBlockType } from 'component/message-block';
-import { Anchor } from 'component/anchor';
+} from 'web/js/context';
+import { safe } from 'web/js/helper';
+import { routes } from 'web/js/routes';
+import { MessageBlock, MessageBlockType } from 'web/js/component/message-block';
+import { Anchor } from 'web/js/component/anchor';
 
 import './style.scss';
 

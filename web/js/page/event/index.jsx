@@ -9,14 +9,14 @@ import {
   EventContext,
   FetchStateContext,
   FetchDispatchContext
-} from 'js/context';
+} from 'web/js/context';
 
 import {
   GET_EVENT_INFORMATION
-} from 'js/reducer/useFetch';
+} from 'web/js/reducer/useFetch';
 
-import { safe } from 'js/helper';
-import { NaturalSpinner } from 'js/component/natural-spinner';
+import { safe } from 'web/js/helper';
+import { NaturalSpinner } from 'web/js/component//natural-spinner';
 
 import './style.scss';
 
