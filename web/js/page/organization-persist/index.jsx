@@ -12,8 +12,7 @@ import {
 import {
   ORGANIZATIONS_PATH,
   ORGANIZATION_AVATAR_PATH,
-  ORGANIZATION_PATH,
-  ORGANIZATION_STRIPE_DISCONNECT_PATH
+  ORGANIZATION_PATH
 } from 'common/routes';
 
 import { FetchDispatchContext, FetchStateContext, OrganizationContext } from 'web/js/context';
@@ -21,8 +20,7 @@ import {
   CREATE_ORGANIZATION,
   UPDATE_ORGANIZATION,
   UPDATE_ORGANIZATION_AVATAR,
-  GET_ORGANIZATION,
-  ORGANIZATION_STRIPE_DISCONNECT
+  GET_ORGANIZATION
 } from 'web/js/reducer/useFetch';
 
 import { routes } from 'web/js/routes';
@@ -44,7 +42,6 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
   const createOrganizationState = fetchState[CREATE_ORGANIZATION];
   const updateOrganizationState = fetchState[UPDATE_ORGANIZATION];
   const updateOrganizationAvatarState = fetchState[UPDATE_ORGANIZATION_AVATAR];
-  const disconnectStripeState = fetchState[ORGANIZATION_STRIPE_DISCONNECT];
 
   const organization = organizationMap[organizationId];
 
@@ -132,9 +129,12 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
   };
   const disconnectStripe = () => {
     if (window.confirm(T('Are you are you sure you want to disconnect?'))) {
-      dispatchFetch([ORGANIZATION_STRIPE_DISCONNECT_PATH, organizationId], {
-        method: 'DELETE',
-      }, ORGANIZATION_STRIPE_DISCONNECT);
+      dispatchFetch([ORGANIZATION_PATH, organizationId], {
+        method: 'POST',
+        body: {
+          stripe: null,
+        }
+      }, UPDATE_ORGANIZATION);
     }
   };
 
@@ -144,21 +144,13 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
         CREATE_ORGANIZATION,
         UPDATE_ORGANIZATION,
         UPDATE_ORGANIZATION_AVATAR,
-        GET_ORGANIZATION,
-        ORGANIZATION_STRIPE_DISCONNECT
+        GET_ORGANIZATION
       ]);
     };
   }, []);
 
   useEffect(() => {
-    if (safe(() => updateOrganizationAvatarState.response.ok)) {
-      dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
-    }
-  }, [ updateOrganizationAvatarState, organizationId ]);
-
-  useEffect(() => {
     if (safe(() => updateOrganizationState.response.ok)) {
-      dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
       toast(UPDATE_SUCCESS);
     }
   }, [ updateOrganizationState, organizationId ]);
@@ -168,13 +160,6 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
       dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
     }
   }, [ organizationId, organization ]);
-
-  useEffect(() => {
-    if (safe(() => disconnectStripeState.response.ok)) {
-      dispatchFetchDelete([ ORGANIZATION_STRIPE_DISCONNECT ]);
-      dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
-    }
-  }, [ disconnectStripeState ]);
 
   useEffect(() => {
     if (organization) {

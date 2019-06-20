@@ -13,7 +13,6 @@ export const ORGANIZATIONS_PATH = '/organization';
 export const INVITE_USER_TO_ORGANIZATION = '/organization/:organizationId/user/:userId';
 export const ORGANIZATION_EVENTS_PATH = '/organization/:organizationId/event';
 export const ORGANIZATION_STRIPE_CONNECT_PATH = '/organization/:organizationId/stripe/connect/:code';
-export const ORGANIZATION_STRIPE_DISCONNECT_PATH = '/organization/:organizationId/stripe/connect';
 
 export const EVENT_PATH = '/event/:eventId';
 export const EVENT_INFORMATION_PATH = '/event/:hash/information';

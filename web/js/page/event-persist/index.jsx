@@ -11,8 +11,7 @@ import {
   ORGANIZATION_EVENTS_PATH,
   EVENT_AVATAR_PATH,
   EVENT_PATH,
-  USER_ORGANIZATIONS_PATH,
-  ORGANIZATION_PATH
+  USER_ORGANIZATIONS_PATH
 } from 'common/routes';
 
 import { routes } from 'web/js/routes';
@@ -241,7 +240,6 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
 
     const organizationId = createOrganizationState.body._id;
     dispatchFetchDelete([ CREATE_ORGANIZATION ]);
-    dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
     dispatchFetch([ORGANIZATION_EVENTS_PATH, organizationId], {
       method: 'POST',
       body: {
@@ -329,7 +327,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
         />
       </div>
       {organizationFields}
-      {messages.map(message =>   <MessageBlock key={message}>{message}</MessageBlock>)}
+      {messages.map(message => <MessageBlock key={message}>{message}</MessageBlock>)}
       <Button loading={loading}>
         {submitText}
       </Button>

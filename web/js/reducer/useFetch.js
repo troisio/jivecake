@@ -3,7 +3,8 @@ import { fetch as whatWGFetch } from 'whatwg-fetch';
 import _ from 'lodash';
 
 import {
-  EVENT_PATH
+  EVENT_PATH,
+  ORGANIZATION_PATH
 } from 'common/routes';
 
 import settings from 'web/settings';
@@ -63,11 +64,6 @@ function reducer(state, action) {
 
 export function useFetch(token) {
   const [ state, dispatch ] = useReducer(reducer, {});
-
-  const createEventState = state[CREATE_EVENT];
-  const updateEventState = state[UPDATE_EVENT];
-  const updateEventAvatarState = state[UPDATE_EVENT_AVATAR];
-
   const resultDispatch = (url, options = {}, type = url) => {
     const data = {
       url,
@@ -164,23 +160,22 @@ export function useFetch(token) {
     });
   };
 
-  useEffect(() => {
-    if (safe(() => createEventState.response.ok)) {
-      resultDispatch([EVENT_PATH, createEventState.body._id], {}, GET_EVENT);
-    }
-  }, [ createEventState ]);
+  [
+    [CREATE_EVENT, 'body._id', EVENT_PATH, GET_EVENT],
+    [UPDATE_EVENT_AVATAR, 'params.eventId', EVENT_PATH, GET_EVENT],
+    [UPDATE_EVENT, 'params.eventId', EVENT_PATH, GET_EVENT],
+    [UPDATE_ORGANIZATION, 'params.organizationId', ORGANIZATION_PATH, GET_ORGANIZATION],
+    [CREATE_ORGANIZATION, 'body._id', ORGANIZATION_PATH, GET_ORGANIZATION],
+    [UPDATE_ORGANIZATION_AVATAR, 'params.organizationId', ORGANIZATION_PATH, GET_ORGANIZATION]
+  ].forEach(([type, statePath, apiPath, writeFetchKey]) => {
+    const state = state[type];
 
-  useEffect(() => {
-    if (safe(() => updateEventState.response.ok)) {
-      resultDispatch([EVENT_PATH, updateEventState.params.eventId], {}, GET_EVENT);
-    }
-  }, [ updateEventState ]);
-
-  useEffect(() => {
-    if (safe(() => updateEventAvatarState.response.ok)) {
-      resultDispatch([EVENT_PATH, updateEventAvatarState.params.eventId], {}, GET_EVENT);
-    }
-  }, [ updateEventAvatarState ]);
+    useEffect(() => {
+      if (safe(() => state.response.ok)) {
+        resultDispatch([apiPath, _.get(state, statePath)], {}, writeFetchKey);
+      }
+    }, [ state ]);
+  });
 
   return [ state, resultDispatch, deleteDispatch ];
 }

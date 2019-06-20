@@ -83,11 +83,35 @@ export const EVENT_SCHEMA = {
 };
 
 export const ORGANIZATION_SCHEMA = {
-  name: DEFAULT_TEXT_FIELD,
   required: ['name', 'email'],
   additionalProperties: false,
   properties: {
     name: DEFAULT_TEXT_FIELD,
-    email: DEFAULT_EMAIL_FIELD
+    email: DEFAULT_EMAIL_FIELD,
+    stripe: {
+      type: null
+    }
+  }
+};
+
+export const EVENT_PURCHASE_SCHEMA = {
+  required: ['items'],
+  additionalProperties: false,
+  properties: {
+    items: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['count', '_id'],
+        count: {
+          type: 'integer'
+        },
+        _id: {
+          type: 'string',
+          format: 'objectid'
+        }
+      }
+    }
   }
 };

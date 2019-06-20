@@ -8,8 +8,7 @@ import {
   INVITE_USER_TO_ORGANIZATION,
   ORGANIZATION_EVENTS_PATH,
   ORGANIZATIONS_PATH,
-  ORGANIZATION_STRIPE_CONNECT_PATH,
-  ORGANIZATION_STRIPE_DISCONNECT_PATH
+  ORGANIZATION_STRIPE_CONNECT_PATH
 } from 'common/routes';
 import { EventCollection, OrganizationCollection, OrganizationInvitationCollection } from 'server/database';
 import { Organization, OrganizationInvitation } from 'common/models';
@@ -50,13 +49,17 @@ export const UPDATE_ORGANIZATION_AVATAR = {
     const name = new mongodb.ObjectId().toString() + ext;
     const { url } = await upload(name, request.body, type);
 
-    const $set = {
-      lastUserActivity: new Date(),
-      avatar: url
-    };
-
-    await db.collection(OrganizationCollection)
-      .updateOne({ _id: organization._id }, { $set });
+    await db.collection(OrganizationCollection).updateOne(
+        {
+          _id: organization._id
+        },
+        {
+          $set: {
+            lastUserActivity: new Date(),
+            avatar: url
+          }
+        }
+      );
     response.status(200).end();
   }
 };
@@ -72,17 +75,29 @@ export const UPDATE_ORGANIZATION = {
       param: 'organizationId'
     }
   ],
-  bodySchema: ORGANIZATION_SCHEMA,
-  on: async (request, response, { db }) => {
+  bodySchema: {
+    ...ORGANIZATION_SCHEMA,
+    required: []
+  },
+  on: async (request, response, { db, stripe }) => {
     const _id = new mongodb.ObjectID(request.params.organizationId);
-    const $set = {
-      name: request.body.name,
-      email: request.body.email,
-      lastUserActivity: new Date()
+    const organization = await db.collection(OrganizationCollection)
+      .findOne({ _id });
+    const operation = {
+      $set: {
+        ...request.body,
+        lastUserActivity: new Date()
+      }
     };
 
+    if (request.body.stripe === null && organization.stripe) {
+      await stripe.oauth.deauthorize({
+        stripe_user_id: organization.stripe.stripe_user_id
+      });
+    }
+
     await db.collection(OrganizationCollection)
-      .updateOne({ _id }, { $set });
+      .updateOne({ _id }, operation);
     response.status(200).end();
   }
 };
@@ -309,27 +324,6 @@ export const ORGANIZATION_CONNECT_STRIPE = {
     await db.collection(OrganizationCollection).updateOne({ _id: new mongodb.ObjectId(request.params.organizationId) }, {
       $set: {
         stripe: stripeResponse
-      }
-    });
-
-    response.status(200).end();
-  }
-};
-
-export const ORGANIZATION_DISCONNECT_STRIPE = {
-  method: 'DELETE',
-  path: ORGANIZATION_STRIPE_DISCONNECT_PATH,
-  accessRules: [
-    {
-      permission: Permission.WRITE,
-      collection: OrganizationCollection,
-      param: 'organizationId'
-    }
-  ],
-  on: async (request, response, { db }) => {
-    await db.collection(OrganizationCollection).updateOne({ _id: new mongodb.ObjectId(request.params.organizationId) }, {
-      $unset: {
-        stripe: ''
       }
     });
 
