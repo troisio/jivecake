@@ -4,8 +4,10 @@ import { withRouter } from 'react-router';
 import { toast } from 'react-toastify';
 
 import { T } from 'common/i18n';
+import { CURRENCY_AND_LABELS, getMinimumChargeAmount } from 'common/helpers';
 import { ITEM_SCHEMA } from 'common/schema';
 import {
+  EVENT_PATH,
   ITEM_PATH,
   EVENT_ITEMS_PATH
 } from 'common/routes';
@@ -16,14 +18,16 @@ import { routes } from 'web/js/routes';
 import { safe } from 'web/js/helper';
 import { Button } from 'web/js/component//button';
 import { Input } from 'web/js/component//input';
-import { CurrencySelector } from 'web/js/component//currency-selector';
+import { Loading } from 'web/js/page/loading';
 
 import {
   FetchDispatchContext,
   FetchStateContext,
-  ItemContext
+  ItemContext,
+  EventContext
 } from 'web/js/context';
 import {
+  GET_EVENT,
   GET_ITEM,
   PERSIST_ITEM
 } from 'web/js/reducer/useFetch';
@@ -34,14 +38,18 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
   const [ dispatchFetch, dispatchFetchDelete ] = useContext(FetchDispatchContext);
   const fetchState = useContext(FetchStateContext);
   const itemsMap = useContext(ItemContext);
+  const eventsMap = useContext(EventContext);
 
   const fetchedItem = itemsMap[itemId];
+  const fetchedEvent = eventsMap[eventId];
   const [ name, setName ] = useState(fetchedItem ? fetchedItem.name : '');
-  const [ currency, setCurrency ] = useState(fetchedItem ? fetchedItem.currency : '');
   const [ amountText, setAmountText ] = useState(fetchedItem ? fetchedItem.amount.toString() : '');
 
   const persistItemState = fetchState[PERSIST_ITEM];
+
   const loading = safe(() => persistItemState.fetching);
+  const isFetchingData = !fetchedEvent || ( !fetchedItem && itemId);
+  const currencyLabel = CURRENCY_AND_LABELS.find(({ id }) => id === safe(() => fetchedEvent.currency));
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -54,6 +62,7 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
 
     const withMinorUnitsFormat = new RegExp('^(\\d+((\\.|,)\\d{1,2})?)$');
     const withoutMinorUnits = new RegExp('^\\d+$');
+    const { currency } = fetchedEvent;
 
     if (!hasMinorUnits(currency) && currency && withoutMinorUnits.test(amountText)) {
       derivedAmount = Number(amountText);
@@ -80,36 +89,39 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
         name,
         maximumAvailable: null,
         published: false,
-        currency,
         amount: derivedAmount,
-        sort: 0
+        order: 0
       }
     }, PERSIST_ITEM);
   };
 
   useEffect(() => {
-    if (itemId && !itemsMap.hasOwnProperty(itemId)) {
-      dispatchFetch([ITEM_PATH, itemId], {}, GET_ITEM);
-    }
-
     return () => {
-      dispatchFetchDelete([GET_ITEM, PERSIST_ITEM]);
+      dispatchFetchDelete([GET_EVENT, GET_ITEM, PERSIST_ITEM]);
     };
   }, []);
 
   useEffect(() => {
-    if (fetchedItem) {
-      setName(fetchedItem.name);
-      setAmountText(fetchedItem.amount + '');
-      setCurrency(fetchedItem.currency);
-
-      if (hasMinorUnits(fetchedItem.currency) && fetchedItem.amount) {
-        setAmountText(fetchedItem.amount / 100 + '');
+    if (fetchedEvent && fetchedItem) {
+      if (hasMinorUnits(fetchedEvent.currency) && fetchedEvent.amount) {
+        setAmountText(fetchedEvent.amount / 100 + '');
       } else {
         setAmountText(fetchedItem.amount ? fetchedItem.amount.toString() : '');
       }
     }
-  }, [ fetchedItem ]);
+  }, [ fetchedEvent, fetchedItem ]);
+
+  useEffect(() => {
+    if (eventId) {
+      dispatchFetch([EVENT_PATH, eventId], {}, GET_EVENT);
+    }
+  }, [ eventId ]);
+
+  useEffect(() => {
+    if (itemId) {
+      dispatchFetch([ITEM_PATH, itemId], {}, GET_ITEM);
+    }
+  }, [ itemId ]);
 
   useEffect(() => {
     if (safe(() => persistItemState.response.ok)) {
@@ -117,6 +129,10 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
       history.push(routes.event(eventId));
     }
   }, [ persistItemState ]);
+
+  if (isFetchingData) {
+    return <Loading />;
+  }
 
   return (
     <form onSubmit={onSubmit} styleName='root'>
@@ -134,15 +150,20 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
       </div>
       <div styleName='form-row'>
         <label styleName='label'>
-          {T('Currency')}
-        </label>
-        <CurrencySelector required autoComplete='transaction-currency' styleName='selector' value={currency || ''} onChange={e => setCurrency(e.target.value)} />
-      </div>
-      <div styleName='form-row'>
-        <label styleName='label'>
           {T('Amount')}
+          &nbsp;
+          {currencyLabel && <span>({currencyLabel.label})</span>}
         </label>
-        <Input required min={0} step={hasMinorUnits(currency) ? 0.01 : 1} autoComplete='transaction-amount' type='number' value={amountText} onChange={e => setAmountText(e.target.value)} />
+        <Input
+          disabled={!fetchedEvent.currency}
+          required
+          min={getMinimumChargeAmount(fetchedEvent.currency)}
+          step={hasMinorUnits(fetchedEvent.currency) ? 0.01 : 1}
+          autoComplete='transaction-amount'
+          type='number'
+          value={amountText}
+          onChange={e => setAmountText(e.target.value)}
+        />
       </div>
       <Button loading={loading}>
         {itemId ? T('Update') : T('Create')}

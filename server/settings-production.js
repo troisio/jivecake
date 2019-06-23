@@ -24,6 +24,7 @@ export const settings = {
     key: '$JC_SENDINBLUE_KEY_PRODUCTION'
   },
   stripe: {
+    clientId: '$JC_STRIPE_LIVE_CLIENT_ID',
     secret: '$JC_STRIPE_LIVE_SECRET'
   },
   mongo: {

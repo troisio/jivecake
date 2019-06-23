@@ -1,6 +1,7 @@
 import React, { useEffect, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import { toast } from 'react-toastify';
 
 import { T } from 'common/i18n';
 import {
@@ -14,6 +15,7 @@ import { Anchor } from 'web/js/component/anchor';
 import { Avatar } from 'web/js/component/avatar';
 import { Button } from 'web/js/component/button';
 import { Pagination } from 'web/js/component/pagination';
+import { UPDATE_SUCCESS } from 'web/js/helper/text';
 import './style.scss';
 
 import { safe } from 'web/js/helper';
@@ -107,6 +109,7 @@ export function Events() {
 
   useEffect(() => {
     if (safe(() => updateEventState.response.ok)) {
+      toast(UPDATE_SUCCESS);
       dispatchFetchDelete([UPDATE_EVENT]);
       dispatchFetch([EVENT_PATH, updateEventState.params.eventId], {}, GET_EVENT);
     }
@@ -122,13 +125,12 @@ export function Events() {
     <div styleName='root'>
       {
         organizationEventsPagination &&
-        <div styleName='pagination'>
           <Pagination
             value={organizationEventsPagination}
             render={renderEvent}
             more={seeMoreButton}
+            styleName='pagination'
           />
-        </div>
       }
     </div>
   );

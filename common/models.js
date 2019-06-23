@@ -1,6 +1,7 @@
 export class Event {
   _id = null;
 	avatar = null;
+  currency = null;
   organizationId = null;
   published = false;
   facebookUrl = null;
@@ -18,7 +19,6 @@ export class Event {
 export class Item {
 	_id = null;
 	amount = null;
-	currency = null;
 	organizationId = null;
 	published = false;
 	name = null;
@@ -47,9 +47,7 @@ export class Organization {
 export class Transaction {
 	_id = null;
 	userId = null;
-	eventId = null;
 	itemId = null;
-	currency = null;
 	amount = null;
 	createdBy = null;
 	externalTransationId = null;
@@ -99,6 +97,7 @@ export class Language {
 }
 
 export const SUPPORTED_LANGUAGE_IDS = [Language.en, Language.fr, Language.ko];
+export const ITEM_PER_EVENT_LIMIT = 300;
 
 export class Currency {
 	static USD = 'USD';

@@ -1,5 +1,6 @@
 import mongodb from 'mongodb';
 import stripe from 'stripe';
+import _ from 'lodash';
 
 import { upload, deleteObject } from 'server/digitalocean';
 import {
@@ -11,7 +12,13 @@ import {
   EVENT_INFORMATION_PATH
 } from 'common/routes';
 import { Require, Permission } from 'server/router';
-import { EventCollection, ItemCollection, OrganizationCollection, TransactionCollection } from 'server/database';
+import {
+  EventCollection,
+  ItemCollection,
+  OrganizationCollection,
+  TransactionCollection,
+  SORT_DIRECTIONS_AS_STRING
+} from 'server/database';
 import { Event } from 'common/models';
 import { EVENT_SCHEMA, EVENT_PURCHASE_SCHEMA } from 'common/schema';
 import { getHashSelections, getRandomString } from 'common/helpers';
@@ -29,6 +36,7 @@ export const PURCHASE = {
 
     if (!event) {
       response.status(400).end();
+      return;
     }
 
     const organization = await db.collection(OrganizationCollection)
@@ -36,10 +44,30 @@ export const PURCHASE = {
 
     if (!organization.stripe) {
       response.status(400).end();
+      return;
     }
 
+    const itemIds = request.body.items.map(({ _id }) => _id);
+    const items = await db.collection(ItemCollection)
+      .find({
+        _id: { $in: itemIds },
+        published: true
+      })
+      .toArray();
+
+    if (items.length !== itemIds.length) {
+      response.json({ error: 'itemCount' }).end();
+      return;
+    }
+
+    const idToItem = _.keyBy(items, '_id');
+    const amount = request.body.items.reduce(
+      (previous, data) => previous + idToItem[data._id].amount * data.count,
+      0
+    );
+
     stripe.charges.create({
-      amount: 1000,
+      amount,
       currency: "usd",
       source: "tok_visa",
       transfer_data: {
@@ -52,7 +80,7 @@ export const PURCHASE = {
 
       response.json({});
     }, () => {
-      response.json({ error: 'stripe' }, 500);
+      response.json({ error: 'stripe' }).status(503).end();
     });
   }
 };
@@ -97,7 +125,7 @@ export const CREATE_EVENT = {
     event.organizationId = new mongodb.ObjectID(request.params.organizationId);
     event.created = new Date();
     event.hash = getRandomString(HASH_SELECTIONS, 6);
-    event.lastUserActivity = event.created;
+    event.lastUserActivity = new Date();
 
     await db.collection(EventCollection).insertOne(event);
     response.json({ _id: event._id });
@@ -157,9 +185,19 @@ export const GET_EVENT_ITEMS = {
     Require.Authenticated,
     Require.Page
   ],
+  querySchema: {
+    type: 'object',
+    properties: {
+      order: {
+        enum: SORT_DIRECTIONS_AS_STRING
+      }
+    }
+  },
   on: async (request, response, { db, pagination: { skip, limit } }) => {
+    const sort =_.mapValues(_.pick(request.query, ['order']), Number);
     const cursor = await db.collection(ItemCollection)
       .find({ eventId: new mongodb.ObjectID(request.params.eventId) })
+      .sort(sort)
       .skip(skip)
       .limit(limit);
 

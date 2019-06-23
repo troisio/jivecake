@@ -2,8 +2,22 @@
 @import '~web/sass/media';
 @import '~web/sass/mixin';
 
+.form-row {
+  display: flex;
+  flex-direction: column;
+
+  > *:not(:first-child) {
+    margin-top: 8px;
+  }
+}
+
 .label {
   @include label();
+}
+
+.note {
+  @include note();
+  margin: 5px 0 0 10px;
 }
 
 .root {
@@ -13,11 +27,6 @@
   @include verticalMargin();
 }
 
-.form-row {
-  display: flex;
-  flex-direction: column;
-
-  > *:not(:first-child) {
-    margin-top: 8px;
-  }
+.selector {
+  width: 100%;
 }

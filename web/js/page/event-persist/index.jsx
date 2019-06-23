@@ -40,6 +40,7 @@ import { OrganizationEmailNotice } from 'web/js/component/organization-email-not
 import { Button } from 'web/js/component/button';
 import { MessageBlock } from 'web/js/component/message-block';
 import { AvatarImageUpload } from 'web/js/component/avatar-image-upload';
+import { CurrencySelector } from 'web/js/component//currency-selector';
 import { Loading } from 'web/js/page/loading';
 
 import './style.scss';
@@ -61,6 +62,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   const user = usersMap[applicationState.userId];
   const fetchedEvent = eventMap[eventId];
   const [ name, setName ] = useState(fetchedEvent ? fetchedEvent.name : '');
+  const [ currency, setCurrency ] = useState(fetchedEvent ? fetchedEvent.currency : null);
   const [ eventAvatarLoading, setEventAvatarLoading ] = useState(false);
   const [ organizationName, setOrganizationName ] = useState('');
   const [ organizationEmail, setOrganizationEmail ] = useState(user.email);
@@ -125,9 +127,17 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
     const eventBody = {
       name,
       published: false,
+      currency: currency || null
     };
 
     if (eventId) {
+      const doNotContinue = fetchedEvent.currency !== null && eventBody.currency !== fetchedEvent.currency &&
+        !window.confirm(T('You are changing currencies. Are you sure you want to update?'));
+
+      if (doNotContinue) {
+        return;
+      }
+
       dispatchFetch([EVENT_PATH, eventId], {
         method: 'POST',
         body: eventBody
@@ -215,6 +225,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
     if (fetchedEvent) {
       setName(fetchedEvent.name);
       setEventAvatar(fetchedEvent.avatar);
+      setCurrency(fetchedEvent.currency);
     }
   }, [ fetchedEvent ]);
 
@@ -238,14 +249,17 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
       return;
     }
 
+    const eventBody = {
+      name,
+      published: false,
+      currency: currency || null
+    };
+
     const organizationId = createOrganizationState.body._id;
     dispatchFetchDelete([ CREATE_ORGANIZATION ]);
     dispatchFetch([ORGANIZATION_EVENTS_PATH, organizationId], {
       method: 'POST',
-      body: {
-        name,
-        published: false
-      }
+      body: eventBody
     }, CREATE_EVENT);
 
     if (applicationState.organizationId !== organizationId) {
@@ -325,6 +339,22 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
           value={name}
           onChange={e => setName(e.target.value)}
         />
+      </div>
+      <div styleName='form-row'>
+        <label styleName='label'>
+          {T('Currency')}
+        </label>
+        <CurrencySelector
+          autoComplete='transaction-currency'
+          styleName='selector'
+          value={currency || ''}
+          onChange={e => setCurrency(e.target.value)}
+        />
+        {eventId && (
+          <div styleName='note'>
+            {T('Careful, changing your currency will change the price of your items.')}
+          </div>
+        )}
       </div>
       {organizationFields}
       {messages.map(message => <MessageBlock key={message}>{message}</MessageBlock>)}

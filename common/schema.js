@@ -44,7 +44,7 @@ export const USER_SCHEMA = {
 
 export const ITEM_SCHEMA = {
   type: 'object',
-  required: ['name', 'amount', 'sort', 'currency', 'maximumAvailable', 'published'],
+  required: ['name', 'amount', 'order', 'maximumAvailable', 'published'],
   additionalProperties: false,
   properties: {
     name: DEFAULT_TEXT_FIELD,
@@ -53,10 +53,7 @@ export const ITEM_SCHEMA = {
       then: { minimum: 1 },
       else: { type: 'null' }
     },
-    currency: {
-      enum: [Currency.USD, Currency.EUR, Currency.GBP, Currency.CAD, Currency.JPY, Currency.KRW, null]
-    },
-    sort: {
+    order: {
       type: 'integer'
     },
     maximumAvailable: {
@@ -78,7 +75,10 @@ export const EVENT_SCHEMA = {
     name: DEFAULT_TEXT_FIELD,
     published: {
       type: 'boolean'
-    }
+    },
+    currency: {
+      enum: [ ...Object.values(Currency), null ]
+    },
   }
 };
 
@@ -89,7 +89,7 @@ export const ORGANIZATION_SCHEMA = {
     name: DEFAULT_TEXT_FIELD,
     email: DEFAULT_EMAIL_FIELD,
     stripe: {
-      type: null
+      type: 'null'
     }
   }
 };

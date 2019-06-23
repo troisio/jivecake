@@ -17,6 +17,15 @@
 
 .item-name {
   text-decoration: none;
+  flex-grow: 1;
+}
+
+.item-row {
+  display: flex;
+
+  > *:not(:first-child) {
+    margin-left: 6px;
+  }
 }
 
 .items {
@@ -37,10 +46,15 @@
 .pagination {
   display: flex;
   flex-direction: column;
+
+  > * {
+    margin-top: 12px;
+  }
 }
 
 .root {
   @include defaultLayout();
+  margin-bottom: 12px;
 }
 
 .see-more {

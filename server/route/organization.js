@@ -1,5 +1,7 @@
 import mongodb from 'mongodb';
 
+import { settings } from 'server/settings';
+
 import { upload, deleteObject } from 'server/digitalocean';
 import { Require, Permission } from 'server/router';
 import {
@@ -92,6 +94,7 @@ export const UPDATE_ORGANIZATION = {
 
     if (request.body.stripe === null && organization.stripe) {
       await stripe.oauth.deauthorize({
+        client_id: settings.stripe.client_id,
         stripe_user_id: organization.stripe.stripe_user_id
       });
     }

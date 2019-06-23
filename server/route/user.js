@@ -12,7 +12,6 @@ import {
   OrganizationCollection,
   PasswordRecoveryCollection,
   UserCollection,
-  SORT_DIRECTIONS_AS_STRING,
   EMAIL_COLLATION
 } from 'server/database';
 import { PasswordRecovery, User } from 'common/models';
@@ -151,28 +150,9 @@ export const GET_USER_ORGANIZATIONS = {
       param: 'userId'
     }
   ],
-  querySchema: {
-    type: 'object',
-    properties: {
-      lastUserActivity: {
-        enum: SORT_DIRECTIONS_AS_STRING
-      },
-      lastSystemActivity: {
-        enum: SORT_DIRECTIONS_AS_STRING
-      },
-      created: {
-        enum: SORT_DIRECTIONS_AS_STRING
-      }
-    }
-  },
   requires: [ Require.Page ],
   on: async (request, response, { db, pagination: { skip, limit } }) => {
     const userId = new mongodb.ObjectID(request.params.userId);
-    const sort =_.mapValues(
-      _.pick(request.query, ['lastUserActivity', 'lastSystemActivity', 'created']),
-      value => Number(value)
-    );
-
     const cursor = await db.collection(OrganizationCollection)
       .find({
         $or: [
@@ -181,7 +161,7 @@ export const GET_USER_ORGANIZATIONS = {
           { owner: userId }
         ]
       })
-      .sort(sort)
+      .sort({ lastUserActivity: -1 })
       .skip(skip)
       .limit(limit);
 

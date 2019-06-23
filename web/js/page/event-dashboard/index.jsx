@@ -1,11 +1,15 @@
 import React, { useContext, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import _ from 'lodash';
 import { Link, withRouter } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
 
 import { T } from 'common/i18n';
 import {
   EVENT_PATH,
-  EVENT_ITEMS_PATH
+  EVENT_ITEMS_PATH,
+  ITEM_PATH
 } from 'common/routes';
 
 import {
@@ -18,7 +22,8 @@ import {
 
 import {
   GET_EVENT,
-  GET_EVENT_ITEMS
+  GET_EVENT_ITEMS,
+  PERSIST_ITEM
 } from 'web/js/reducer/useFetch';
 import { safe } from 'web/js/helper';
 import { routes } from 'web/js/routes';
@@ -42,10 +47,47 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
   const [ dispatchFetch, dispatchFetchDelete ] = useContext(FetchDispatchContext);
 
   const getEventFetchState = fetchState[GET_EVENT];
+  const persistItemState = fetchState[PERSIST_ITEM];
+
   const isFetchingMore = safe(() => getEventFetchState.fetching);
+  const itemUpdating = safe(() => persistItemState.fetching);
 
   const event = eventState[eventId];
   const eventItemsPagination = eventItemState[eventId];
+  const persistItemOk = safe(() => persistItemState.response.ok);
+
+  const moveItem = (itemId, decrease) => {
+    const items = _.flatten(eventItemsPagination.pages).map(id => itemsMap[id]);
+    const index = items.findIndex(({ _id }) => _id === itemId);
+    const targetItem = items[index];
+    const before = items[index - 1];
+    const after = items[index + 1];
+
+    if (decrease && before) {
+      items[index - 1] = targetItem;
+      items[index] = before;
+    } else if (after) {
+      items[index + 1] = targetItem;
+      items[index] = after;
+    }
+
+    items.forEach((item, order) => {
+      if (item.order === order) {
+        return;
+      }
+
+      dispatchFetch(
+        [ITEM_PATH, item._id],
+        {
+          method: 'POST',
+          body: {
+            order
+          }
+        },
+        PERSIST_ITEM
+      );
+    });
+  };
   const getNextPage = (page) => {
     if (isFetchingMore) {
       return;
@@ -58,7 +100,7 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
       {
         query: {
           page: nextPage,
-          lastUserActivity: -1
+          order: 1
         }
       },
       GET_EVENT_ITEMS
@@ -67,9 +109,18 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
 
   const renderItem = id => {
     const item = itemsMap[id];
+    const moving = safe(() => persistItemState.params.itemId) === id;
 
     return (
-      <Link to={routes.itemPersist(eventId, id)} key={id} styleName='item-name'>{item.name}</Link>
+      <div styleName='item-row'>
+        <Link to={routes.itemPersist(eventId, id)} key={id} styleName='item-name'>{item.name}</Link>
+        <Button disabled={moving || itemUpdating} loading={moving} type='button' onClick={() => moveItem(id, true)}>
+          {!moving && <FontAwesomeIcon icon={faArrowUp} /> }
+        </Button>
+        <Button disabled={moving || itemUpdating} loading={moving} type='button' onClick={() => moveItem(id, false)}>
+          {!moving && <FontAwesomeIcon icon={faArrowDown} />}
+        </Button>
+      </div>
     );
   };
   const seeMoreButton = (
@@ -83,9 +134,16 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
     getNextPage(0);
 
     return () => {
-      dispatchFetchDelete([ GET_EVENT, GET_EVENT_ITEMS ]);
+      dispatchFetchDelete([ GET_EVENT, GET_EVENT_ITEMS, PERSIST_ITEM ]);
     };
   }, []);
+
+  useEffect(() => {
+    if (persistItemOk) {
+      dispatchFetchDelete([ PERSIST_ITEM ]);
+      getNextPage(0);
+    }
+  }, [persistItemOk]);
 
   if (safe(() => getEventFetchState.fetching)) {
     return (

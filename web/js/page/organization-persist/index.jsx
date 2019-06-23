@@ -245,7 +245,7 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
               {T('Disconnect your Stripe account')}
             </Button>
             <span styleName='note'>
-              {T('Once your Stripe account is disconnected, you will not be able to receive payments through Stripe. This will affect any events you currently have published')}
+              {T('Once your Stripe account is disconnected, you will not be able to receive payments through Stripe. This will affect any events you currently have published.')}
             </span>
           </>
         }

@@ -1,6 +1,6 @@
 import mongodb from 'mongodb';
 
-import { Item } from 'common/models';
+import { Item, ITEM_PER_EVENT_LIMIT } from 'common/models';
 import { ITEM_PATH, EVENT_ITEMS_PATH } from 'common/routes';
 
 import { Permission } from 'server/router';
@@ -67,6 +67,14 @@ export const CREATE_ITEM = {
     const eventId = new mongodb.ObjectID(request.params.eventId);
     const event = await db.collection(EventCollection)
       .findOne({ _id: eventId });
+    const itemCounts = await db.collection(ItemCollection)
+      .find({ eventId })
+      .count();
+
+    if (itemCounts >= ITEM_PER_EVENT_LIMIT) {
+      response.json({ error: 'limit' }).status(400).end();
+    }
+
     const item = Object.assign(new Item(), request.body);
 
     item.eventId = eventId;
@@ -89,13 +97,16 @@ export const UPDATE_ITEM = {
       param: 'itemId'
     }
   ],
-  bodySchema: ITEM_SCHEMA,
+  bodySchema: {
+    ...ITEM_SCHEMA,
+    required: []
+  },
   on: async (request, response, { db }) => {
     const $set = { ...request.body };
     $set.lastUserActivity = new Date();
 
-    const entity = await db.collection(ItemCollection)
+    await db.collection(ItemCollection)
       .updateOne({ _id: new mongodb.ObjectId(request.params.itemId) }, { $set });
-    response.json(entity);
+    response.status(200).end();
   }
 };

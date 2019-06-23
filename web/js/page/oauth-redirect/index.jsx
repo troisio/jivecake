@@ -1,17 +1,19 @@
 import React, { useContext, useEffect } from 'react';
-import { NaturalSpinner } from 'web/js/component/natural-spinner';
+import { PropTypes } from 'prop-types';
+import { withRouter } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import { T } from 'common/i18n';
+import { UPDATE_SUCCESS } from 'web/js/helper/text';
 import {
-  ORGANIZATION_STRIPE_CONNECT,
-  GET_ORGANIZATION
-} from 'web/js/reducer/useFetch';
-
-import {
-  ORGANIZATION_STRIPE_CONNECT_PATH,
-  ORGANIZATION_PATH
+  ORGANIZATION_STRIPE_CONNECT_PATH
 } from 'common/routes';
 
+
+import {
+  ORGANIZATION_STRIPE_CONNECT
+} from 'web/js/reducer/useFetch';
+import { NaturalSpinner } from 'web/js/component/natural-spinner';
 import {
   FetchDispatchContext,
   FetchStateContext,
@@ -25,7 +27,7 @@ import { Anchor } from 'web/js/component/anchor';
 import './style.scss';
 
 
-export function OAuthRedirectPage() {
+export function OAuthRedirectPageComponent({ history }) {
   const { organizationId } = useContext(ApplicationContext);
   const [ dispatchFetch, dispatchFetchDelete ] = useContext(FetchDispatchContext);
   const fetchState = useContext(FetchStateContext);
@@ -38,7 +40,7 @@ export function OAuthRedirectPage() {
 
   useEffect(() => {
     return () => {
-      dispatchFetchDelete([ORGANIZATION_STRIPE_CONNECT, GET_ORGANIZATION]);
+      dispatchFetchDelete([ORGANIZATION_STRIPE_CONNECT]);
     };
   }, []);
 
@@ -57,19 +59,14 @@ export function OAuthRedirectPage() {
 
   useEffect(() => {
     if (succesfullyConnected) {
-      dispatchFetch([ORGANIZATION_PATH, organizationId], {}, GET_ORGANIZATION);
+      toast(UPDATE_SUCCESS);
+      history.push(routes.organizationPersist(organizationId));
     }
-  }, [ organizationStripeConnectState, succesfullyConnected ]);
+  }, [ succesfullyConnected ]);
 
   return (
     <div styleName='root'>
       {loading && <NaturalSpinner />}
-      {
-        succesfullyConnected &&
-          <MessageBlock type={MessageBlockType.success}>
-            {T('Your Stripe account is connected')}
-          </MessageBlock>
-      }
       { connectionFailure &&
         <MessageBlock type={MessageBlockType.error}>
           {T('Sorry, we are not able to connect to your Stripe account')}
@@ -83,3 +80,9 @@ export function OAuthRedirectPage() {
     </div>
   );
 }
+
+OAuthRedirectPageComponent.propTypes = {
+  history: PropTypes.object.isRequired
+};
+
+export const OAuthRedirectPage = withRouter(OAuthRedirectPageComponent);
