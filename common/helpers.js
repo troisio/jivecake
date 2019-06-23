@@ -17,7 +17,7 @@ export const getMinimumChargeAmount = (currency) => {
     return 3000;
   }
 
-  return 300;
+  return 3;
 };
 
 export const OBJECT_ID_REGEX_PORTION = '[a-f0-9]{24}';
