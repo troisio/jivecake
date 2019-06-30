@@ -4,7 +4,8 @@ import { getEntityStoreHook } from 'web/js/helper/reducer';
 import {
   GET_ITEM,
   GET_EVENT_ITEMS,
-  LOGOUT
+  LOGOUT,
+  GET_EVENT_PURCHASE_DATA
 } from 'web/js/reducer/useFetch';
 
 function reducer(state, action) {
@@ -17,7 +18,18 @@ function reducer(state, action) {
 
     case GET_EVENT_ITEMS: {
       const entities = _.keyBy(action.body.entity, '_id');
-      return _.merge({}, state, entities);
+      return {
+        ...state,
+        ...entities
+      };
+    }
+
+    case GET_EVENT_PURCHASE_DATA: {
+      const entities = _.keyBy(action.body.items, '_id');
+      return {
+        ...state,
+        ...entities
+      };
     }
 
     case LOGOUT: {

@@ -17,6 +17,7 @@ import { UPDATE_SUCCESS } from 'web/js/helper/text';
 import { routes } from 'web/js/routes';
 import { safe } from 'web/js/helper';
 import { Button } from 'web/js/component//button';
+import { AvatarImageUpload } from 'web/js/component/avatar-image-upload';
 import { Input } from 'web/js/component//input';
 import { Loading } from 'web/js/page/loading';
 
@@ -29,7 +30,8 @@ import {
 import {
   GET_EVENT,
   GET_ITEM,
-  PERSIST_ITEM
+  PERSIST_ITEM,
+  UPDATE_ITEM_AVATAR
 } from 'web/js/reducer/useFetch';
 
 import './style.scss';
@@ -44,13 +46,19 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
   const fetchedEvent = eventsMap[eventId];
   const [ name, setName ] = useState(fetchedItem ? fetchedItem.name : '');
   const [ amountText, setAmountText ] = useState(fetchedItem ? fetchedItem.amount.toString() : '');
+  const avatarImageUploadProps = fetchedItem ? { src: fetchedItem.src } : {};
 
   const persistItemState = fetchState[PERSIST_ITEM];
+  const updateAvatarState = fetchState[UPDATE_ITEM_AVATAR];
 
   const loading = safe(() => persistItemState.fetching);
+  const updatingAvatar = safe(() => updateAvatarState.fetching);
   const isFetchingData = !fetchedEvent || ( !fetchedItem && itemId);
   const currencyLabel = CURRENCY_AND_LABELS.find(({ id }) => id === safe(() => fetchedEvent.currency));
 
+  const onFile = () => {
+
+  };
   const onSubmit = (e) => {
     e.preventDefault();
 
@@ -137,8 +145,17 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
   return (
     <form onSubmit={onSubmit} styleName='root'>
       <div styleName='form-row'>
+        <label styleName='label' htmlFor='avatar'>
+          {T('Avatar')}
+        </label>
+        <AvatarImageUpload
+          { ...avatarImageUploadProps }
+          loading={updatingAvatar}
+          id='avatar'
+          onFile={onFile}
+        />
         <label styleName='label'>
-          {T('Item Name')}
+          {T('Name')}
         </label>
         <Input
           required

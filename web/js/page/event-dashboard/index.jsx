@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import _ from 'lodash';
 import { Link, withRouter } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowUp, faArrowDown } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUp, faArrowDown, faToggleOn, faToggleOff } from '@fortawesome/free-solid-svg-icons';
 
 import { T } from 'common/i18n';
 import {
@@ -106,18 +106,35 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
       GET_EVENT_ITEMS
     );
   };
+  const toggleItemPublished = (item) => {
+    dispatchFetch(
+      [ITEM_PATH, item._id],
+      {
+        method: 'POST',
+        body: {
+          published: !item.published
+        }
+      },
+      PERSIST_ITEM
+    );
+  };
 
-  const renderItem = id => {
+  const renderItem = (id, index, array) => {
     const item = itemsMap[id];
     const moving = safe(() => persistItemState.params.itemId) === id;
+    const publishedButtonProps = item.published ? {} : { error: true };
+    const publishButtonIcon = item.published ? faToggleOff : faToggleOn;
 
     return (
       <div styleName='item-row'>
         <Link to={routes.itemPersist(eventId, id)} key={id} styleName='item-name'>{item.name}</Link>
-        <Button disabled={moving || itemUpdating} loading={moving} type='button' onClick={() => moveItem(id, true)}>
+        <Button { ...publishedButtonProps } disabled={itemUpdating} type='button' onClick={() => toggleItemPublished(item)}>
+          <FontAwesomeIcon icon={publishButtonIcon} />
+        </Button>
+        <Button disabled={moving || itemUpdating || index === 0} loading={moving} type='button' onClick={() => moveItem(id, true)}>
           {!moving && <FontAwesomeIcon icon={faArrowUp} /> }
         </Button>
-        <Button disabled={moving || itemUpdating} loading={moving} type='button' onClick={() => moveItem(id, false)}>
+        <Button disabled={moving || itemUpdating || index >= array.length - 1} loading={moving} type='button' onClick={() => moveItem(id, false)}>
           {!moving && <FontAwesomeIcon icon={faArrowDown} />}
         </Button>
       </div>

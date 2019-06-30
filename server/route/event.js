@@ -2,14 +2,11 @@ import mongodb from 'mongodb';
 import stripe from 'stripe';
 import _ from 'lodash';
 
-import { upload, deleteObject } from 'server/digitalocean';
 import {
   EVENT_PATH,
   EVENT_ITEMS_PATH,
-  EVENT_AVATAR_PATH,
   ORGANIZATION_EVENTS_PATH,
-  EVENT_PURCHASE_PATH,
-  EVENT_INFORMATION_PATH
+  EVENT_PURCHASE_PATH
 } from 'common/routes';
 import { Require, Permission } from 'server/router';
 import {
@@ -85,6 +82,28 @@ export const PURCHASE = {
   }
 };
 
+export const GET_EVENT_PURCHASE_DATA = {
+  method: 'GET',
+  path: EVENT_PURCHASE_PATH,
+  on: async (request, response, { db }) => {
+    const event = await db.collection(EventCollection)
+      .findOne({ hash: request.params.hash, published: true });
+
+    if (!event || !event.published) {
+      return response.status(404).end();
+    }
+
+    const items = await db.collection(ItemCollection)
+      .find({ eventId: event._id, published: true })
+      .toArray();
+
+    response.json({
+      event,
+      items
+    });
+  }
+};
+
 export const UPDATE_EVENT = {
   method: 'POST',
   path: EVENT_PATH,
@@ -149,28 +168,6 @@ export const GET_EVENT = {
   }
 };
 
-export const EVENT_INFORMATION = {
-  method: 'GET',
-  path: EVENT_INFORMATION_PATH,
-  on: async (request, response, { db }) => {
-    const event = await db.collection(EventCollection)
-      .findOne({ hash: request.params.hash, published: true });
-
-    if (!event || !event.published) {
-      return response.status(404).end();
-    }
-
-    const items = await db.collection(ItemCollection)
-      .find({ eventId: event._id, published: true })
-      .toArray();
-
-    response.json({
-      event,
-      items
-    });
-  }
-};
-
 export const GET_EVENT_ITEMS = {
   method: 'GET',
   path: EVENT_ITEMS_PATH,
@@ -208,50 +205,5 @@ export const GET_EVENT_ITEMS = {
       count: await countFuture,
       entity: await entityFuture
     });
-  }
-};
-
-export const UPDATE_EVENT_AVATAR = {
-  method: 'POST',
-  path: EVENT_AVATAR_PATH,
-  requires: [ Require.Authenticated ],
-  accessRules: [
-    {
-      permission: Permission.WRITE,
-      collection: EventCollection,
-      param: 'eventId'
-    }
-  ],
-  on: async (request, response, { db }) => {
-    const event = await db.collection(EventCollection)
-      .findOne({ _id: new mongodb.ObjectID(request.params.eventId) });
-    const type = request.headers['content-type'];
-
-    let ext;
-
-    if (type === 'image/jpeg') {
-      ext = '.jpg';
-    } else if (type === 'image/png') {
-      ext = '.png';
-    } else {
-      return response.status(415).end();
-    }
-
-    if (event.avatar !== null) {
-      const parts = event.avatar.split('/');
-      const key = parts[parts.length - 1];
-      await deleteObject(key);
-    }
-
-    const name = new mongodb.ObjectId().toString() + ext;
-    const { url } = await upload(name, request.body, type);
-
-    const $set = {
-      lastUserActivity: new Date(),
-      avatar: url
-    };
-
-    await db.collection(EventCollection).updateOne({ _id: event._id }, { $set });
-    response.status(200).end();
   }
 };

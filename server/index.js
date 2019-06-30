@@ -6,7 +6,14 @@ import bodyParser from 'body-parser';
 
 import { MAXIMUM_IMAGE_UPLOAD_BYTES } from 'common/schema';
 
-import { getDatabase } from 'server/database';
+import {
+  getDatabase,
+  OrganizationCollection,
+  ItemCollection,
+  EventCollection,
+  UserCollection
+} from 'server/database';
+import { getAvatarRoute } from 'server/helper/avatar';
 import { settings } from 'server/settings';
 import { Router } from 'server/router';
 import { T } from 'common/i18n';
@@ -29,7 +36,6 @@ import {
   DELETE_USER,
   INVITE_USER,
   UPDATE_ORGANIZATION,
-  UPDATE_ORGANIZATION_AVATAR,
   ORGANIZATION_CONNECT_STRIPE
 } from 'server/route/organization';
 
@@ -38,8 +44,7 @@ import {
     GET_EVENT,
     GET_EVENT_ITEMS,
     UPDATE_EVENT,
-    UPDATE_EVENT_AVATAR,
-    EVENT_INFORMATION
+    GET_EVENT_PURCHASE_DATA
 } from 'server/route/event';
 
 import {
@@ -112,20 +117,23 @@ export const run = () => {
       DELETE_USER,
       INVITE_USER,
       UPDATE_ORGANIZATION,
-      UPDATE_ORGANIZATION_AVATAR,
       ORGANIZATION_CONNECT_STRIPE,
 
       UPDATE_EVENT,
-      UPDATE_EVENT_AVATAR,
       CREATE_EVENT,
       GET_EVENT,
       GET_EVENT_ITEMS,
-      EVENT_INFORMATION,
+      GET_EVENT_PURCHASE_DATA,
 
       GET_ITEM,
       CREATE_ITEM,
       UPDATE_ITEM,
-      DELETE_ITEM
+      DELETE_ITEM,
+
+      getAvatarRoute(OrganizationCollection),
+      getAvatarRoute(ItemCollection),
+      getAvatarRoute(EventCollection),
+      getAvatarRoute(UserCollection),
     ];
 
     for (const route of routes) {

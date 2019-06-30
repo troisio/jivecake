@@ -18,6 +18,7 @@ export class Event {
 
 export class Item {
 	_id = null;
+  avatar = null;
 	amount = null;
 	organizationId = null;
 	published = false;
@@ -78,15 +79,6 @@ export class OrganizationInvitation {
 	organization = null;
 	userId = null;
 	created = null;
-}
-
-export class EntityType {
-	static Event = 'event';
-	static Item = 'item';
-	static Organization = 'organization';
-	static Transaction = 'transaction';
-	static Event = 'event';
-	static User = 'user';
 }
 
 export class Language {

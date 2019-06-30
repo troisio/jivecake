@@ -4,6 +4,7 @@ export const USER_PATH = '/user/:userId';
 export const USER_EMAIL_PATH = '/user/email';
 export const USER_ORGANIZATIONS_PATH = '/user/:userId/organization';
 export const USER_TRANSACTIONS_PATH = '/user/:userId/transaction';
+export const USER_AVATAR_PATH = '/user/:userId/avatar';
 
 export const ACCOUNT_PATH = '/account';
 
@@ -15,12 +16,17 @@ export const ORGANIZATION_EVENTS_PATH = '/organization/:organizationId/event';
 export const ORGANIZATION_STRIPE_CONNECT_PATH = '/organization/:organizationId/stripe/connect/:code';
 
 export const EVENT_PATH = '/event/:eventId';
-export const EVENT_INFORMATION_PATH = '/event/:hash/information';
 export const EVENT_ITEMS_PATH = '/event/:eventId/item';
 export const EVENT_AVATAR_PATH = '/event/:eventId/avatar';
-export const EVENT_PURCHASE_PATH = '/event/:eventId/purchase';
+export const EVENT_PURCHASE_PATH = '/event/:hash/purchase';
 
 export const ITEM_PATH = '/item/:itemId';
+export const ITEM_AVATAR_PATH = '/item/:itemId/avatar';
+
+export const ITEM_ID = 'itemId';
+export const ORGANIZATION_ID = 'organizationId';
+export const EVENT_ID = 'eventId';
+export const USER_ID = 'userId';
 
 export class Routes {
   constructor(prefix = '') {

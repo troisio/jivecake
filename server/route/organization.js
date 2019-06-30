@@ -2,10 +2,8 @@ import mongodb from 'mongodb';
 
 import { settings } from 'server/settings';
 
-import { upload, deleteObject } from 'server/digitalocean';
 import { Require, Permission } from 'server/router';
 import {
-  ORGANIZATION_AVATAR_PATH,
   ORGANIZATION_PATH,
   INVITE_USER_TO_ORGANIZATION,
   ORGANIZATION_EVENTS_PATH,
@@ -15,56 +13,6 @@ import {
 import { EventCollection, OrganizationCollection, OrganizationInvitationCollection } from 'server/database';
 import { Organization, OrganizationInvitation } from 'common/models';
 import { ORGANIZATION_SCHEMA } from 'common/schema';
-
-export const UPDATE_ORGANIZATION_AVATAR = {
-  method: 'POST',
-  path: ORGANIZATION_AVATAR_PATH,
-  requires: [ Require.Authenticated ],
-  accessRules: [
-    {
-      permission: Permission.WRITE,
-      collection: OrganizationCollection,
-      param: 'organizationId'
-    }
-  ],
-  on: async (request, response, { db }) => {
-    const organization = await db.collection(OrganizationCollection)
-      .findOne({ _id: new mongodb.ObjectID(request.params.organizationId) });
-    const type = request.headers['content-type'];
-
-    if (organization.avatar !== null) {
-      const parts = organization.avatar.split('/');
-      const key = parts[parts.length - 1];
-      await deleteObject(key);
-    }
-
-    let ext;
-
-    if (type === 'image/jpeg') {
-      ext = '.jpg';
-    } else if (type === 'image/png') {
-      ext = '.png';
-    } else {
-      return response.sendStats(415);
-    }
-
-    const name = new mongodb.ObjectId().toString() + ext;
-    const { url } = await upload(name, request.body, type);
-
-    await db.collection(OrganizationCollection).updateOne(
-        {
-          _id: organization._id
-        },
-        {
-          $set: {
-            lastUserActivity: new Date(),
-            avatar: url
-          }
-        }
-      );
-    response.status(200).end();
-  }
-};
 
 export const UPDATE_ORGANIZATION = {
   method: 'POST',

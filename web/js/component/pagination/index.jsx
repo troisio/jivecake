@@ -7,7 +7,7 @@ export function Pagination({ value, render, more }) {
 
   return (
     <>
-      {ids.map(id => <React.Fragment key={id}>{render(id)}</React.Fragment>)}
+      {ids.map((id, index, array) => <React.Fragment key={id}>{render(id, index, array)}</React.Fragment>)}
       {ids.length < value.count ? more : null}
     </>
   );

@@ -5,8 +5,8 @@ import { getEntityStoreHook } from 'web/js/helper/reducer';
 import {
   GET_EVENT,
   GET_ORGANIZATION_EVENTS,
-  GET_EVENT_INFORMATION,
-  LOGOUT
+  LOGOUT,
+  GET_EVENT_PURCHASE_DATA
 } from 'web/js/reducer/useFetch';
 
 function reducer(state, action) {
@@ -18,7 +18,7 @@ function reducer(state, action) {
       };
     }
 
-    case GET_EVENT_INFORMATION: {
+    case GET_EVENT_PURCHASE_DATA: {
       return {
         ...state,
         [action.body.event._id]: action.body.event
@@ -40,6 +40,6 @@ function reducer(state, action) {
 }
 
 export const useEvents = getEntityStoreHook(
-  [GET_EVENT, GET_ORGANIZATION_EVENTS, GET_EVENT_INFORMATION, LOGOUT],
+  [GET_EVENT, GET_ORGANIZATION_EVENTS, GET_EVENT_PURCHASE_DATA, LOGOUT],
   reducer
 );

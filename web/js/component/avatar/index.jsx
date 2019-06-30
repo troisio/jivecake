@@ -7,7 +7,7 @@ import './style.scss';
 export const EMPTY_IMAGE = 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22/%3E';
 
 export function Avatar(props) {
-  const propsCopy = _.omit(props, ['className', 'styleName', 'src']);
+  const propsCopy = _.omit(props, Object.keys(Avatar.propTypes));
   let styleName = 'root';
 
   if (props.src === EMPTY_IMAGE) {
@@ -15,8 +15,13 @@ export function Avatar(props) {
   }
 
   return (
-    <img alt='avatar' className={props.className} styleName={styleName} src={props.src} { ...propsCopy } />
-  );
+    <img
+      alt='avatar'
+      className={props.className}
+      styleName={styleName}
+      src={props.src}
+      { ...propsCopy } />
+    );
 }
 
 Avatar.propTypes = {

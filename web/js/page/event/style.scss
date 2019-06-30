@@ -1,5 +1,14 @@
 @import '~web/sass/mixin';
 
+.item-name {
+  @include ellipsisText();
+}
+
+.items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
 .root {
   @include defaultLayout();
 }

@@ -65,9 +65,10 @@ export const CREATE_ITEM = {
   bodySchema: ITEM_SCHEMA,
   on: async (request, response, { db }) => {
     const eventId = new mongodb.ObjectID(request.params.eventId);
+    const ITEM_COLLECTION = db.collection(ItemCollection);
     const event = await db.collection(EventCollection)
       .findOne({ _id: eventId });
-    const itemCounts = await db.collection(ItemCollection)
+    const itemCounts = await ITEM_COLLECTION
       .find({ eventId })
       .count();
 
@@ -81,6 +82,17 @@ export const CREATE_ITEM = {
     item.organizationId = event.organizationId;
     item.lastUserActivity = new Date();
     item.created = new Date();
+
+    const maximumItems = await ITEM_COLLECTION
+      .find({ eventId })
+      .sort({ order: -1 })
+      .limit(1)
+      .toArray();
+
+    if (maximumItems.length > 0) {
+      const [ maximumItem ] = maximumItems;
+      item.order = maximumItem.order + 1;
+    }
 
     await db.collection(ItemCollection).insertOne(item);
     response.json({ _id: item._id });
