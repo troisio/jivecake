@@ -3,20 +3,20 @@
 .event-avatar {
   height: 50px;
   width: 50px;
-  flex-shrink: 0;
-}
-
-.event-link {
-  display: flex;
-  align-items: center;
-  flex-grow: 1;
-  overflow: hidden;
 }
 
 .event-name {
   @include breakText();
   @include ellipsisText();
-  margin-left: 12px;
+}
+
+.information {
+  display: flex;
+  flex-direction: column;
+
+  > *:not(:first-child) {
+    margin-top: 4px;
+  }
 }
 
 .pagination {
@@ -26,6 +26,10 @@
 .root {
   @include defaultLayout();
   margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: max-content 1fr max-content max-content;
+  align-items: flex-start;
+  gap : 8px;
 }
 
 .row {

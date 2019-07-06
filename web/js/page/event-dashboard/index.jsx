@@ -122,14 +122,12 @@ export function EventDashboardComponent({ match: { params: { eventId } } }) {
   const renderItem = (id, index, array) => {
     const item = itemsMap[id];
     const moving = safe(() => persistItemState.params.itemId) === id;
-    const publishedButtonProps = item.published ? {} : { error: true };
-    const publishButtonIcon = item.published ? faToggleOff : faToggleOn;
 
     return (
       <div styleName='item-row'>
         <Link to={routes.itemPersist(eventId, id)} key={id} styleName='item-name'>{item.name}</Link>
-        <Button { ...publishedButtonProps } disabled={itemUpdating} type='button' onClick={() => toggleItemPublished(item)}>
-          <FontAwesomeIcon icon={publishButtonIcon} />
+        <Button error={!item.published} disabled={itemUpdating} type='button' onClick={() => toggleItemPublished(item)}>
+          <FontAwesomeIcon icon={item.published ? faToggleOff : faToggleOn} />
         </Button>
         <Button disabled={moving || itemUpdating || index === 0} loading={moving} type='button' onClick={() => moveItem(id, true)}>
           {!moving && <FontAwesomeIcon icon={faArrowUp} /> }

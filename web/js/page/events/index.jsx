@@ -1,6 +1,6 @@
 import React, { useEffect, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faToggleOn, faToggleOff  } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 
 import { T } from 'common/i18n';
@@ -66,10 +66,9 @@ export function Events() {
       {SEE_MORE}
     </Button>
   );
-  const togglePublished = (id) => {
-    const event = eventsMap[id];
+  const togglePublished = (event) => {
     dispatchFetch(
-      [EVENT_PATH, id],
+      [EVENT_PATH, event._id],
       { body: { published: !event.published }, method: 'POST' },
       UPDATE_EVENT
     );
@@ -77,23 +76,34 @@ export function Events() {
 
   const renderEvent = id => {
     const event = eventsMap[id];
+    const isUpdating = event._id === safe(() => updateEventState.params.eventId);
 
     return (
-      <div styleName='row' key={event._id}>
-        <Anchor styleName='event-link' to={routes.event(event._id)}>
-          {(event.avatar && <Avatar styleName='event-avatar' src={event.avatar} />) || <div styleName='event-avatar'></div>}
-          <span styleName='event-name'>
-            {event.name}
-          </span>
-        </Anchor>
-        <input onChange={() => togglePublished(id)} checked={event.published} type='checkbox' />
-        <Anchor to={routes.eventPublic(event.hash)}>
-          {T('public page')}
-        </Anchor>
+      <React.Fragment key={event._id}>
+        {
+          event.avatar ?
+          <Anchor styleName='event-avatar' to={routes.event(event._id)}>
+            <Avatar src={event.avatar} />
+          </Anchor>
+          : <div styleName='event-avatar'></div>
+        }
+        <div styleName='information'>
+          <Anchor to={routes.event(event._id)}>
+            <span styleName='event-name'>
+              {event.name}
+            </span>
+          </Anchor>
+          <Anchor to={routes.eventPublic(event.hash)}>
+            {T('public page')}
+          </Anchor>
+        </div>
+        <Button error={!event.published} disabled={isUpdating} type='button' onClick={() => togglePublished(event)}>
+          <FontAwesomeIcon icon={event.published ? faToggleOff : faToggleOn} />
+        </Button>
         <Anchor button to={routes.eventPersist(event._id)}>
           <FontAwesomeIcon icon={faEdit} />
         </Anchor>
-      </div>
+      </React.Fragment>
     );
   };
 
@@ -111,7 +121,6 @@ export function Events() {
     if (safe(() => updateEventState.response.ok)) {
       toast(UPDATE_SUCCESS);
       dispatchFetchDelete([UPDATE_EVENT]);
-      dispatchFetch([EVENT_PATH, updateEventState.params.eventId], {}, GET_EVENT);
     }
   }, [ updateEventState ]);
 

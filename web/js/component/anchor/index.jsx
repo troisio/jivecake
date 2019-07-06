@@ -21,7 +21,7 @@ export function Anchor(props) {
     styleName += ' box';
   }
 
-  if (props.hasOwnProperty('to')) {
+  if (props.to) {
     return (
       <Link className={props.className} styleName={styleName} to={props.to} { ...propsCopy }>
         {props.children}

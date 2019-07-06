@@ -35,7 +35,8 @@
     "FileReader": true,
     "File": true,
     "Blob": true,
-    "Headers": true
+    "Headers": true,
+    "Stripe": true
   },
   "settings": {
     "react": {

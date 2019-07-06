@@ -103,13 +103,15 @@ export const EVENT_PURCHASE_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['count', '_id'],
-        count: {
-          type: 'integer'
-        },
-        _id: {
-          type: 'string',
-          format: 'objectid'
+        required: ['quantity', '_id'],
+        properties: {
+          quantity: {
+            type: 'integer'
+          },
+          _id: {
+            type: 'string',
+            format: 'objectid'
+          }
         }
       }
     }

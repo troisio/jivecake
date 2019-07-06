@@ -6,11 +6,8 @@ const packageJson = require(path.resolve(__dirname, 'package.json'));
 module.exports = function() {
   return {
     entry: [
-      /*
-        deprecated
-        https://babeljs.io/docs/en/babel-polyfill
-      */
-      '@babel/polyfill',
+      'core-js/stable',
+      'regenerator-runtime/runtime',
       path.resolve(__dirname, 'web/js/index.jsx'),
       path.resolve(__dirname, 'web/sass/index.scss'),
     ],

@@ -1,5 +1,10 @@
 @import '~web/sass/mixin';
 
+.checkout-button {
+  margin-top: 12px;
+  width: 100%;
+}
+
 .item-name {
   @include ellipsisText();
 }
@@ -7,6 +12,11 @@
 .items {
   display: grid;
   grid-template-columns: 1fr 1fr;
+}
+
+.note {
+  margin-top: 12px;
+  @include note();
 }
 
 .root {

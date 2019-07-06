@@ -6,11 +6,8 @@ module.exports = function() {
     target: 'node',
     externals: [nodeExternals()],
     entry: [
-      /*
-      deprecated
-      https://babeljs.io/docs/en/babel-polyfill
-      */
-      '@babel/polyfill',
+      'core-js/stable',
+      'regenerator-runtime/runtime',
       path.resolve(__dirname, 'server/index.js')
     ],
     output: {
@@ -39,13 +36,12 @@ module.exports = function() {
           use: 'raw-loader'
         },
         {
-          test: /(\.jsx?)$/,
+          test: /\.js$/,
           exclude: /node_modules/,
           use: [
             {
               loader: 'babel-loader',
               options: {
-                presets: ['@babel/preset-react'],
                 plugins: [
                   '@babel/plugin-proposal-class-properties',
                   '@babel/plugin-transform-regenerator'

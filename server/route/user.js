@@ -195,7 +195,7 @@ export const UPDATE_USER = {
 
     const $set = { ...request.body };
 
-    if ($set.hasOwnProperty('email')) {
+    if ($set.email) {
       const userWithSameEmail = await db.collection(UserCollection)
         .find({ _id: { $ne: user._id }, email: $set.email })
         .collation(EMAIL_COLLATION)
@@ -209,7 +209,7 @@ export const UPDATE_USER = {
 
     $set.lastUserActivity = new Date();
 
-    if (request.body.hasOwnProperty('password')) {
+    if (request.body.password) {
       $set.hashedPassword = await getHashedPassword(request.body.password);
     }
 

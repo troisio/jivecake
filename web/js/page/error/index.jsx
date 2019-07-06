@@ -8,7 +8,7 @@ import './style.scss';
 export function Error(props) {
   let retry;
 
-  if (props.hasOwnProperty('onRetry')) {
+  if (props.onRetry) {
     retry = (
       <Button onClick={props.onRetry}>
         {T('Try again')}

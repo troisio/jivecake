@@ -4,6 +4,8 @@ import mongodb from 'mongodb';
 import stripe from 'stripe';
 import jwtkeysecret from 'server/extra/jwt/jwt.key';
 
+import { Routes } from 'common/routes';
+
 import { OrganizationCollection, UserCollection } from 'server/database';
 import { settings } from 'server/settings';
 
@@ -23,16 +25,11 @@ export class Permission {
 const PAGINATION_ERROR = { error: 'pagination' };
 
 const decodedJWTFromRequest = (req) => {
-  return new Promise(async (resolve) => {
+  return new Promise((resolve, reject) => {
     if (req.headers.authorization) {
       if (req.headers.authorization.startsWith('Bearer ')) {
         const token = req.headers.authorization.substring('Bearer '.length);
-        try {
-          const decodedJWT = await Router.getJWT(token);
-          resolve(decodedJWT);
-        } catch (_e) {
-          resolve(null);
-        }
+        Router.getJWT(token).then(resolve, reject);
       } else {
         resolve(null);
       }
@@ -79,8 +76,8 @@ export class Router {
     }
 
     method(endpoint.path, async (req, res, next) => {
-      const requires = endpoint.hasOwnProperty('requires') ? endpoint.requires : [];
-      const accessRules = endpoint.hasOwnProperty('accessRules') ? endpoint.accessRules : [];
+      const requires = endpoint.requires ? endpoint.requires : [];
+      const accessRules = endpoint.accessRules ? endpoint.accessRules : [];
       let passesAuthentication = true;
       let passesAccessRules = false;
       let notFound = false;
@@ -102,7 +99,7 @@ export class Router {
         res.status(404).end();
       } else if (!passesAuthentication || !passesAccessRules) {
         res.status(401).end();
-      } else if (endpoint.hasOwnProperty('on')) {
+      } else if (endpoint.on) {
         let decodedJwt = null;
 
         if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
@@ -120,10 +117,11 @@ export class Router {
           sentry: this.sentry,
           SibApiV3Sdk: this.SibApiV3Sdk,
           stripe: stripe(settings.stripe.secret),
-          T: this.T
+          T: this.T,
+          webRoutes: new Routes(settings.web.origin)
         };
 
-        if (req.header.hasOwnProperty('x-forwarded-for')) {
+        if (req.header['x-forwarded-for']) {
           extra.ip = req.header['x-forwarded-for'];
         } else {
           extra.ip = req.connection.remoteAddress;
@@ -132,7 +130,7 @@ export class Router {
         if (requires.includes(Require.Page)) {
           extra.pagination = { limit: DEFAULT_LIMIT };
 
-          const validLimit = req.query.hasOwnProperty('limit') &&
+          const validLimit = req.query.limit &&
             typeof req.query.limit === 'string' &&
             req.query.limit.length > 0;
 
@@ -146,7 +144,7 @@ export class Router {
             }
           }
 
-          const validPage = req.query.hasOwnProperty('page') &&
+          const validPage = req.query.page &&
             typeof req.query.page === 'string' &&
             req.query.page.length > 0;
 
@@ -191,7 +189,7 @@ export class Router {
     let passes = true;
     let validate = null;
 
-    if (endpoint.hasOwnProperty('bodySchema')) {
+    if (endpoint.bodySchema) {
       validate = this.ajv.compile(endpoint.bodySchema);
       const doValidate = typeof request.body === 'object' && request.body !== null;
       passes = doValidate ? validate(request.body) : false;
@@ -204,7 +202,7 @@ export class Router {
     let passes = true;
     let validate = null;
 
-    if (endpoint.hasOwnProperty('pathSchema')) {
+    if (endpoint.pathSchema) {
       validate = this.ajv.compile(endpoint.pathSchema);
       passes = typeof request.body === 'object' ? validate(request.params) : false;
     }
@@ -216,7 +214,7 @@ export class Router {
     let passes = true;
     let validate = null;
 
-    if (endpoint.hasOwnProperty('querySchema')) {
+    if (endpoint.querySchema) {
       validate = this.ajv.compile(endpoint.querySchema);
       passes = typeof request.query === 'object' ? validate(request.query) : false;
     }
@@ -248,7 +246,7 @@ export class Router {
       return result;
     }
 
-    if (document.hasOwnProperty('organizationId')) {
+    if (document.organizationId) {
       const organization = await this.db.collection(OrganizationCollection)
         .findOne({ _id: document.organizationId });
 

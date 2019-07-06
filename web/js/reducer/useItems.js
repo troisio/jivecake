@@ -42,6 +42,6 @@ function reducer(state, action) {
 }
 
 export const useItems = getEntityStoreHook(
-  [GET_ITEM, GET_EVENT_ITEMS, LOGOUT],
+  [GET_ITEM, GET_EVENT_ITEMS, GET_EVENT_PURCHASE_DATA, LOGOUT],
   reducer
 );

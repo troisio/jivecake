@@ -12,6 +12,7 @@ export default {
     }
   },
   stripe: {
-    clientId: '$JC_STRIPE_LIVE_CLIENT_ID'
+    clientId: '$JC_STRIPE_LIVE_CLIENT_ID',
+    publishable_api_key: '$JC_STRIPE_LIVE_PUBLISHABLE_API_KEY'
   }
 };

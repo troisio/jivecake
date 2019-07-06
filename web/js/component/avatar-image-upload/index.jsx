@@ -21,7 +21,7 @@ export function AvatarImageUpload(props) {
   }
 
   const propsCopy = _.omit(props, ['className', 'id', 'styleName', 'onFile', 'loading']);
-  const avatarProps = props.hasOwnProperty('src') ? { src: props.src } : {};
+  const avatarProps = props.src ? { src: props.src } : {};
   const avatarOrLoading = props.loading ? <Spinner styleName='spinner' /> : <Avatar styleName='avatar' { ...avatarProps } />;
 
   return (

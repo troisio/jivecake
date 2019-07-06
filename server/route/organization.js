@@ -78,20 +78,23 @@ export const CREATE_ORGANIZATION = {
 export const GET_ORGANIZATION = {
   method: 'GET',
   path: ORGANIZATION_PATH,
-  accessRules: [
-    {
-      permission: Permission.READ,
-      collection: OrganizationCollection,
-      param: 'organizationId'
-    }
-  ],
-  requires: [ Require.Authenticated ],
-  on: async (request, response, { db }) => {
+  on: async (request, response, { db, jwt }) => {
     const organization = await db.collection(OrganizationCollection)
       .findOne({ _id: new mongodb.ObjectID(request.params.organizationId) });
 
+    if (!organization) {
+      response.status(404);
+      return;
+    }
+
     if (organization.stripe) {
       organization.stripe = {};
+    }
+
+    if (!(jwt && jwt.sub)) {
+      delete organization.read;
+      delete organization.write;
+      delete organization.owner;
     }
 
     response.json(organization);

@@ -92,14 +92,19 @@ export const SUPPORTED_LANGUAGE_IDS = [Language.en, Language.fr, Language.ko];
 export const ITEM_PER_EVENT_LIMIT = 300;
 
 export class Currency {
-	static USD = 'USD';
-	static CAD = 'CAD';
-	static GBP = 'GBP';
-  static EUR = 'EUR';
-	static JPY = 'JPY';
-	static KRW = 'KRW';
+	static USD = 'usd';
+	static CAD = 'cad';
+	static GBP = 'gbp';
+  static EUR = 'eur';
+	static JPY = 'jpy';
+	static KRW = 'krw';
 }
 
-export class ExternalTransationType {
-	static STRIPE = 'STRIPE';
-}
+export const CURRENCY_TO_APPLICATION_FEE = {
+  [Currency.USD]: 100,
+  [Currency.CAD]: 100,
+  [Currency.GBP]: 100,
+  [Currency.EUR]: 100,
+  [Currency.JPY]: 100,
+  [Currency.KRW]: 1000,
+};

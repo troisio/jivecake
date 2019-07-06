@@ -44,7 +44,8 @@ import {
     GET_EVENT,
     GET_EVENT_ITEMS,
     UPDATE_EVENT,
-    GET_EVENT_PURCHASE_DATA
+    GET_EVENT_INFORMATION,
+    START_STRIPE_SESSION
 } from 'server/route/event';
 
 import {
@@ -123,7 +124,8 @@ export const run = () => {
       CREATE_EVENT,
       GET_EVENT,
       GET_EVENT_ITEMS,
-      GET_EVENT_PURCHASE_DATA,
+      GET_EVENT_INFORMATION,
+      START_STRIPE_SESSION,
 
       GET_ITEM,
       CREATE_ITEM,

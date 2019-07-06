@@ -32,7 +32,7 @@ export function OrganizationComponent() {
   const [ dispatchFetch ] = useContext(FetchDispatchContext);
 
   useEffect(() => {
-    if (!userOrganizations.hasOwnProperty(userId)) {
+    if (!userOrganizations[userId]) {
       dispatchFetch([USER_ORGANIZATIONS_PATH, userId], {
         query: {
           page: 0,
@@ -46,10 +46,10 @@ export function OrganizationComponent() {
   let noneFound;
   let loading;
 
-  if (userOrganizations.hasOwnProperty(userId)) {
+  if (userOrganizations[userId]) {
     const { pages: { 0: ids } } = userOrganizations[userId];
     const organizationsInStore = ids
-      .filter(id => organizations.hasOwnProperty(id))
+      .filter(id => organizations[id])
       .map(id => organizations[id]);
 
     rows = organizationsInStore.map(organization => {

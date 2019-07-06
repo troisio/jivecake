@@ -45,7 +45,7 @@ export function SignupComponent({ history }) {
   const emailIsAvailable = safe(() => emailFetchState.response.status === 404, false);
   const emailIsTaken = safe(() => emailFetchState.response.status === 200, false);
   const didFailToCreateAccount = safe(() => !createAccountState.response.ok, false) ||
-    safe(() => createAccountState.state.hasOwnProperty('error'), false);
+    safe(() => createAccountState.state.error, false);
   const errorMessages = [];
   const onSubmit = e => {
     e.preventDefault();

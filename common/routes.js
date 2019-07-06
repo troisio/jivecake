@@ -18,7 +18,8 @@ export const ORGANIZATION_STRIPE_CONNECT_PATH = '/organization/:organizationId/s
 export const EVENT_PATH = '/event/:eventId';
 export const EVENT_ITEMS_PATH = '/event/:eventId/item';
 export const EVENT_AVATAR_PATH = '/event/:eventId/avatar';
-export const EVENT_PURCHASE_PATH = '/event/:hash/purchase';
+export const EVENT_STRIPE_CHECKOUT_SESSION_PATH = '/event/:eventId/checkout-session';
+export const EVENT_INFORMATION_PATH = '/event/:hash/information';
 
 export const ITEM_PATH = '/item/:itemId';
 export const ITEM_AVATAR_PATH = '/item/:itemId/avatar';
