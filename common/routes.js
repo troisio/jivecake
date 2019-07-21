@@ -24,10 +24,13 @@ export const EVENT_INFORMATION_PATH = '/event/:hash/information';
 export const ITEM_PATH = '/item/:itemId';
 export const ITEM_AVATAR_PATH = '/item/:itemId/avatar';
 
+export const STRIPE_SESSION_PATH = '/stripe/checkout/sessions/:sessionId';
+
 export const ITEM_ID = 'itemId';
 export const ORGANIZATION_ID = 'organizationId';
 export const EVENT_ID = 'eventId';
 export const USER_ID = 'userId';
+export const STRIPE_SESSION_ID = 'sessionId';
 
 export class Routes {
   constructor(prefix = '') {

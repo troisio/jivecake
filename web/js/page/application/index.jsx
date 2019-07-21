@@ -85,7 +85,7 @@ export function Application() {
       <Route path={routes.event()} component={Events} />
       <Route path={routes.home()} component={Home} />
       <Route path={routes.account()} component={Account} />
-      <Route path={routes.userTransactions()} component={UserTransactions} />
+      <Route path={routes.userTransactions(':userId')} component={UserTransactions} />
       <Route path={routes.oauthRedirect()} component={OAuthRedirectPage} />
     </Switch>
   );

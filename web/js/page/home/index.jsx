@@ -12,7 +12,7 @@ import {
 } from 'web/js/context';
 
 export function Home() {
-  const { organizationId } = useContext(ApplicationContext);
+  const { organizationId, userId } = useContext(ApplicationContext);
 
   let organizationAnchors;
 
@@ -49,6 +49,12 @@ export function Home() {
           <img alt='wrench' src={svgUrl('737-wrench.svg')} />
           <span styleName='anchor-text'>
             {T('account')}
+          </span>
+        </Anchor>
+        <Anchor box button styleName='anchor' to={routes.userTransactions(userId)}>
+          <img alt='wrench' src={svgUrl('721-credit-card.svg')} />
+          <span styleName='anchor-text'>
+            {T('my transactions')}
           </span>
         </Anchor>
       </div>

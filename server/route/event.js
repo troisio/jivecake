@@ -13,6 +13,7 @@ import {
   EventCollection,
   ItemCollection,
   OrganizationCollection,
+  UserCollection,
   SORT_DIRECTIONS_AS_STRING
 } from 'server/database';
 import { Event, CURRENCY_TO_APPLICATION_FEE } from 'common/models';
@@ -75,8 +76,10 @@ export const START_STRIPE_SESSION = {
       };
     });
 
+    const user = await db.collection(UserCollection).findOne({ _id: new mongodb.ObjectID(sub) });
     const session = await stripe.checkout.sessions.create(
       {
+        customer_email: user.email,
         payment_method_types: ['card'],
         line_items,
         success_url: webRoutes.userTransactions(sub),
@@ -88,6 +91,17 @@ export const START_STRIPE_SESSION = {
             destination:  organization.stripe.stripe_user_id
           }
         },
+      }
+    );
+
+    await db.collection(UserCollection).updateOne(
+      {
+        _id: new mongodb.ObjectId(sub),
+      },
+      {
+        $push: {
+          stripeSessions: session.id
+        }
       }
     );
 

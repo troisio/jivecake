@@ -4,7 +4,8 @@ export default {
   },
   sentry: {
     dsn: '',
-    debug: true
+    debug: true,
+    environment: 'development'
   },
   digitalocean: {
     spaces: {
@@ -13,6 +14,7 @@ export default {
     }
   },
   stripe: {
-    clientId: ''
+    clientId: '',
+    publishable_api_key: ''
   }
 };

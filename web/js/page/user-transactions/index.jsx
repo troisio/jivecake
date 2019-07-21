@@ -2,89 +2,72 @@ import React, { useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 
-import { USER_TRANSACTIONS_PATH } from 'common/routes';
+import {
+  STRIPE_SESSION_PATH
+} from 'common/routes';
 
-import { SEE_MORE  } from 'web/js/helper/text';
-import { Button } from 'web/js/component/button';
-import { Pagination } from 'web/js/component/pagination';
 import './style.scss';
 
+import { NaturalSpinner } from 'web/js/component/natural-spinner';
 import { safe } from 'web/js/helper';
 import {
   FetchDispatchContext,
   FetchStateContext,
-  TransactionContext
+  UserContext,
+  StripeSessionContext
 } from 'web/js/context';
 import {
-  GET_USER_TRANSACTIONS
+  GET_STRIPE_SESSION
 } from 'web/js/reducer/useFetch';
 
 export function UserTransactionsComponent({ match: { params: { userId } } }) {
-  const transactionsMap = useContext(TransactionContext);
+  const usersMap = useContext(UserContext);
   const [ dispatchFetch, dispatchFetchDelete ] = useContext(FetchDispatchContext);
   const fetchState = useContext(FetchStateContext);
+  const stripeSessionsMap = useContext(StripeSessionContext);
 
-  const getUserTransactionsState = fetchState[GET_USER_TRANSACTIONS];
+  const getStripeSession = fetchState[GET_STRIPE_SESSION];
+  const loading = safe(() => getStripeSession.fetching);
 
-  const organizationEventsPagination = getUserTransactionsState[userId];
-  const isFetchingMore = safe(() => getUserTransactionsState.fetching);
-  const getNextPage = (page) => {
-    if (isFetchingMore) {
-      return;
-    }
-
-    const nextPage = typeof page === 'undefined' ? organizationEventsPagination.pages.length : page;
-
-    dispatchFetch(
-      [USER_TRANSACTIONS_PATH, userId],
-      {
-        query: {
-          page: nextPage,
-        }
-      },
-      GET_USER_TRANSACTIONS
-    );
-  };
-
-  const renderEvent = id => {
-    const user = transactionsMap[id];
-
-    return (
-      <div styleName='row' key={id}>
-        <span styleName='email'>{user.email}</span>
-      </div>
-    );
-  };
+  const fetchedUser = usersMap[userId];
+  const stripeSessionIds = fetchedUser ? fetchedUser.stripeSessions : [];
+  const stripeSessions = stripeSessionIds
+    .filter(id => stripeSessionsMap[id])
+    .map(id => stripeSessionsMap[id]);
 
   useEffect(() => {
     return () => {
       dispatchFetchDelete([
-        GET_USER_TRANSACTIONS
+        GET_STRIPE_SESSION
       ]);
     };
   }, []);
 
   useEffect(() => {
-    if (userId) {
-      getNextPage(0);
+    if (!fetchedUser) {
+      return;
     }
-  }, [ userId ]);
+
+    for (const sessionId of fetchedUser.stripeSessions) {
+      dispatchFetch(
+        [STRIPE_SESSION_PATH, sessionId],
+        {},
+        GET_STRIPE_SESSION
+      );
+    }
+  }, [ fetchedUser ]);
+
+  // need to associate stripe line items to internal item collection
 
   return (
     <div styleName='root'>
+      {loading && <NaturalSpinner />}
       {
-        organizationEventsPagination &&
-        <div styleName='pagination'>
-          <Pagination
-            value={organizationEventsPagination}
-            render={renderEvent}
-            more={
-              <Button loading={isFetchingMore} styleName='see-more' onClick={() => getNextPage()} type='button'>
-                {SEE_MORE}
-              </Button>
-            }
-          />
-        </div>
+        stripeSessions.map(({ session, paymentIntent }) => (
+          <div key={session.id}>
+            {paymentIntent.status}
+          </div>
+        ))
       }
     </div>
   );

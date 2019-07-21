@@ -55,6 +55,10 @@ import {
     DELETE_ITEM
 } from 'server/route/item';
 
+import {
+  GET_CHECKOUT_SESSION
+} from 'server/route/stripe';
+
 Sentry.init(settings.sentry);
 
 const application = express();
@@ -131,6 +135,8 @@ export const run = () => {
       CREATE_ITEM,
       UPDATE_ITEM,
       DELETE_ITEM,
+
+      GET_CHECKOUT_SESSION,
 
       getAvatarRoute(OrganizationCollection),
       getAvatarRoute(ItemCollection),

@@ -15,3 +15,4 @@ export const FetchDispatchContext = React.createContext();
 export const FetchStateContext = React.createContext();
 export const LocalStorageContext = React.createContext();
 export const LocalStorageDispatchContext = React.createContext();
+export const StripeSessionContext = React.createContext();

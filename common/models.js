@@ -64,6 +64,7 @@ export class User {
 	lastLanguage = null;
 	hashedPassword = null;
 	created = null;
+  stripeSessions = [];
 	lastUserActivity = null;
 	lastSystemActivity = null;
 }

@@ -91,9 +91,7 @@ export function EventComponent({ match: { params: { hash } } }) {
     if (safe(() => stripeCheckoutSessionState.response.ok)) {
       dispatchFetchDelete([ CREATE_STRIPE_CHECKOUT_SESSION ]);
 
-      stripe.redirectToCheckout({ sessionId: stripeCheckoutSessionState.body.id }).then(result => {
-        console.log('result', result);
-      });
+      stripe.redirectToCheckout({ sessionId: stripeCheckoutSessionState.body.id });
     }
   }, [ stripeCheckoutSessionState ]);
 

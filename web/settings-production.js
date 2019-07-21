@@ -3,7 +3,7 @@ export default {
     url: 'https://api.jivecake.com'
   },
   sentry: {
-    dsn: '$JC_SENTRY_DSN',
+    dsn: '$JC_WEB_SENTRY_DSN',
   },
   digitalocean: {
     spaces: {
