@@ -14,6 +14,7 @@ import {
   ItemCollection,
   OrganizationCollection,
   UserCollection,
+  TransactionCollection,
   SORT_DIRECTIONS_AS_STRING
 } from 'server/database';
 import { Event, CURRENCY_TO_APPLICATION_FEE } from 'common/models';
@@ -66,10 +67,9 @@ export const START_STRIPE_SESSION = {
     const idToItem = _.keyBy(items, '_id');
     const line_items = request.body.items.map(({ _id, quantity }) => {
       const item = idToItem[_id];
-      const images = item.avatar ? [ item.avatar ] : [];
       return {
         name: item.name,
-        images,
+        images: item.avatar ? [ item.avatar ] : [],
         amount: item.amount,
         currency: event.currency,
         quantity
@@ -94,13 +94,15 @@ export const START_STRIPE_SESSION = {
       }
     );
 
-    await db.collection(UserCollection).updateOne(
+    const userId = new mongodb.ObjectId(sub);
+
+    await db.collection(TransactionCollection).insertOne(
       {
-        _id: new mongodb.ObjectId(sub),
-      },
-      {
-        $push: {
-          stripeSessions: session.id
+        stripeSessionId: session.id,
+        userId,
+        lastSystemActivity: new Date(),
+        order: {
+          itemQuantities: request.body.items
         }
       }
     );

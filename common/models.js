@@ -48,11 +48,9 @@ export class Organization {
 export class Transaction {
 	_id = null;
 	userId = null;
-	itemId = null;
-	amount = null;
 	createdBy = null;
-	externalTransationId = null;
-	lastUserActivity = null;
+  stripeSessionId = null;
+  order = null;
 	lastSystemActivity = null;
 }
 
