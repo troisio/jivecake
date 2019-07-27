@@ -63,12 +63,10 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   const fetchedEvent = eventMap[eventId];
   const [ name, setName ] = useState(fetchedEvent ? fetchedEvent.name : '');
   const [ currency, setCurrency ] = useState(fetchedEvent ? fetchedEvent.currency : null);
-  const [ eventAvatarLoading, setEventAvatarLoading ] = useState(false);
   const [ organizationName, setOrganizationName ] = useState('');
   const [ organizationEmail, setOrganizationEmail ] = useState(user.email);
   const [ eventAvatar, setEventAvatar ] = useState(fetchedEvent ? fetchedEvent.avatar : null);
-  const [ eventAvatarBlob, setEventAvatarBlob ] = useState(null);
-  const [ unableToCompressFile, setUnableToCompressFile ] = useState(false);
+  const [ avatarBlob, setAvatarBlob ] = useState(null);
 
   const isFetchingEvent = safe(() => getEventState.fetching) &&
     eventId === safe(() => getEventState.params.eventId);
@@ -79,38 +77,25 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
     safe(() => createOrganizationState.fetching) ||
     safe(() => updateEventAvatarState.fetching) ||
     safe(() => updateEventState.fetching);
-  const onEventAvatar = (file) => {
-    setEventAvatarLoading(true);
+  const onEventhAvatarChange = e => {
+    if (e.target.files.length !== 1) {
+      return;
+    }
+
+    const file = e.target.files[0];
 
     if (file.size > MAXIMUM_IMAGE_UPLOAD_BYTES) {
       new Compressor(file, {
         quality: MAXIMUM_IMAGE_UPLOAD_BYTES / file.size,
         success(result) {
-          const reader = new FileReader();
-
-          reader.onload = () => {
-            setEventAvatar(reader.result);
-            setEventAvatarBlob(result);
-            setEventAvatarLoading(false);
-          };
-          reader.readAsDataURL(result);
+          setAvatarBlob(result);
         },
         error() {
-          setEventAvatarLoading(false);
-          setUnableToCompressFile(true);
+          setAvatarBlob(null);
         },
       });
     } else if (file.type.startsWith('image')) {
-      setEventAvatarBlob(file);
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        setEventAvatar(reader.result);
-        setEventAvatarLoading(false);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setEventAvatarLoading(false);
+      setAvatarBlob(file);
     }
   };
   const onSubmit = e => {
@@ -131,8 +116,9 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
     };
 
     if (eventId) {
+      const confirmMessage = T('Careful, changing your currency will change the price of your items.') + ' ' +  T('Are you sure you want to update?');
       const doNotContinue = fetchedEvent.currency !== null && eventBody.currency !== fetchedEvent.currency &&
-        !window.confirm(T('You are changing currencies. Are you sure you want to update?'));
+        !window.confirm(confirmMessage);
 
       if (doNotContinue) {
         return;
@@ -143,10 +129,10 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
         body: eventBody
       }, UPDATE_EVENT);
 
-      if (eventAvatarBlob) {
+      if (avatarBlob) {
         dispatchFetch([EVENT_AVATAR_PATH, eventId], {
           method: 'POST',
-          body: eventAvatarBlob
+          body: avatarBlob
         }, UPDATE_EVENT_AVATAR);
       }
     } else if (applicationState.organizationId) {
@@ -203,7 +189,7 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
   useEffect(() => {
     if (safe(() => updateEventAvatarState.response.ok)) {
       dispatchFetchDelete([ UPDATE_EVENT_AVATAR ]);
-      setEventAvatarBlob(null);
+      setAvatarBlob(null);
       toast(UPDATE_SUCCESS);
     }
   }, [ updateEventAvatarState, eventId ]);
@@ -234,10 +220,10 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
       return;
     }
 
-    if (eventAvatarBlob) {
+    if (avatarBlob) {
       dispatchFetch([EVENT_AVATAR_PATH, createEventState.body._id], {
         method: 'POST',
-        body: eventAvatarBlob
+        body: avatarBlob
       }, UPDATE_EVENT_AVATAR);
     } else {
       history.push(routes.event(createEventState.body._id));
@@ -305,12 +291,8 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
 
   const messages = [];
 
-  if (eventAvatarBlob && !eventAvatarBlob.type.startsWith('image')) {
+  if (avatarBlob && !avatarBlob.type.startsWith('image')) {
     messages.push(T('Please choose an image'));
-  }
-
-  if (unableToCompressFile) {
-    messages.push(T('Unable to compress image file'));
   }
 
   if (isFetchingEvent) {
@@ -324,10 +306,9 @@ export function EventPersistComponent({ history, match: { params: { eventId } } 
           {T('Event Avatar')}
         </label>
         <AvatarImageUpload
-          { ...avatarImageUploadProps }
-          loading={eventAvatarLoading}
           id='event-avatar'
-          onFile={onEventAvatar}
+          onChange={onEventhAvatarChange}
+          { ...avatarImageUploadProps }
         />
       </div>
       <div styleName='form-row'>

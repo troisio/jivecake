@@ -62,7 +62,8 @@ export const getAvatarRoute = (collection) => {
       } else if (type === 'image/png') {
         ext = '.png';
       } else {
-        return response.status(415).end();
+        response.status(415).end();
+        return;
       }
 
       if (entity.avatar !== null) {

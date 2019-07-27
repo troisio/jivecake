@@ -4,6 +4,7 @@ import _ from 'lodash';
 
 import {
   EVENT_PATH,
+  ITEM_PATH,
   ORGANIZATION_PATH
 } from 'common/routes';
 
@@ -77,7 +78,7 @@ export function useFetch(token) {
 
     if (data.options.body instanceof Blob) {
       data.options.headers['Content-Type'] = data.options.body.type;
-    } else if (typeof data.options.body === 'object') {
+    } else if (typeof data.options.body === 'object' && data.options.body !== null) {
       data.originalBody = options.body;
       data.options.body = JSON.stringify(data.options.body);
       data.options.headers['Content-Type'] = 'application/json';
@@ -164,6 +165,8 @@ export function useFetch(token) {
     });
   };
 
+  // TODO refactor
+
   const watchActionPairs = [
     [CREATE_EVENT, 'body._id', EVENT_PATH, GET_EVENT],
     [UPDATE_EVENT_AVATAR, 'params.eventId', EVENT_PATH, GET_EVENT],
@@ -171,15 +174,20 @@ export function useFetch(token) {
     [UPDATE_ORGANIZATION, 'params.organizationId', ORGANIZATION_PATH, GET_ORGANIZATION],
     [CREATE_ORGANIZATION, 'body._id', ORGANIZATION_PATH, GET_ORGANIZATION],
     [UPDATE_ORGANIZATION_AVATAR, 'params.organizationId', ORGANIZATION_PATH, GET_ORGANIZATION],
-    [ORGANIZATION_STRIPE_CONNECT, 'params.organizationId', ORGANIZATION_PATH, GET_ORGANIZATION]
+    [ORGANIZATION_STRIPE_CONNECT, 'params.organizationId', ORGANIZATION_PATH, GET_ORGANIZATION],
+    [UPDATE_ITEM_AVATAR, 'params.itemId', ITEM_PATH, GET_ITEM],
+    [PERSIST_ITEM, state => {
+      return state.body && state.body._id ? state.body._id: state.params.itemId;
+    }, ITEM_PATH, GET_ITEM]
   ];
 
-  for (const [type, statePath, apiPath, writeFetchKey] of watchActionPairs) {
+  for (const [type, getValue, apiPath, writeFetchKey] of watchActionPairs) {
     const eventState = state[type];
 
     useEffect(() => {
       if (safe(() => eventState.response.ok)) {
-        resultDispatch([apiPath, _.get(eventState, statePath)], {}, writeFetchKey);
+        const value = typeof getValue === 'function' ? getValue(eventState): _.get(eventState, getValue);
+        resultDispatch([apiPath, value], {}, writeFetchKey);
       }
     }, [ eventState ]);
   }

@@ -107,7 +107,7 @@ export function EventComponent({ match: { params: { hash } } }) {
                   {item.name}
                 </span>
                 <select onBlur={e => onSelectChange(item, e)}>
-                  {Array.from(new Array(30)).map((_, index) => <option key={index} value={index}>{index}</option>)}
+                  {Array.from(new Array(31)).map((_, index) => <option key={index} value={index}>{index}</option>)}
                 </select>
               </React.Fragment>
             );

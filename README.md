@@ -18,11 +18,18 @@ npm run watch-web
 npm run watch-server
 ```
 
-### run project
+### clean and run project
 
 ```sh
 docker-compose down
+docker-compose rm
 docker-compose up
+```
+
+### restart without cleaning database
+
+```sh
+docker-compose restart
 ```
 
 ### generate public private keys for jwt signing

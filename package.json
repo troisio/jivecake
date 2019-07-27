@@ -71,7 +71,7 @@
     "regenerator-runtime": "^0.13.2",
     "sass-loader": "^7.1.0",
     "sib-api-v3-sdk": "^7.1.4",
-    "stripe": "^7.4.0",
+    "stripe": "^7.5.0",
     "style-loader": "^0.23.1",
     "webpack": "^4.35.2",
     "webpack-cli": "^3.3.5",

@@ -17,11 +17,10 @@ import {
   TransactionCollection,
   SORT_DIRECTIONS_AS_STRING
 } from 'server/database';
-import { Event, CURRENCY_TO_APPLICATION_FEE } from 'common/models';
+import { Event, Transaction, CURRENCY_TO_APPLICATION_FEE } from 'common/models';
 import { EVENT_SCHEMA, EVENT_PURCHASE_SCHEMA } from 'common/schema';
-import { getHashSelections, getRandomString } from 'common/helpers';
-
-const HASH_SELECTIONS = getHashSelections();
+import { getHashSelections } from 'common/helpers';
+import { updatePaymentIntent } from 'server/helper/stripe';
 
 export const START_STRIPE_SESSION = {
   method: 'POST',
@@ -50,6 +49,18 @@ export const START_STRIPE_SESSION = {
       return;
     }
 
+    const getTransactions = () => db.collection(TransactionCollection)
+      .find({ eventId: event._id })
+      .toArray();
+
+    await updatePaymentIntent(db, stripe, await getTransactions());
+
+    const idToQuantity = await db.collection(TransactionCollection).aggregate([
+      { $match: { eventId: event._id, 'paymentIntent.status': 'succeeded' } },
+      { $unwind : '$items' },
+      { $group : { _id: '_id', quantity: { $sum: '$quantity' } } }
+    ]).toArray();
+
     const itemIds = request.body.items.map(({ _id }) => new mongodb.ObjectId(_id));
     const items = await db.collection(ItemCollection)
       .find({
@@ -65,6 +76,18 @@ export const START_STRIPE_SESSION = {
     }
 
     const idToItem = _.keyBy(items, '_id');
+
+    for (const { _id, quantity } of request.body.items) {
+      const searchedItem = idToQuantity.find(item => new mongodb.ObjectId(_id).equals(item._id));
+      const totalAfterTransaction = quantity + (searchedItem ? searchedItem.quantity : 0);
+
+      const item = idToItem[_id];
+      if (item.maxiumumAvailable && totalAfterTransaction > item.maxiumumAvailable) {
+        response.json({ error: 'maxiumumAvailable', item: item._id }).status(400).end();
+        return;
+      }
+    }
+
     const line_items = request.body.items.map(({ _id, quantity }) => {
       const item = idToItem[_id];
       return {
@@ -93,19 +116,19 @@ export const START_STRIPE_SESSION = {
         },
       }
     );
+    const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
 
     const userId = new mongodb.ObjectId(sub);
 
-    await db.collection(TransactionCollection).insertOne(
-      {
-        stripeSessionId: session.id,
-        userId,
-        lastSystemActivity: new Date(),
-        order: {
-          itemQuantities: request.body.items
-        }
-      }
-    );
+    const transaction = new Transaction();
+    transaction.eventId = event._id;
+    transaction.userId = userId;
+    transaction.session = session;
+    transaction.paymentIntent = paymentIntent;
+    transaction.items = request.body.items;
+    transaction.created = new Date();
+
+    await db.collection(TransactionCollection).insertOne(transaction);
 
     response.json(session).end();
   }
@@ -173,7 +196,7 @@ export const CREATE_EVENT = {
     const event = Object.assign(new Event(), request.body);
     event.organizationId = new mongodb.ObjectID(request.params.organizationId);
     event.created = new Date();
-    event.hash = getRandomString(HASH_SELECTIONS, 6);
+    event.hash = _.sampleSize(getHashSelections(), 6).join('');
     event.lastUserActivity = new Date();
 
     await db.collection(EventCollection).insertOne(event);

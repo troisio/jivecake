@@ -60,6 +60,11 @@ export function OrganizationPersistComponent({ history, match: { params: { organ
   const loading = safe(() => createOrganizationState.fetching) ||
     safe(() => updateOrganizationAvatarState.fetching) ||
     safe(() => updateOrganizationState.fetching);
+
+  /*
+    TODO refactor update to avatar AvatarImageUpload
+  */
+
   const onFile = file => {
     setAvatarLoading(true);
 

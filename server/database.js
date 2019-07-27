@@ -37,6 +37,7 @@ export const getDatabase = async () => {
 
     const transactionCollection = db.collection(TransactionCollection);
     await transactionCollection.createIndex({ userId: 1 });
+    await transactionCollection.createIndex({ eventId: 1 });
 
     const passwordRecoveryCollcetion = db.collection(PasswordRecoveryCollection);
     await passwordRecoveryCollcetion.createIndex({ userId: 1 });

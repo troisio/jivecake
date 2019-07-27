@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import mongodb from 'mongodb';
 
-import { TransactionCollection } from 'server/database';
 import jwtkeysecret from 'server/extra/jwt/jwt.key';
 import { settings } from 'server/settings';
 
@@ -11,6 +10,7 @@ import { Require, Permission } from 'server/router';
 import {
   OrganizationCollection,
   PasswordRecoveryCollection,
+  TransactionCollection,
   UserCollection,
   EMAIL_COLLATION
 } from 'server/database';
@@ -26,6 +26,7 @@ import {
 } from 'common/routes';
 import { USER_SCHEMA } from 'common/schema';
 import { getUserLanguage } from 'common/helpers';
+import { updatePaymentIntent } from 'server/helper/stripe';
 
 const getHashedPassword = (password) => {
   return new Promise((resolve, reject) => {
@@ -271,18 +272,21 @@ export const GET_USER_TRANSACTIONS = {
     Require.Authenticated,
     Require.Page
   ],
-  on: async (request, response, { db, pagination: { skip, limit } }) => {
-    const cursor = await db.collection(TransactionCollection)
-      .find({ userId: new mongodb.ObjectID(request.params.userId) })
+  on: async (request, response, { db, pagination: { skip, limit }, stripe }) => {
+    const getCursor = () => db.collection(TransactionCollection)
+      .find({
+        userId: new mongodb.ObjectID(request.params.userId),
+        'paymentIntent.status': 'succeeded'
+      })
       .skip(skip)
       .limit(limit);
+    await updatePaymentIntent(db, stripe, await getCursor().toArray());
 
-    const countFuture = cursor.count();
-    const entityFuture = cursor.toArray();
+    const cursor = getCursor();
 
     response.json({
-      count: await countFuture,
-      entity: await entityFuture
+      count: await cursor.count(),
+      entity: await cursor.toArray(),
     });
   }
 };

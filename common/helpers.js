@@ -17,6 +17,10 @@ export const getMinimumChargeAmount = (currency) => {
     return 3000;
   }
 
+  if (currency === Currency.JPY) {
+    return 400;
+  }
+
   return 3;
 };
 
@@ -34,16 +38,6 @@ export const getHashSelections = () => {
   }
 
   return result;
-};
-
-export const getRandomString = (selection, length) => {
-	let result = '';
-
-	for (let index = 0; index < length; index++) {
-		result += selection[Math.floor(Math.random() * selection.length)];
-	}
-
-	return result;
 };
 
 export const getUserLanguage = (user = null, navigator = null) => {

@@ -4,6 +4,10 @@
 .root {
   border-radius: 50%;
 
+  &:not(.empty) {
+    box-shadow: 0 1px 3px rgba(34, 25, 25, 0.4);
+  }
+
   @include phone() {
     height: $avatar_height_phone;
     width: $avatar_height_phone;

@@ -7,16 +7,13 @@ import { Permission } from 'server/router';
 import { EventCollection, ItemCollection, TransactionCollection } from 'server/database';
 import { ITEM_SCHEMA } from 'common/schema';
 
+/*
+  TODO:GET_ITEM hide details based on access
+*/
+
 export const GET_ITEM = {
   method: 'GET',
   path: ITEM_PATH,
-  accessRules: [
-    {
-      permission: Permission.READ,
-      collection: ItemCollection,
-      param: 'itemId'
-    }
-  ],
   on: async (request, response, { db }) => {
     const entity = await db.collection(ItemCollection)
       .findOne({ _id: new mongodb.ObjectID(request.params.itemId) });
@@ -62,7 +59,10 @@ export const CREATE_ITEM = {
       param: 'eventId'
     }
   ],
-  bodySchema: ITEM_SCHEMA,
+  bodySchema: {
+    ...ITEM_SCHEMA,
+    required: ITEM_SCHEMA.required.filter(field => field !== 'order')
+  },
   on: async (request, response, { db }) => {
     const eventId = new mongodb.ObjectID(request.params.eventId);
     const ITEM_COLLECTION = db.collection(ItemCollection);
@@ -74,14 +74,8 @@ export const CREATE_ITEM = {
 
     if (itemCounts >= ITEM_PER_EVENT_LIMIT) {
       response.json({ error: 'limit' }).status(400).end();
+      return;
     }
-
-    const item = Object.assign(new Item(), request.body);
-
-    item.eventId = eventId;
-    item.organizationId = event.organizationId;
-    item.lastUserActivity = new Date();
-    item.created = new Date();
 
     const maximumItems = await ITEM_COLLECTION
       .find({ eventId })
@@ -89,10 +83,17 @@ export const CREATE_ITEM = {
       .limit(1)
       .toArray();
 
-    if (maximumItems.length > 0) {
-      const [ maximumItem ] = maximumItems;
-      item.order = maximumItem.order + 1;
-    }
+    const item = Object.assign(
+      new Item(),
+      request.body,
+      {
+        eventId,
+        organizationId: event.organizationId,
+        lastUserActivity: new Date(),
+        created: new Date(),
+        order: maximumItems.length > 0 ? maximumItems[0].order + 1: 0,
+      }
+    );
 
     await db.collection(ItemCollection).insertOne(item);
     response.json({ _id: item._id });

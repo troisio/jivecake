@@ -82,10 +82,10 @@ export function Events() {
       <React.Fragment key={event._id}>
         {
           event.avatar ?
-          <Anchor styleName='event-avatar' to={routes.event(event._id)}>
-            <Avatar src={event.avatar} />
+          <Anchor to={routes.event(event._id)}>
+            <Avatar styleName='avatar' src={event.avatar} />
           </Anchor>
-          : <div styleName='event-avatar'></div>
+          : <div></div>
         }
         <div styleName='information'>
           <Anchor to={routes.event(event._id)}>
@@ -138,7 +138,6 @@ export function Events() {
             value={organizationEventsPagination}
             render={renderEvent}
             more={seeMoreButton}
-            styleName='pagination'
           />
       }
     </div>

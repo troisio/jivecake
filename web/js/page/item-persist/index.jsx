@@ -1,3 +1,4 @@
+import Compressor from 'compressorjs';
 import React, { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
@@ -5,11 +6,12 @@ import { toast } from 'react-toastify';
 
 import { T } from 'common/i18n';
 import { CURRENCY_AND_LABELS, getMinimumChargeAmount } from 'common/helpers';
-import { ITEM_SCHEMA } from 'common/schema';
+import { ITEM_SCHEMA, MAXIMUM_IMAGE_UPLOAD_BYTES } from 'common/schema';
 import {
   EVENT_PATH,
   ITEM_PATH,
-  EVENT_ITEMS_PATH
+  EVENT_ITEMS_PATH,
+  ITEM_AVATAR_PATH
 } from 'common/routes';
 
 import { hasMinorUnits } from 'web/js/helper/currency';
@@ -46,7 +48,8 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
   const fetchedEvent = eventsMap[eventId];
   const [ name, setName ] = useState(fetchedItem ? fetchedItem.name : '');
   const [ amountText, setAmountText ] = useState(fetchedItem ? fetchedItem.amount.toString() : '');
-  const avatarImageUploadProps = fetchedItem ? { src: fetchedItem.src } : {};
+  const [ avatarBlob, setAvatarBlob ] = useState(null);
+  const avatarImageUploadProps = fetchedItem && fetchedItem.avatar ? { src: fetchedItem.avatar } : {};
 
   const persistItemState = fetchState[PERSIST_ITEM];
   const updateAvatarState = fetchState[UPDATE_ITEM_AVATAR];
@@ -56,8 +59,26 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
   const isFetchingData = !fetchedEvent || ( !fetchedItem && itemId);
   const currencyLabel = CURRENCY_AND_LABELS.find(({ id }) => id === safe(() => fetchedEvent.currency));
 
-  const onFile = () => {
+  const onFileChange = e => {
+    if (e.target.files.length !== 1) {
+      return;
+    }
 
+    const file = e.target.files[0];
+
+    if (file.size > MAXIMUM_IMAGE_UPLOAD_BYTES) {
+      new Compressor(file, {
+        quality: MAXIMUM_IMAGE_UPLOAD_BYTES / file.size,
+        success(result) {
+          setAvatarBlob(result);
+        },
+        error() {
+          setAvatarBlob(null);
+        },
+      });
+    } else if (file.type.startsWith('image')) {
+      setAvatarBlob(file);
+    }
   };
   const onSubmit = (e) => {
     e.preventDefault();
@@ -91,28 +112,39 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
       [ITEM_PATH, itemId] :
       [EVENT_ITEMS_PATH, eventId];
 
+    if (itemId && avatarBlob) {
+      dispatchFetch([ITEM_AVATAR_PATH, itemId], {
+        method: 'POST',
+        body: avatarBlob
+      }, UPDATE_ITEM_AVATAR);
+    }
+
+    const body = {
+      name,
+      maximumAvailable: null,
+      amount: derivedAmount
+    };
+
+    if (!itemId) {
+      body.published = false;
+    }
+
     dispatchFetch(path, {
       method: 'POST',
-      body: {
-        name,
-        maximumAvailable: null,
-        published: false,
-        amount: derivedAmount,
-        order: 0
-      }
+      body
     }, PERSIST_ITEM);
   };
 
   useEffect(() => {
     return () => {
-      dispatchFetchDelete([GET_EVENT, GET_ITEM, PERSIST_ITEM]);
+      dispatchFetchDelete([GET_EVENT, GET_ITEM, PERSIST_ITEM, UPDATE_ITEM_AVATAR]);
     };
   }, []);
 
   useEffect(() => {
     if (fetchedEvent && fetchedItem) {
-      if (hasMinorUnits(fetchedEvent.currency) && fetchedEvent.amount) {
-        setAmountText(fetchedEvent.amount / 100 + '');
+      if (hasMinorUnits(fetchedEvent.currency) && fetchedItem.amount) {
+        setAmountText(fetchedItem.amount / 100 + '');
       } else {
         setAmountText(fetchedItem.amount ? fetchedItem.amount.toString() : '');
       }
@@ -133,10 +165,31 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
 
   useEffect(() => {
     if (safe(() => persistItemState.response.ok)) {
+      if (avatarBlob) {
+        dispatchFetch([ITEM_AVATAR_PATH, itemId], {
+          method: 'POST',
+          body: avatarBlob
+        }, UPDATE_ITEM_AVATAR);
+      } else {
+        toast(UPDATE_SUCCESS);
+        history.push(routes.event(eventId));
+      }
+    }
+  }, [ persistItemState ]);
+
+  useEffect(() => {
+    if (safe(() => updateAvatarState.response.ok)) {
+      dispatchFetchDelete([UPDATE_SUCCESS]);
       toast(UPDATE_SUCCESS);
       history.push(routes.event(eventId));
     }
-  }, [ persistItemState ]);
+  }, [ updateAvatarState ]);
+
+  useEffect(() => {
+    if (fetchedItem) {
+      setName(fetchedItem.name);
+    }
+  }, [ fetchedItem ]);
 
   if (isFetchingData) {
     return <Loading />;
@@ -152,7 +205,7 @@ export function ItemPersistComponent({ history, match: { params: { eventId, item
           { ...avatarImageUploadProps }
           loading={updatingAvatar}
           id='avatar'
-          onFile={onFile}
+          onChange={onFileChange}
         />
         <label styleName='label'>
           {T('Name')}

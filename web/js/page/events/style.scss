@@ -1,8 +1,8 @@
 @import '~web/sass/mixin';
 
-.event-avatar {
-  height: 50px;
-  width: 50px;
+.avatar {
+  display: block;
+  height: 100%;
 }
 
 .event-name {
@@ -19,16 +19,12 @@
   }
 }
 
-.pagination {
-  padding: 0;
-}
-
 .root {
   @include defaultLayout();
   margin-bottom: 12px;
   display: grid;
+  align-items: center;
   grid-template-columns: max-content 1fr max-content max-content;
-  align-items: flex-start;
   gap : 8px;
 }
 

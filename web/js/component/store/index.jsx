@@ -10,7 +10,8 @@ import {
   UserOrganizationContext,
   OrganizationEventsContext,
   ItemTransactionsContext,
-  StripeSessionContext
+  UserTransactionsContext,
+  TransactionContext
 } from 'web/js/context';
 
 import { useUsers } from 'web/js/reducer/useUsers';
@@ -21,7 +22,8 @@ import { useItemTransactions } from 'web/js/reducer/useItemTransactions';
 import { useEventItems } from 'web/js/reducer/useEventItems';
 import { useEvents } from 'web/js/reducer/useEvents';
 import { useItems } from 'web/js/reducer/useItems';
-import { useStripeSessions } from 'web/js/reducer/useStripeSessions';
+import { userUserTransactions } from 'web/js/reducer/userUserTransactions';
+import { useTransactions } from 'web/js/reducer/useTransactions';
 
 export function Store({ children }) {
   const [ usersState ] = useUsers();
@@ -32,28 +34,31 @@ export function Store({ children }) {
   const [ eventItemsState ] = useEventItems();
   const [ itemsState ] = useItems();
   const [ eventsState ] = useEvents();
-  const [ stripeSessionState ] = useStripeSessions();
+  const [ userTransactionsState ] = userUserTransactions();
+  const [ transactionsState ] = useTransactions();
 
   return (
-    <StripeSessionContext.Provider value={stripeSessionState}>
-      <UserContext.Provider value={usersState}>
-        <UserOrganizationContext.Provider value={userOrganizationsState}>
-          <OrganizationEventsContext.Provider value={organizationEventsState}>
-            <EventItemsContext.Provider value={eventItemsState}>
-              <ItemTransactionsContext.Provider value={itemTransactionsState}>
-                <OrganizationContext.Provider value={organizationsState}>
-                  <EventContext.Provider value={eventsState}>
-                    <ItemContext.Provider value={itemsState}>
-                      {children}
-                    </ItemContext.Provider>
-                  </EventContext.Provider>
-                </OrganizationContext.Provider>
-              </ItemTransactionsContext.Provider>
-            </EventItemsContext.Provider>
-          </OrganizationEventsContext.Provider>
-        </UserOrganizationContext.Provider>
-      </UserContext.Provider>
-    </StripeSessionContext.Provider>
+    <TransactionContext.Provider value={transactionsState}>
+      <UserTransactionsContext.Provider value={userTransactionsState}>
+        <UserContext.Provider value={usersState}>
+          <UserOrganizationContext.Provider value={userOrganizationsState}>
+            <OrganizationEventsContext.Provider value={organizationEventsState}>
+              <EventItemsContext.Provider value={eventItemsState}>
+                <ItemTransactionsContext.Provider value={itemTransactionsState}>
+                  <OrganizationContext.Provider value={organizationsState}>
+                    <EventContext.Provider value={eventsState}>
+                      <ItemContext.Provider value={itemsState}>
+                        {children}
+                      </ItemContext.Provider>
+                    </EventContext.Provider>
+                  </OrganizationContext.Provider>
+                </ItemTransactionsContext.Provider>
+              </EventItemsContext.Provider>
+            </OrganizationEventsContext.Provider>
+          </UserOrganizationContext.Provider>
+        </UserContext.Provider>
+      </UserTransactionsContext.Provider>
+    </TransactionContext.Provider>
   );
 }
 
